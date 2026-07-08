@@ -1,7 +1,7 @@
 # ProGuard configuration for Neutron JVM Emulator
--optimizationpasses 3
+-optimizationpasses 5
 -overloadaggressively
--repackageclasses 'org.neutron.internal'
+-repackageclasses 'a'
 -allowaccessmodification
 -dontwarn
 -dontnote
