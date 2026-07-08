@@ -1,5 +1,16 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.guardsquare:proguard-gradle:7.6.1'
+    }
+}
+
 apply plugin: 'java-library'
 apply plugin: 'application'
+
+import proguard.gradle.ProGuardTask
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -21,3 +32,21 @@ jar {
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+task proguard(type: ProGuardTask, dependsOn: jar) {
+    injars jar.archiveFile
+    outjars "${buildDir}/libs/neutron-javase-swing-2.0.5-SNAPSHOT-shrunk.jar"
+
+    if (System.getProperty('java.version').startsWith('1.')) {
+        libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
+    } else {
+        libraryjars "${System.getProperty('java.home')}/jmods/java.base.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+        libraryjars "${System.getProperty('java.home')}/jmods/java.desktop.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+        libraryjars "${System.getProperty('java.home')}/jmods/java.datatransfer.jmod", jarfilter: '!**.jar', filter: '!module-info.class'
+    }
+
+    configuration 'proguard.pro'
+}
+
+// Make assemble depend on proguard so the shrunk version is built automatically
+assemble.dependsOn proguard
