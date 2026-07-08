@@ -6,9 +6,9 @@
 -dontwarn
 -dontnote
 
-# Keep all microedition APIs completely intact so MIDlets can find and call them
--keep class javax.microedition.** {
-    *;
+# Keep all public/protected microedition classes and members intact so MIDlets can find and call them
+-keep public class javax.microedition.** {
+    public protected *;
 }
 
 # Keep main entry points
@@ -42,9 +42,6 @@
 -keep class org.neutron.app.util.FileRecordStoreManager {
     <init>();
 }
--keep class org.neutron.applet.CookieRecordStoreManager {
-    <init>();
-}
 
 # Keep connection classes because they are loaded dynamically by protocol name
 -keep class org.neutron.cldc.**.Connection {
@@ -68,6 +65,22 @@
 }
 -keep class org.neutron.app.util.MIDletTimerTask {
     *;
+}
+
+# Strip out debug log statements to shrink bytecode size
+-assumenosideeffects class org.neutron.log.Logger {
+    public static void debug(java.lang.String);
+    public static void debug(java.lang.String, java.lang.Throwable);
+    public static void debug(java.lang.Throwable);
+    public static void debug(java.lang.String, java.lang.String);
+    public static void debug(java.lang.String, java.lang.Object);
+    public static void debug(java.lang.String, java.lang.String, java.lang.String);
+    public static void debug(java.lang.String, long);
+    public static void debug0x(java.lang.String, long);
+    public static void debug(java.lang.String, long, long);
+    public static void debug(java.lang.String, boolean);
+    public static void debugClassLoader(java.lang.String, java.lang.Object);
+    public static boolean isDebugEnabled();
 }
 
 # Keep serializable members
