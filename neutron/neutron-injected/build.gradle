@@ -1,0 +1,16 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+configurations {
+    inject
+}
+
+jar {
+    archiveClassifier.set('inject')
+}
+
+artifacts {
+    inject(jar)
+}

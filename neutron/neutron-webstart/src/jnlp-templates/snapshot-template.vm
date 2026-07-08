@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp
+  spec="1.0+"
+  codebase="http://snapshot.neutron.org/neutron-webstart"
+  href="demo.jnlp">
+  <information>
+    <title>Neutron</title>
+    <vendor>Bartek Teodorczyk & Vlad Skarzhevskyy</vendor>
+    <homepage href="http://www.neutron.org/"/>
+    <description>Neutron</description>
+    <description kind="short">Neutron</description>
+    <icon href="icon.png"/>
+    <offline-allowed/>
+  </information>
+
+  <security>
+      <all-permissions/>
+  </security>
+  <update check="always"/>
+
+  <resources>
+    <j2se version="1.5+"/>
+    $dependencies
+  </resources>
+
+  <application-desc main-class="$mainClass">
+        <argument>--impl</argument>
+        <argument>org.neutron.cldc.file.FileSystem</argument>
+        <!--jadRewrite--><argument>org.neutron.midp.examples.simpledemo.SimpleDemoMIDlet</argument><!--jadRewrite-->
+  </application-desc>
+
+</jnlp>

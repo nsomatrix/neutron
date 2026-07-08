@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<assembly>
+    <!-- @version $Revision$ ($Author$) $Date$ -->
+    <id>sources</id>
+    <formats>
+        <format>jar</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>${basedir}/../neutron-cldc/src/main/java</directory>
+            <outputDirectory></outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}/../neutron-midp/src/main/java</directory>
+            <outputDirectory></outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}/../neutron-javase/src/main/java</directory>
+            <outputDirectory></outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}/../neutron-javase/src/main/resources</directory>
+            <outputDirectory></outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}/../neutron-javase-swing/src/main/java</directory>
+            <outputDirectory></outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+        <fileSet>
+            <directory>${basedir}/../neutron-javase-swt/src/main/java</directory>
+            <outputDirectory></outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+    </fileSets>
+</assembly>

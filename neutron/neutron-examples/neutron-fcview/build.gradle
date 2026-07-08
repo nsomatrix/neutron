@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    api project(':neutron:neutron-midp')
+    api project(':neutron:neutron-cldc')
+    api project(':neutron:neutron-extensions:neutron-jsr-75')
+    api project(':neutron:neutron-javase-swing')
+}

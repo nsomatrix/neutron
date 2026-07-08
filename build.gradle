@@ -1,0 +1,14 @@
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+
+    group = 'org.neutron'
+    version = '2.0.5-SNAPSHOT'
+
+    repositories {
+        mavenCentral()
+    }
+
+    // Common dependencies or configurations can go here
+}

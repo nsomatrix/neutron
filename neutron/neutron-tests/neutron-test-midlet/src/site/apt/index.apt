@@ -1,0 +1,23 @@
+~~ @version $Revision$ ($Author$) $Date$
+~~ See this file format http://maven.apache.org/guides/mini/guide-apt-format.html
+
+                                    ------------------
+                                    About neutron-test-midlet
+                                    ------------------
+
+
+About neutron-test-midlet
+
+  This project tests some Neutron using <<{{{http://snapshot.pyx4me.com/pyx4me-cldcunit/}CLDCUnit}}>> J2ME JUnit base test framework.
+
+  J2ME application distributon {{neutron-test-midlet-#version#-test.jad}} and {{neutron-test-midlet-#version#-test.jar}} has two MIDLets.
+
+    *  MainTest is used to execute tests manualy during .
+
+    *  UnitTests is used to execute JUnit tests.
+
+  See the {{{source-repository.html}sources}} for this project.
+
+* Try this MIDlet
+
+   Start Neutron Web Start {{{/neutron-webstart/open-local/~/neutron-tests/neutron-test-midlet/neutron-test-midlet-#version#-test.jnlp}neutron-test-midlet-#version#-test}}

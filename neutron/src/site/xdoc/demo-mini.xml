@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document>
+  <properties>
+    <title>Applet demonstration</title>
+  </properties>
+  <body>
+    <section name="Neutron running as applet">
+
+        <div align="center">
+            <applet code="org.neutron.applet.Main" width="157" height="285" archive="neutron-javase-applet/neutron-javase-applet.jar,neutron-extensions/neutron-device-minimum/neutron-device-minimum.jar,neutron-examples/neutron-demo/neutron-demo.jar">
+                <param name="midlet" value="org.neutron.midp.examples.simpledemo.SimpleDemoMIDlet"/>
+                <param name="device" value="org/neutron/device/minimum/device-color.xml"/>
+            </applet>
+        </div>
+
+        <a href="demo.html">Neutron default skin</a><br/>
+        <a href="neutron-webstart/index.html">Neutron Web Start demo</a>
+    </section>
+
+    <subsection name="Credits">
+        This image is created base on art work of <a href="http://www.istockphoto.com/fontmonster/">David Luscombe</a>.
+        <!-- His combined book-and-DVD package <a href="http://www.amazon.co.uk/exec/obidos/ASIN/1861542739/fontmonster-21/026-0229972-7834817">Freewave</a>. -->
+    </subsection>
+
+    <section name="Other Neutron applet examples">
+        <a href="http://www.opera.com/mini/demo/">Live demo of Opera Mini</a><br/>
+        <a href="http://www.petitpub.com/labs/j2me/me/tutorial/SonyEricsson/index.htm">Bertil Gralvik SonyEricsson T610 example</a><br/>
+        <a href="http://startofentry.blogdns.org/space/5ud0ku/webdemo">Sudoku</a><br/>
+    </section>
+
+  </body>
+</document>
+

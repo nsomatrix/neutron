@@ -1,0 +1,31 @@
+
+1.
+    keystore created like this:
+
+    keytool -genkey -keystore Neutron.keystore -storepass PWD -keypass PWD -alias NeutronSignJars -dname "cn=Neutron Team"
+
+2.
+    keystore should be stored in file ${home}/.m2/Neutron.keystore for build to work
+
+3.
+    Your ${home}/.m2/settings.xml  should have password stored like this:
+
+    <settings>
+        ...
+        <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault/>
+            </activation>
+            <properties>
+                <Neutron-keystore-pwd>PWD</Neutron-keystore-pwd>
+            </properties>
+            .....
+        </profiles>
+        <activeProfiles>
+            <activeProfile>default</activeProfile>
+        </activeProfiles>
+    </settings>
+
+

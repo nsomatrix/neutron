@@ -1,0 +1,15 @@
+~~ @version $Revision$ ($Author$) $Date$
+~~ See this file format http://maven.apache.org/guides/mini/guide-apt-format.html
+
+                                    ------------------
+                                    About neutron-tests
+                                    ------------------
+
+
+About neutron-test-midlet
+
+  Neutron build process includes multiple JUnit tests.  CLDC and MIDP API signature validation is done using {{{http://jour.sourceforge.net/}Jour}}.
+
+  Start Neutron Web Start with {{{/neutron-webstart/open-local/~/neutron-tests/neutron-test-midlet/neutron-test-midlet-#version#-test.jnlp}neutron-test-midlet-#version#-test}}.
+  This project tests some Neutron functinality using <<{{{http://snapshot.pyx4me.com/pyx4me-cldcunit/}CLDCUnit}}>> J2ME JUnit base test framework.
+
