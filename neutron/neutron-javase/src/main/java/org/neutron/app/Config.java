@@ -271,21 +271,52 @@ public class Config {
 		for (Enumeration e_device = devicesXml.enumerateChildren(); e_device.hasMoreElements();) {
 			XMLElement tmp_device = (XMLElement) e_device.nextElement();
 			if (tmp_device.getName().equals("device")) {
-				boolean devDefault = false;
-				if (tmp_device.getStringAttribute("default") != null
-						&& tmp_device.getStringAttribute("default").equals("true")) {
-					devDefault = true;
-					defaultDevice.setDefaultDevice(false);
+				String defaultAttr = tmp_device.getStringAttribute("default");
+				if (defaultAttr == null) {
+					defaultAttr = tmp_device.getStringAttribute("DEFAULT");
 				}
+				boolean devDefault = (defaultAttr != null && defaultAttr.equalsIgnoreCase("true"));
+
 				String devName = tmp_device.getChildString("name", null);
 				String devFile = tmp_device.getChildString("filename", null);
 				String devClass = tmp_device.getChildString("class", null);
 				String devDescriptor = tmp_device.getChildString("descriptor", null);
-				;
+				if (devDescriptor != null && (devDescriptor.equals("org/neutron/device/default/device.xml")
+						|| devDescriptor.equals(DeviceImpl.RESIZABLE_LOCATION))) {
+					devDescriptor = DeviceImpl.DEFAULT_LOCATION;
+				}
 				if (devDescriptor == null) {
+					if (devDefault) {
+						defaultDevice.setDefaultDevice(false);
+						for (int i = 0; i < result.size(); i++) {
+							((DeviceEntry) result.elementAt(i)).setDefaultDevice(false);
+						}
+					}
 					result.add(new DeviceEntry(devName, devFile, devDefault, devClass, emulatorContext));
 				} else {
-					result.add(new DeviceEntry(devName, devFile, devDescriptor, devDefault));
+					boolean duplicate = false;
+					for (Enumeration en = result.elements(); en.hasMoreElements();) {
+						DeviceEntry test = (DeviceEntry) en.nextElement();
+						if (devDescriptor.equals(test.getDescriptorLocation())) {
+							if (devDefault) {
+								for (int i = 0; i < result.size(); i++) {
+									((DeviceEntry) result.elementAt(i)).setDefaultDevice(false);
+								}
+								test.setDefaultDevice(true);
+							}
+							duplicate = true;
+							break;
+						}
+					}
+					if (!duplicate) {
+						if (devDefault) {
+							defaultDevice.setDefaultDevice(false);
+							for (int i = 0; i < result.size(); i++) {
+								((DeviceEntry) result.elementAt(i)).setDefaultDevice(false);
+							}
+						}
+						result.add(new DeviceEntry(devName, devFile, devDescriptor, devDefault));
+					}
 				}
 			}
 		}
