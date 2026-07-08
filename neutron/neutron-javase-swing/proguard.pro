@@ -6,9 +6,9 @@
 -dontwarn
 -dontnote
 
-# Keep all public/protected microedition classes and members intact so MIDlets can find and call them
--keep public class javax.microedition.** {
-    public protected *;
+# Keep all microedition APIs completely intact so MIDlets can find and call them
+-keep class javax.microedition.** {
+    *;
 }
 
 # Keep main entry points
@@ -54,6 +54,20 @@
 # Keep all classes ending in Impl because they are loaded dynamically by ImplFactory
 -keep class *Impl {
     <init>();
+}
+
+# Keep the classes dynamically injected/referenced in preverified MIDlet bytecode completely intact
+-keep class org.neutron.Injected {
+    *;
+}
+-keep class org.neutron.app.util.MIDletThread {
+    *;
+}
+-keep class org.neutron.app.util.MIDletTimer {
+    *;
+}
+-keep class org.neutron.app.util.MIDletTimerTask {
+    *;
 }
 
 # Keep serializable members
