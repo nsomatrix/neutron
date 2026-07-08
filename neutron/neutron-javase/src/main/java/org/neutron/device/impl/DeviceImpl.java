@@ -76,7 +76,7 @@ public abstract class DeviceImpl implements Device {
 
 	private int skinVersion;
 
-	public static final String DEFAULT_LOCATION = "org/neutron/device/default/device.xml";
+	public static final String DEFAULT_LOCATION = "org/neutron/device/resizable/device.xml";
 	
 	public static final String RESIZABLE_LOCATION = "org/neutron/device/resizable/device.xml";
 

@@ -64,8 +64,6 @@ public class Config {
 
 	private static DeviceEntry defaultDevice;
 
-	private static DeviceEntry resizableDevice;
-
 	private static EmulatorContext emulatorContext;
 
 	private static MRUList urlsMRU = new MRUList(MidletURLReference.class, "midlet");
@@ -260,15 +258,10 @@ public class Config {
 		Vector result = new Vector();
 
 		if (defaultDevice == null) {
-			defaultDevice = new DeviceEntry("Default device", null, DeviceImpl.DEFAULT_LOCATION, true, false);
+			defaultDevice = new DeviceEntry("Resizable device", null, DeviceImpl.DEFAULT_LOCATION, true, false);
 		}
 		defaultDevice.setDefaultDevice(true);
 		result.add(defaultDevice);
-		
-		if (resizableDevice == null) {
-			resizableDevice = new DeviceEntry("Resizable device", null, DeviceImpl.RESIZABLE_LOCATION, false, false);
-			addDeviceEntry(resizableDevice);
-		}
 
 		XMLElement devicesXml = configXml.getChild("devices");
 		if (devicesXml == null) {

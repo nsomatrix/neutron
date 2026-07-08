@@ -114,7 +114,7 @@ public class Headless {
 
 		Headless app = new Headless();
 
-		DeviceEntry defaultDevice = new DeviceEntry("Default device", null, DeviceImpl.DEFAULT_LOCATION, true, false);
+		DeviceEntry defaultDevice = new DeviceEntry("Resizable device", null, DeviceImpl.DEFAULT_LOCATION, true, false);
 
 		app.emulator.initParams(params, defaultDevice, J2SEDevice.class);
 		app.emulator.initMIDlet(true);

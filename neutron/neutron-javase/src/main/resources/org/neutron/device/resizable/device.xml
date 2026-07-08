@@ -30,8 +30,8 @@
                 <width>12</width>
                 <height>12</height>
             </paintable>
-            <img name="normal" src="/org/neutron/device/default/up.png"/>
-            <img name="pressed" src="/org/neutron/device/default/up-pressed.png"/>
+            <img name="normal" src="/org/neutron/device/resizable/up.png"/>
+            <img name="pressed" src="/org/neutron/device/resizable/up-pressed.png"/>
         </icon>
         <icon name="down">
             <paintable>
@@ -40,8 +40,8 @@
                 <width>12</width>
                 <height>12</height>
             </paintable>
-            <img name="normal" src="/org/neutron/device/default/down.png"/>
-            <img name="pressed" src="/org/neutron/device/default/down-pressed.png"/>
+            <img name="normal" src="/org/neutron/device/resizable/down.png"/>
+            <img name="pressed" src="/org/neutron/device/resizable/down-pressed.png"/>
         </icon>
         <status name="input">
             <paintable>
@@ -50,9 +50,9 @@
                 <width>14</width>
                 <height>7</height>
             </paintable>
-            <img name="123" src="/org/neutron/device/default/123.png"/>
-            <img name="ABC" src="/org/neutron/device/default/abc_upper.png"/>
-            <img name="abc" src="/org/neutron/device/default/abc_lower.png"/>
+            <img name="123" src="/org/neutron/device/resizable/123.png"/>
+            <img name="ABC" src="/org/neutron/device/resizable/abc_upper.png"/>
+            <img name="abc" src="/org/neutron/device/resizable/abc_lower.png"/>
         </status>
     </display>
     <fonts hint="antialiasing">
