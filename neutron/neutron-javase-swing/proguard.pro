@@ -6,10 +6,17 @@
 -dontwarn
 -dontnote
 
-# Keep all public/protected microedition classes and members intact so MIDlets can find and call them
--keep public class javax.microedition.** {
-    public protected *;
+# Keep all microedition classes and members intact so MIDlets can find and call them
+-keep class javax.microedition.** {
+    *;
 }
+
+# Keep all org.neutron classes and members intact for compatibility with external extensions/JSRs
+-keep class org.neutron.** {
+    *;
+}
+
+
 
 # Keep main entry points
 -keep public class org.neutron.app.Main {

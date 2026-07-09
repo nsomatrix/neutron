@@ -97,7 +97,6 @@ import org.neutron.app.ui.swing.SwingDisplayComponent;
 import org.neutron.app.ui.swing.SwingErrorMessageDialogPanel;
 import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingSelectDevicePanel;
-import org.neutron.app.util.AppletProducer;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -142,7 +141,7 @@ public class Main extends JFrame {
 
 	private JMenuItem menuSelectDevice;
 
-	private JMenuItem menuSaveForWeb;
+
 
 	private JMenuItem menuStartCapture;
 
@@ -259,125 +258,7 @@ public class Main extends JFrame {
 		}
 	};
 
-	private ActionListener menuSaveForWebListener = new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			if (saveForWebChooser == null) {
-				ExtensionFileFilter fileFilter = new ExtensionFileFilter("HTML files");
-				fileFilter.addExtension("html");
-				saveForWebChooser = new JFileChooser();
-				saveForWebChooser.setFileFilter(fileFilter);
-				saveForWebChooser.setDialogTitle("Save for Web...");
-				saveForWebChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentSaveForWebDirectory")));
-			}
-			if (saveForWebChooser.showSaveDialog(Main.this) == JFileChooser.APPROVE_OPTION) {
-				Config.setRecentDirectory("recentSaveForWebDirectory", saveForWebChooser.getCurrentDirectory()
-						.getAbsolutePath());
-				File pathFile = saveForWebChooser.getSelectedFile().getParentFile();
 
-				String name = saveForWebChooser.getSelectedFile().getName();
-				if (!name.toLowerCase().endsWith(".html") && name.indexOf('.') == -1) {
-					name = name + ".html";
-				}
-
-				// try to get from distribution home location
-				String resource = MIDletClassLoader.getClassResourceName(this.getClass().getName());
-				URL url = this.getClass().getClassLoader().getResource(resource);
-				String path = url.getPath();
-				int prefix = path.indexOf(':');
-				String mainJarFileName = path.substring(prefix + 1, path.length() - resource.length());
-				File appletJarDir = new File(new File(mainJarFileName).getParent(), "lib");
-				File appletJarFile = new File(appletJarDir, "neutron-javase-applet.jar");
-				if (!appletJarFile.exists()) {
-					appletJarFile = null;
-				}
-
-				if (appletJarFile == null) {
-					// try to get from maven2 repository
-					/*
-					 * loc/org/neutron/neutron/2.0.1-SNAPSHOT/neutron-2.0.1-20070227.080140-1.jar String
-					 * version = doRegExpr(mainJarFileName, ); String basePath = "loc/org/neutron/" appletJarFile = new
-					 * File(basePath + "neutron-javase-applet/" + version + "/neutron-javase-applet" + version +
-					 * ".jar"); if (!appletJarFile.exists()) { appletJarFile = null; }
-					 */
-				}
-
-				if (appletJarFile == null) {
-					ExtensionFileFilter fileFilter = new ExtensionFileFilter("JAR packages");
-					fileFilter.addExtension("jar");
-					JFileChooser appletChooser = new JFileChooser();
-					appletChooser.setFileFilter(fileFilter);
-					appletChooser.setDialogTitle("Select Neutron applet jar package...");
-					appletChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentAppletJarDirectory")));
-					if (appletChooser.showOpenDialog(Main.this) == JFileChooser.APPROVE_OPTION) {
-						Config.setRecentDirectory("recentAppletJarDirectory", appletChooser.getCurrentDirectory()
-								.getAbsolutePath());
-						appletJarFile = appletChooser.getSelectedFile();
-					} else {
-						return;
-					}
-				}
-
-				JadMidletEntry jadMidletEntry;
-				Iterator it = common.jad.getMidletEntries().iterator();
-				if (it.hasNext()) {
-					jadMidletEntry = (JadMidletEntry) it.next();
-				} else {
-					Message.error("MIDlet Suite has no entries");
-					return;
-				}
-
-				String midletInput = common.jad.getJarURL();
-				DeviceEntry deviceInput = selectDevicePanel.getSelectedDeviceEntry();
-				if (deviceInput != null && deviceInput.getDescriptorLocation().equals(DeviceImpl.DEFAULT_LOCATION)) {
-					deviceInput = null;
-				}
-
-				File htmlOutputFile = new File(pathFile, name);
-				if (!allowOverride(htmlOutputFile)) {
-					return;
-				}
-				File appletPackageOutputFile = new File(pathFile, "neutron-javase-applet.jar");
-				if (!allowOverride(appletPackageOutputFile)) {
-					return;
-				}
-				File midletOutputFile = new File(pathFile, midletInput.substring(midletInput.lastIndexOf("/") + 1));
-				if (!allowOverride(midletOutputFile)) {
-					return;
-				}
-				File deviceOutputFile = null;
-				if (deviceInput != null && deviceInput.getFileName() != null) {
-					deviceOutputFile = new File(pathFile, deviceInput.getFileName());
-					if (!allowOverride(deviceOutputFile)) {
-						return;
-					}
-				}
-
-				try {
-					AppletProducer.createHtml(htmlOutputFile, (DeviceImpl) DeviceFactory.getDevice(), jadMidletEntry
-							.getClassName(), midletOutputFile, appletPackageOutputFile, deviceOutputFile);
-					AppletProducer.createMidlet(new URL(midletInput), midletOutputFile);
-					IOUtils.copyFile(appletJarFile, appletPackageOutputFile);
-					if (deviceInput != null && deviceInput.getFileName() != null) {
-						IOUtils.copyFile(new File(Config.getConfigPath(), deviceInput.getFileName()), deviceOutputFile);
-					}
-				} catch (IOException ex) {
-					Logger.error(ex);
-				}
-			}
-		}
-
-		private boolean allowOverride(File file) {
-			if (file.exists()) {
-				int answer = JOptionPane.showConfirmDialog(Main.this, "Override the file:" + file + "?", "Question?",
-						JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-				if (answer == 1 /* no */) {
-					return false;
-				}
-			}
-
-			return true;
-		}
-	};
 
 	private ActionListener menuStartCaptureListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
@@ -708,12 +589,6 @@ public class Main extends JFrame {
 			menuOpenMIDletFile.setEnabled(state);
 			menuOpenMIDletURL.setEnabled(state);
 			menuSelectDevice.setEnabled(state);
-
-			if (common.jad.getJarURL() != null) {
-				menuSaveForWeb.setEnabled(state);
-			} else {
-				menuSaveForWeb.setEnabled(false);
-			}
 		}
 	};
 
@@ -812,11 +687,7 @@ public class Main extends JFrame {
 		Config.getUrlsMRU().setListener(urlsMRU);
 		menuFile.add(urlsMRU);
 
-		menuFile.addSeparator();
 
-		menuSaveForWeb = new JMenuItem("Save for Web...");
-		menuSaveForWeb.addActionListener(menuSaveForWebListener);
-		menuFile.add(menuSaveForWeb);
 
 		menuFile.addSeparator();
 
