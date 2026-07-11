@@ -176,10 +176,12 @@ public class J2SESoftButton extends J2SEButton implements SoftButton {
 			int xoffset = 0;
 			Device device = DeviceFactory.getDevice();
 			J2SEDeviceDisplay deviceDisplay = (J2SEDeviceDisplay) device.getDeviceDisplay();
+			java.awt.Color bg = deviceDisplay.getThemeBackgroundColor();
+			java.awt.Color fg = deviceDisplay.getThemeForegroundColor();
 			if (pressed) {
-				g.setColor(deviceDisplay.foregroundColor);
+				g.setColor(fg);
 			} else {
-				g.setColor(deviceDisplay.backgroundColor);
+				g.setColor(bg);
 			}
 			g.fillRect(paintable.x, paintable.y, paintable.width, paintable.height);
 			synchronized (this) {
@@ -194,9 +196,9 @@ public class J2SESoftButton extends J2SEButton implements SoftButton {
 						xoffset = paintable.width - metrics.stringWidth(command.getLabel()) - 1;
 					}
 					if (pressed) {
-						g.setColor(deviceDisplay.backgroundColor);
+						g.setColor(bg);
 					} else {
-						g.setColor(deviceDisplay.foregroundColor);
+						g.setColor(fg);
 					}
 					g.drawString(command.getLabel(), paintable.x + xoffset, paintable.y + paintable.height
 							- metrics.getDescent());

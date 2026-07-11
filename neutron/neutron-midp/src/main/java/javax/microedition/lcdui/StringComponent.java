@@ -147,19 +147,14 @@ class StringComponent {
 	
 			int i, prevIndex;
 			Font f = Font.getDefaultFont();
+			Display display = Display.getDisplay(org.neutron.MIDletBridge.getCurrentMIDlet());
+			int bg = display.getColor(invertPaint ? Display.COLOR_HIGHLIGHTED_BACKGROUND : Display.COLOR_BACKGROUND);
+			int fg = display.getColor(invertPaint ? Display.COLOR_HIGHLIGHTED_FOREGROUND : Display.COLOR_FOREGROUND);
 	
 			for (i = prevIndex = y = 0; i < numOfBreaks; i++) {
-				if (invertPaint) {
-					g.setGrayScale(0);
-				} else {
-					g.setGrayScale(255);
-				}
+				g.setColor(bg);
 				g.fillRect(0, y, width, f.getHeight());
-				if (invertPaint) {
-					g.setGrayScale(255);
-				} else {
-					g.setGrayScale(0);
-				}
+				g.setColor(fg);
 				g.drawSubstring(text, prevIndex, breaks[i] - prevIndex, 0, y, 0);
 				prevIndex = breaks[i];
 				y += f.getHeight();
@@ -168,17 +163,9 @@ class StringComponent {
 			// that even if the current value of a ChoiceGroup is empty, there will
 			// be some visual clue that the ChoiceGroup is there
 			if (prevIndex != text.length() || text.length() == 0) {
-				if (invertPaint) {
-					g.setGrayScale(0);
-				} else {
-					g.setGrayScale(255);
-				}
+				g.setColor(bg);
 				g.fillRect(0, y, width, f.getHeight());
-				if (invertPaint) {
-					g.setGrayScale(255);
-				} else {
-					g.setGrayScale(0);
-				}
+				g.setColor(fg);
 				g.drawSubstring(text, prevIndex, text.length() - prevIndex, 0, y, 0);
 				y += f.getHeight();
 			}

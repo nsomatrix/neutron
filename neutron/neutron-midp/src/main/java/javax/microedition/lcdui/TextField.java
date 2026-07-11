@@ -336,15 +336,13 @@ public class TextField extends Item
 
 		g.translate(0, super.getHeight());
 		int savedColor = g.getColor();
-		if (!hasFocus()) {
-		    g.setGrayScale(127);
-		}
+		Display display = Display.getDisplay(org.neutron.MIDletBridge.getCurrentMIDlet());
+		int borderColor = display.getColor(hasFocus() ? Display.COLOR_HIGHLIGHTED_BORDER : Display.COLOR_BORDER);
+		g.setColor(borderColor);
 		g.drawRect(
 		        1, 1, 
 				owner.getWidth() - 3, stringComponent.getHeight() + 4);
-		if (!hasFocus()) {
-		    g.setColor(savedColor);
-		}
+		g.setColor(savedColor);
 		g.translate(3, 3);
 		paintContent(g);
 		g.translate(-3, -3);

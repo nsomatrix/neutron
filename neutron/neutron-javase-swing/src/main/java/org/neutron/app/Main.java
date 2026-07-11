@@ -752,7 +752,7 @@ public class Main extends JFrame {
 			themeItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Config.setTheme(themeName);
-					applyTheme(themeName);
+					applyTheme(themeName, devicePanel);
 				}
 			});
 			themeGroup.add(themeItem);
@@ -920,6 +920,10 @@ public class Main extends JFrame {
 	}
 
 	public static void applyTheme(String theme) {
+		applyTheme(theme, null);
+	}
+
+	public static void applyTheme(String theme, SwingDeviceComponent devicePanel) {
 		try {
 			System.setProperty("flatlaf.useWindowDecorations", "true");
 			if ("FlatLaf Light".equals(theme)) {
@@ -938,6 +942,21 @@ public class Main extends JFrame {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			}
 			com.formdev.flatlaf.FlatLaf.updateUI();
+			if (devicePanel != null) {
+				try {
+					SwingDisplayComponent sdc = (SwingDisplayComponent) devicePanel.getDisplayComponent();
+					if (sdc != null) {
+						Device device = DeviceFactory.getDevice();
+						if (device != null) {
+							int w = device.getDeviceDisplay().getFullWidth();
+							int h = device.getDeviceDisplay().getFullHeight();
+							sdc.repaintRequest(0, 0, w, h);
+						}
+					}
+				} catch (Throwable t) {
+					// ignore
+				}
+			}
 		} catch (Exception ex) {
 			Logger.error(ex);
 		}

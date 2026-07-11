@@ -78,10 +78,10 @@ public abstract class Screen extends Displayable
 			currentDisplay.setScrollUp(true);
 		}
 
-		g.setGrayScale(255);
+		g.setColor(currentDisplay.getColor(Display.COLOR_BACKGROUND));
 		g.fillRect(0, 0, getWidth(), getHeight());
 
-		g.setGrayScale(0);
+		g.setColor(currentDisplay.getColor(Display.COLOR_FOREGROUND));
 
         // TODO move to Displayable
 		if (getTicker() != null) {

@@ -483,7 +483,34 @@ public class Display {
 	}
 
 	public int getColor(int colorSpecifier) {
-		// TODO implement better
+		try {
+			java.awt.Color background = javax.swing.UIManager.getColor("Panel.background");
+			java.awt.Color foreground = javax.swing.UIManager.getColor("Panel.foreground");
+			java.awt.Color selectBg = javax.swing.UIManager.getColor("List.selectionBackground");
+			java.awt.Color selectFg = javax.swing.UIManager.getColor("List.selectionForeground");
+			
+			if (background == null) background = java.awt.Color.WHITE;
+			if (foreground == null) foreground = java.awt.Color.BLACK;
+			if (selectBg == null) selectBg = java.awt.Color.BLUE;
+			if (selectFg == null) selectFg = java.awt.Color.WHITE;
+
+			switch (colorSpecifier) {
+			case COLOR_BACKGROUND:
+				return background.getRGB() & 0xFFFFFF;
+			case COLOR_FOREGROUND:
+				return foreground.getRGB() & 0xFFFFFF;
+			case COLOR_HIGHLIGHTED_BACKGROUND:
+				return selectBg.getRGB() & 0xFFFFFF;
+			case COLOR_HIGHLIGHTED_FOREGROUND:
+				return selectFg.getRGB() & 0xFFFFFF;
+			case COLOR_BORDER:
+				return foreground.getRGB() & 0xFFFFFF;
+			case COLOR_HIGHLIGHTED_BORDER:
+				return selectBg.getRGB() & 0xFFFFFF;
+			}
+		} catch (Throwable t) {
+			// fallback
+		}
 		switch (colorSpecifier) {
 		case COLOR_BACKGROUND:
 		case COLOR_HIGHLIGHTED_FOREGROUND:

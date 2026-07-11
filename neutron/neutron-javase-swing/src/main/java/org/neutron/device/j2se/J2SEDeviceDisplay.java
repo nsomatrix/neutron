@@ -147,10 +147,23 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 		return numColors;
 	}
 
+	public java.awt.Color getThemeBackgroundColor() {
+		java.awt.Color bg = javax.swing.UIManager.getColor("Panel.background");
+		return (bg != null) ? bg : backgroundColor;
+	}
+
+	public java.awt.Color getThemeForegroundColor() {
+		java.awt.Color fg = javax.swing.UIManager.getColor("Panel.foreground");
+		return (fg != null) ? fg : foregroundColor;
+	}
+
 	public void paintControls(Graphics g) {
 		Device device = DeviceFactory.getDevice();
 
-		g.setColor(backgroundColor);
+		java.awt.Color bg = getThemeBackgroundColor();
+		java.awt.Color fg = getThemeForegroundColor();
+
+		g.setColor(bg);
 		g.fillRect(0, 0, displayRectangle.width, displayPaintable.y);
 		g.fillRect(0, displayPaintable.y, displayPaintable.x, displayPaintable.height);
 		g.fillRect(displayPaintable.x + displayPaintable.width, displayPaintable.y, displayRectangle.width
@@ -158,7 +171,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 		g.fillRect(0, displayPaintable.y + displayPaintable.height, displayRectangle.width, displayRectangle.height
 				- displayPaintable.y - displayPaintable.height);
 
-		g.setColor(foregroundColor);
+		g.setColor(fg);
 		for (Enumeration s = device.getSoftButtons().elements(); s.hasMoreElements();) {
 			((J2SESoftButton) s.nextElement()).paint(g);
 		}
