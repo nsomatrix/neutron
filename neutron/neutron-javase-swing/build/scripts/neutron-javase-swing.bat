@@ -70,7 +70,7 @@ goto fail
 :execute
 @rem Setup the command line
 
-set CLASSPATH=%APP_HOME%\lib\neutron-javase-swing-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\neutron-javase-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\neutron-injected-2.0.5-SNAPSHOT-inject.jar;%APP_HOME%\lib\neutron-midp-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\api-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\neutron-cldc-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\asm-3.1.jar
+set CLASSPATH=%APP_HOME%\lib\neutron-javase-swing-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\neutron-javase-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\neutron-injected-2.0.5-SNAPSHOT-inject.jar;%APP_HOME%\lib\flatlaf-3.5.1.jar;%APP_HOME%\lib\neutron-midp-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\api-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\neutron-cldc-2.0.5-SNAPSHOT.jar;%APP_HOME%\lib\asm-3.1.jar
 
 
 @rem Execute neutron-javase-swing

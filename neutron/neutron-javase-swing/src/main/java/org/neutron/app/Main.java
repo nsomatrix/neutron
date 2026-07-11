@@ -60,6 +60,7 @@ import java.util.Timer;
 import java.util.TimerTask; 
 
 import javax.microedition.midlet.MIDletStateChangeException;
+import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -71,7 +72,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import org.neutron.DisplayAccess;
@@ -736,6 +739,27 @@ public class Main extends JFrame {
 		menuLogConsole.addActionListener(menuLogConsoleListener);
 		menuOptions.add(menuLogConsole);
 
+		JMenu menuTheme = new JMenu("Theme");
+		ButtonGroup themeGroup = new ButtonGroup();
+		String[] themes = {
+			"FlatLaf Dark", "FlatLaf Light", "FlatLaf IntelliJ", 
+			"FlatLaf Darcula", "FlatLaf macOS Dark", "FlatLaf macOS Light", 
+			"System Look and Feel"
+		};
+		String currentTheme = Config.getTheme();
+		for (final String themeName : themes) {
+			JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeName, themeName.equals(currentTheme));
+			themeItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Config.setTheme(themeName);
+					applyTheme(themeName);
+				}
+			});
+			themeGroup.add(themeItem);
+			menuTheme.add(themeItem);
+		}
+		menuOptions.add(menuTheme);
+
 		menuOptions.addSeparator();
 		JCheckBoxMenuItem menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse coordinates");
 		menuShowMouseCoordinates.setState(false);
@@ -895,6 +919,30 @@ public class Main extends JFrame {
 		devicePanel.requestFocus();
 	}
 
+	public static void applyTheme(String theme) {
+		try {
+			System.setProperty("flatlaf.useWindowDecorations", "true");
+			if ("FlatLaf Light".equals(theme)) {
+				com.formdev.flatlaf.FlatLightLaf.setup();
+			} else if ("FlatLaf Dark".equals(theme)) {
+				com.formdev.flatlaf.FlatDarkLaf.setup();
+			} else if ("FlatLaf IntelliJ".equals(theme)) {
+				com.formdev.flatlaf.FlatIntelliJLaf.setup();
+			} else if ("FlatLaf Darcula".equals(theme)) {
+				com.formdev.flatlaf.FlatDarculaLaf.setup();
+			} else if ("FlatLaf macOS Light".equals(theme)) {
+				com.formdev.flatlaf.themes.FlatMacLightLaf.setup();
+			} else if ("FlatLaf macOS Dark".equals(theme)) {
+				com.formdev.flatlaf.themes.FlatMacDarkLaf.setup();
+			} else {
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
+			com.formdev.flatlaf.FlatLaf.updateUI();
+		} catch (Exception ex) {
+			Logger.error(ex);
+		}
+	}
+
 	public static void main(String args[]) {
 		List params = new ArrayList();
 		StringBuffer debugArgs = new StringBuffer();
@@ -910,11 +958,7 @@ public class Main extends JFrame {
 			return;
 		}
 
-		try {
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (Exception ex) {
-			Logger.error(ex);
-		}
+		applyTheme(Config.preLoadTheme());
 
 		final Main app = new Main();
 		if (args.length > 0) {

@@ -580,4 +580,52 @@ public class Config {
 		Config.emulatorID = emulatorID;
 	}
 
+	public static String getTheme() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "FlatLaf Dark";
+		}
+		return optionsXml.getChildString("theme", "FlatLaf Dark");
+	}
+
+	public static void setTheme(String theme) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement themeXml = optionsXml.getChildOrNew("theme");
+		themeXml.setContent(theme);
+		saveConfig();
+	}
+
+	public static String preLoadTheme() {
+		File configFile = new File(getConfigPath(), "config2.xml");
+		if (!configFile.exists()) {
+			configFile = new File(getConfigPath(), "config.xml");
+		}
+		if (!configFile.exists()) {
+			return "FlatLaf Dark";
+		}
+		try {
+			java.io.InputStream is = new java.io.BufferedInputStream(new java.io.FileInputStream(configFile));
+			String xml = "";
+			try {
+				while (is.available() > 0) {
+					byte[] b = new byte[is.available()];
+					is.read(b);
+					xml += new String(b);
+				}
+				XMLElement xmlRoot = new XMLElement();
+				xmlRoot.parseString(xml);
+				XMLElement optionsXml = xmlRoot.getChild("options");
+				if (optionsXml != null) {
+					return optionsXml.getChildString("theme", "FlatLaf Dark");
+				}
+			} finally {
+				is.close();
+			}
+		} catch (Exception ex) {
+			// ignore, fallback to default
+		}
+		return "FlatLaf Dark";
+	}
+
 }
+

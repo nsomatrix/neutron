@@ -99,3 +99,9 @@
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
 }
+
+# Keep all com.formdev.flatlaf classes and members intact for theme reflection / UI delegate mapping
+-keep class com.formdev.flatlaf.** {
+    *;
+}
+
