@@ -863,6 +863,8 @@ public class Main extends JFrame {
 				Rectangle size = Config.getDeviceEntryDisplaySize(entry);
 				if (size != null) {
 				    setDeviceSize(deviceDisplay, size.width, size.height);
+				} else {
+					setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 				}
 			}
 			common.setDevice(device);
@@ -991,6 +993,8 @@ public class Main extends JFrame {
 				Rectangle size = Config.getDeviceEntryDisplaySize(app.deviceEntry);
 				if (size != null) {
 					app.setDeviceSize(deviceDisplay, size.width, size.height);
+				} else {
+					app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 				}
 			}
 		}
