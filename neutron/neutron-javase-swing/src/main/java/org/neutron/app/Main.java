@@ -606,11 +606,22 @@ public class Main extends JFrame {
 			count++;
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
-				devicePanel.revalidate();
-				devicePanel.repaint();
-				statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
-						+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
-						+ deviceDisplay.getFullHeight() + ")");
+				javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
+				boolean isGameRunning = (current != null && !(current instanceof org.neutron.app.launcher.Launcher));
+
+				if (!isGameRunning) {
+					setDeviceSize(deviceDisplay, devicePanel.getWidth(), devicePanel.getHeight());
+					devicePanel.revalidate();
+					statusBarListener.statusBarChanged("New size: " + deviceDisplay.getFullWidth() + "x"
+							+ deviceDisplay.getFullHeight());
+				} else {
+					devicePanel.revalidate();
+					devicePanel.repaint();
+					statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
+							+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
+							+ deviceDisplay.getFullHeight() + ")");
+				}
+
 				synchronized (statusBarListener) {
 					if (timer == null) {
 						timer = new Timer();
@@ -812,7 +823,7 @@ public class Main extends JFrame {
 							"Resizing the internal game resolution is not allowed while a game is running.\n"
 							+ "Please resize before starting the game, or simply drag the window borders to stretch/scale the display.",
 							"Cannot Resize Internal Resolution",
-							JOptionPane.WARNING_MESSAGE);
+							JOptionPane.INFORMATION_MESSAGE);
 					return;
 				}
 				if (resizeDeviceDisplayDialog == null) {
@@ -873,7 +884,12 @@ public class Main extends JFrame {
 
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) device.getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
-				setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
+				Rectangle size = Config.getDeviceEntryDisplaySize(entry);
+				if (size != null) {
+				    setDeviceSize(deviceDisplay, size.width, size.height);
+				} else {
+					setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
+				}
 			}
 			common.setDevice(device);
 			updateDevice();
@@ -932,17 +948,9 @@ public class Main extends JFrame {
 		if (((DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay()).isResizable()) {
 			setResizable(true);
 			resizeButton.setVisible(true);
-			Rectangle savedSize = Config.getDeviceEntryDisplaySize(deviceEntry);
-			if (savedSize != null) {
-				devicePanel.setPreferredSize(new Dimension(savedSize.width, savedSize.height));
-			} else {
-				DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
-				devicePanel.setPreferredSize(new Dimension(deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight()));
-			}
 		} else {
 			setResizable(false);
 			resizeButton.setVisible(false);
-			devicePanel.setPreferredSize(null);
 		}
 
 		pack();
@@ -1019,7 +1027,12 @@ public class Main extends JFrame {
 			app.deviceEntry = app.selectDevicePanel.getSelectedDeviceEntry();
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
-				app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
+				Rectangle size = Config.getDeviceEntryDisplaySize(app.deviceEntry);
+				if (size != null) {
+					app.setDeviceSize(deviceDisplay, size.width, size.height);
+				} else {
+					app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
+				}
 			}
 		}
 		app.updateThemeSelection();
