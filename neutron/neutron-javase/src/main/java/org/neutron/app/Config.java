@@ -427,31 +427,40 @@ public class Config {
 		if (entry == null) {
 			return;
 		}
-		XMLElement devicesXml = configXml.getChild("devices");
-		if (devicesXml == null) {
-			return;
-		}
+		XMLElement devicesXml = configXml.getChildOrNew("devices");
 
+		XMLElement targetDeviceXml = null;
 		for (Enumeration e_device = devicesXml.enumerateChildren(); e_device.hasMoreElements();) {
 			XMLElement tmp_device = (XMLElement) e_device.nextElement();
 			if (tmp_device.getName().equals("device")) {
 				String testDescriptor = tmp_device.getChildString("descriptor", null);
-				if (testDescriptor.equals(entry.getDescriptorLocation())) {
-					XMLElement mainXml = tmp_device.getChildOrNew("rectangle");
-					XMLElement xml = mainXml.getChildOrNew("x");
-					xml.setContent(String.valueOf(rect.x));
-					xml = mainXml.getChildOrNew("y");
-					xml.setContent(String.valueOf(rect.y));
-					xml = mainXml.getChildOrNew("width");
-					xml.setContent(String.valueOf(rect.width));
-					xml = mainXml.getChildOrNew("height");
-					xml.setContent(String.valueOf(rect.height));
-
-					saveConfig();
+				if (testDescriptor != null && testDescriptor.equals(entry.getDescriptorLocation())) {
+					targetDeviceXml = tmp_device;
 					break;
 				}
 			}
 		}
+
+		if (targetDeviceXml == null) {
+			targetDeviceXml = devicesXml.addChild("device");
+			targetDeviceXml.addChild("name", entry.getName());
+			if (entry.getFileName() != null) {
+				targetDeviceXml.addChild("filename", entry.getFileName());
+			}
+			targetDeviceXml.addChild("descriptor", entry.getDescriptorLocation());
+		}
+
+		XMLElement mainXml = targetDeviceXml.getChildOrNew("rectangle");
+		XMLElement xml = mainXml.getChildOrNew("x");
+		xml.setContent(String.valueOf(rect.x));
+		xml = mainXml.getChildOrNew("y");
+		xml.setContent(String.valueOf(rect.y));
+		xml = mainXml.getChildOrNew("width");
+		xml.setContent(String.valueOf(rect.width));
+		xml = mainXml.getChildOrNew("height");
+		xml.setContent(String.valueOf(rect.height));
+
+		saveConfig();
 	}
 
 	public static String getRecordStoreManagerClassName() {

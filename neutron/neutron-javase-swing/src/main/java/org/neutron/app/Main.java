@@ -158,6 +158,8 @@ public class Main extends JFrame {
 
 	private JFrame scaledDisplayFrame;
 
+	private JMenu menuTheme;
+
 	private JCheckBoxMenuItem[] zoomLevels;
 
 	private SwingDeviceComponent devicePanel;
@@ -739,7 +741,7 @@ public class Main extends JFrame {
 		menuLogConsole.addActionListener(menuLogConsoleListener);
 		menuOptions.add(menuLogConsole);
 
-		JMenu menuTheme = new JMenu("Theme");
+		menuTheme = new JMenu("Theme");
 		ButtonGroup themeGroup = new ButtonGroup();
 		String[] themes = {
 			"FlatLaf Dark", "FlatLaf Light", "FlatLaf IntelliJ", 
@@ -906,6 +908,19 @@ public class Main extends JFrame {
         }
 	}
 
+	protected void updateThemeSelection() {
+		String currentTheme = Config.getTheme();
+		for (int i = 0; i < menuTheme.getItemCount(); i++) {
+			JMenuItem item = menuTheme.getItem(i);
+			if (item instanceof JRadioButtonMenuItem) {
+				if (item.getText().equals(currentTheme)) {
+					item.setSelected(true);
+					break;
+				}
+			}
+		}
+	}
+
 	protected void updateDevice() {
 		devicePanel.init();
 		if (((DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay()).isResizable()) {
@@ -998,6 +1013,7 @@ public class Main extends JFrame {
 				}
 			}
 		}
+		app.updateThemeSelection();
 		app.updateDevice();
 
 		app.validate();
