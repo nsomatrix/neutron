@@ -806,6 +806,15 @@ public class Main extends JFrame {
 
 		this.resizeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ev) {
+				javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
+				if (current != null && !(current instanceof org.neutron.app.launcher.Launcher)) {
+					JOptionPane.showMessageDialog(Main.this,
+							"Resizing the internal game resolution is not allowed while a game is running.\n"
+							+ "Please resize before starting the game, or simply drag the window borders to stretch/scale the display.",
+							"Cannot Resize Internal Resolution",
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
 				if (resizeDeviceDisplayDialog == null) {
 					resizeDeviceDisplayDialog = new ResizeDeviceDisplayDialog();
 				}
