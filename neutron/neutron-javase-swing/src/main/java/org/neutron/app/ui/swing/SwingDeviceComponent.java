@@ -299,8 +299,15 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 
 		remove(dc);
 
-		Rectangle r = ((J2SEDeviceDisplay) DeviceFactory.getDevice().getDeviceDisplay()).getDisplayRectangle();
-		add(dc, new XYConstraints(r.x, r.y, -1, -1));
+		DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+		if (deviceDisplay.isResizable()) {
+			setLayout(new java.awt.BorderLayout());
+			add(dc, java.awt.BorderLayout.CENTER);
+		} else {
+			setLayout(new XYLayout());
+			Rectangle r = ((J2SEDeviceDisplay) deviceDisplay).getDisplayRectangle();
+			add(dc, new XYConstraints(r.x, r.y, -1, -1));
+		}
 
 		revalidate();
 	}

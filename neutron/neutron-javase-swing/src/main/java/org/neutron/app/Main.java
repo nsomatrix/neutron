@@ -606,10 +606,11 @@ public class Main extends JFrame {
 			count++;
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
-			    setDeviceSize(deviceDisplay, devicePanel.getWidth(), devicePanel.getHeight());
 				devicePanel.revalidate();
-				statusBarListener.statusBarChanged("New size: " + deviceDisplay.getFullWidth() + "x"
-						+ deviceDisplay.getFullHeight());
+				devicePanel.repaint();
+				statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
+						+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
+						+ deviceDisplay.getFullHeight() + ")");
 				synchronized (statusBarListener) {
 					if (timer == null) {
 						timer = new Timer();
@@ -812,6 +813,7 @@ public class Main extends JFrame {
 				resizeDeviceDisplayDialog.setDeviceDisplaySize(deviceDisplay.getFullWidth(), deviceDisplay
 						.getFullHeight());
 				if (SwingDialogWindow.show(Main.this, "Enter new size...", resizeDeviceDisplayDialog, true)) {
+					devicePanel.setPreferredSize(null);
 				    setDeviceSize(deviceDisplay, resizeDeviceDisplayDialog.getDeviceDisplayWidth(), resizeDeviceDisplayDialog.getDeviceDisplayHeight());
 					pack();
 					devicePanel.requestFocus();
@@ -862,12 +864,7 @@ public class Main extends JFrame {
 
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) device.getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
-				Rectangle size = Config.getDeviceEntryDisplaySize(entry);
-				if (size != null) {
-				    setDeviceSize(deviceDisplay, size.width, size.height);
-				} else {
-					setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
-				}
+				setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 			}
 			common.setDevice(device);
 			updateDevice();
@@ -926,9 +923,17 @@ public class Main extends JFrame {
 		if (((DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay()).isResizable()) {
 			setResizable(true);
 			resizeButton.setVisible(true);
+			Rectangle savedSize = Config.getDeviceEntryDisplaySize(deviceEntry);
+			if (savedSize != null) {
+				devicePanel.setPreferredSize(new Dimension(savedSize.width, savedSize.height));
+			} else {
+				DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+				devicePanel.setPreferredSize(new Dimension(deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight()));
+			}
 		} else {
 			setResizable(false);
 			resizeButton.setVisible(false);
+			devicePanel.setPreferredSize(null);
 		}
 
 		pack();
@@ -1005,12 +1010,7 @@ public class Main extends JFrame {
 			app.deviceEntry = app.selectDevicePanel.getSelectedDeviceEntry();
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
-				Rectangle size = Config.getDeviceEntryDisplaySize(app.deviceEntry);
-				if (size != null) {
-					app.setDeviceSize(deviceDisplay, size.width, size.height);
-				} else {
-					app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
-				}
+				app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 			}
 		}
 		app.updateThemeSelection();
