@@ -289,9 +289,10 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	}
 
 	protected void paintComponent(Graphics g) {
-		if (graphicsSurface != null) {
-			synchronized (graphicsSurface) {
-				g.drawImage(graphicsSurface.getImage(), 0, 0, getWidth(), getHeight(), null);
+		J2SEGraphicsSurface localSurface = graphicsSurface;
+		if (localSurface != null) {
+			synchronized (localSurface) {
+				g.drawImage(localSurface.getImage(), 0, 0, getWidth(), getHeight(), null);
 			}
 		}
 	}
@@ -314,26 +315,30 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		if (device != null) {
 			J2SEDeviceDisplay deviceDisplay = (J2SEDeviceDisplay) device.getDeviceDisplay();
 
+			J2SEGraphicsSurface localSurface;
 			synchronized (this) {
 				if (graphicsSurface == null) {
 					graphicsSurface = new J2SEGraphicsSurface(
 							device.getDeviceDisplay().getFullWidth(), device.getDeviceDisplay().getFullHeight(), false, 0x000000);
 				}
+				localSurface = graphicsSurface;
 
-				synchronized (graphicsSurface) {
-					deviceDisplay.paintDisplayable(graphicsSurface, x, y, width, height);
+				synchronized (localSurface) {
+					deviceDisplay.paintDisplayable(localSurface, x, y, width, height);
 					if (!deviceDisplay.isFullScreenMode()) {
-						deviceDisplay.paintControls(graphicsSurface.getGraphics());
+						deviceDisplay.paintControls(localSurface.getGraphics());
 					}
 				}
 			}
 
-            if (deviceDisplay.isFullScreenMode()) {
-                fireDisplayRepaint(
-                        graphicsSurface, x, y, width, height);
-			} else {
-                fireDisplayRepaint(
-                        graphicsSurface, 0, 0, graphicsSurface.getImage().getWidth(), graphicsSurface.getImage().getHeight());
+			if (localSurface != null && localSurface.getImage() != null) {
+				if (deviceDisplay.isFullScreenMode()) {
+					fireDisplayRepaint(
+							localSurface, x, y, width, height);
+				} else {
+					fireDisplayRepaint(
+							localSurface, 0, 0, localSurface.getImage().getWidth(), localSurface.getImage().getHeight());
+				}
 			}
 		}
 	}
@@ -361,11 +366,12 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	}
 
 	private Point scaleCoordinate(Point p) {
-		if (graphicsSurface == null) {
+		J2SEGraphicsSurface localSurface = graphicsSurface;
+		if (localSurface == null || localSurface.getImage() == null) {
 			return p;
 		}
-		int imgW = graphicsSurface.getImage().getWidth();
-		int imgH = graphicsSurface.getImage().getHeight();
+		int imgW = localSurface.getImage().getWidth();
+		int imgH = localSurface.getImage().getHeight();
 		int compW = getWidth();
 		int compH = getHeight();
 		if (compW <= 0 || compH <= 0) {
