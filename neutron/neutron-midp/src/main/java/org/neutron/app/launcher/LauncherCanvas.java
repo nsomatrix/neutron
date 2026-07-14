@@ -27,6 +27,11 @@ public class LauncherCanvas extends Canvas {
     private int lastSelectedTapIndex = -1;
     private long lastTapTime = 0;
 
+    // Animation variables
+    private Thread animThread;
+    private boolean animating = false;
+    private double animFrame = 0;
+
     public LauncherCanvas(Launcher launcher) {
         this.launcher = launcher;
         setFullScreenMode(true);
@@ -38,6 +43,34 @@ public class LauncherCanvas extends Canvas {
             return (MIDletEntry) entries.elementAt(selectedIndex);
         }
         return null;
+    }
+
+    protected void showNotify() {
+        // Start the animation thread when the canvas is shown
+        animating = true;
+        animThread = new Thread(new Runnable() {
+            public void run() {
+                while (animating) {
+                    animFrame += 0.05;
+                    repaint();
+                    try {
+                        Thread.sleep(30); // ~33 FPS for smooth animations
+                    } catch (InterruptedException e) {
+                        break;
+                    }
+                }
+            }
+        }, "NeutronLauncherAnim");
+        animThread.start();
+    }
+
+    protected void hideNotify() {
+        // Stop the animation thread completely to free up all CPU when games are running
+        animating = false;
+        if (animThread != null) {
+            animThread.interrupt();
+            animThread = null;
+        }
     }
 
     // Helper to blend two colors
@@ -174,7 +207,7 @@ public class LauncherCanvas extends Canvas {
         int cx = w / 2;
         int cy = startY + (h - startY - 50) / 2 - 20;
 
-        // Draw a neat orbital Atomic/Neutron Model (Dynamic & theme-integrated vector structure)
+        // Draw orbital Atomic/Neutron Model (Dynamic & theme-integrated vector structure)
         
         // 1. Draw outer orbit ring
         g.setColor(blend(bgColor, selectBg, 0.2f));
@@ -185,9 +218,12 @@ public class LauncherCanvas extends Canvas {
         g.drawArc(cx - 50, cy - 22, 100, 44, 0, 360); // horizontal ellipse
         g.drawArc(cx - 22, cy - 50, 44, 100, 0, 360); // vertical ellipse
         
-        // 3. Draw glowing nucleus core
+        // 3. Draw glowing nucleus core (pulsating dynamically)
+        double pulse = Math.sin(animFrame * 2.0);
+        int pulseOffset = (int) (pulse * 3.0);
+        
         g.setColor(blend(bgColor, selectBg, 0.3f));
-        g.fillArc(cx - 18, cy - 18, 36, 36, 0, 360); // outer core glow
+        g.fillArc(cx - 18 - pulseOffset / 2, cy - 18 - pulseOffset / 2, 36 + pulseOffset, 36 + pulseOffset, 0, 360); // outer core glow
         
         g.setColor(selectBg);
         g.fillArc(cx - 11, cy - 11, 22, 22, 0, 360); // nucleus center
@@ -195,12 +231,26 @@ public class LauncherCanvas extends Canvas {
         g.setColor(fgColor);
         g.fillArc(cx - 4, cy - 4, 8, 8, 0, 360); // bright center nucleus highlight
         
-        // 4. Draw orbiting electrons (accent dots)
+        // 4. Draw orbiting electrons moving dynamically along the elliptical paths
         g.setColor(fgColor);
-        g.fillArc(cx - 50, cy - 3, 6, 6, 0, 360); // left particle
-        g.fillArc(cx + 44, cy - 3, 6, 6, 0, 360); // right particle
-        g.fillArc(cx - 3, cy - 50, 6, 6, 0, 360); // top particle
-        g.fillArc(cx - 3, cy + 44, 6, 6, 0, 360); // bottom particle
+        
+        // Horizontal orbit calculations (rx=50, ry=22)
+        int hx1 = cx + (int) (50 * Math.cos(animFrame));
+        int hy1 = cy + (int) (22 * Math.sin(animFrame));
+        int hx2 = cx + (int) (50 * Math.cos(animFrame + Math.PI));
+        int hy2 = cy + (int) (22 * Math.sin(animFrame + Math.PI));
+        
+        g.fillArc(hx1 - 3, hy1 - 3, 6, 6, 0, 360);
+        g.fillArc(hx2 - 3, hy2 - 3, 6, 6, 0, 360);
+        
+        // Vertical orbit calculations (rx=22, ry=50) (moves in reverse direction)
+        int vx1 = cx + (int) (22 * Math.cos(-animFrame));
+        int vy1 = cy + (int) (50 * Math.sin(-animFrame));
+        int vx2 = cx + (int) (22 * Math.cos(-animFrame + Math.PI));
+        int vy2 = cy + (int) (50 * Math.sin(-animFrame + Math.PI));
+        
+        g.fillArc(vx1 - 3, vy1 - 3, 6, 6, 0, 360);
+        g.fillArc(vx2 - 3, vy2 - 3, 6, 6, 0, 360);
 
         // Title and subtitles
         int textY = cy + 65;
@@ -330,7 +380,7 @@ public class LauncherCanvas extends Canvas {
 
             g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
             g.setColor(blend(bgColor, fgColor, 0.40f));
-            g.drawString("WAITING FOR JAR...", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
+            g.drawString("WAITING FOR JAR", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
         }
     }
 
