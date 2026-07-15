@@ -88,32 +88,38 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 
 		// Brightness Slider
 		brightnessSlider = new JSlider(-100, 100, originalBrightness);
-		brightnessValueLabel = new JLabel();
+		brightnessValueLabel = new JLabel("", JLabel.RIGHT);
+		brightnessValueLabel.setPreferredSize(new java.awt.Dimension(55, 20));
 		addSettingRow("Brightness:", brightnessSlider, brightnessValueLabel, 1);
 
 		// Contrast Slider
 		contrastSlider = new JSlider(50, 150, originalContrast);
-		contrastValueLabel = new JLabel();
+		contrastValueLabel = new JLabel("", JLabel.RIGHT);
+		contrastValueLabel.setPreferredSize(new java.awt.Dimension(55, 20));
 		addSettingRow("Contrast:", contrastSlider, contrastValueLabel, 2);
 
 		// Gamma Slider (scaled by 10)
 		gammaSlider = new JSlider(5, 25, (int) (originalGamma * 10));
-		gammaValueLabel = new JLabel();
+		gammaValueLabel = new JLabel("", JLabel.RIGHT);
+		gammaValueLabel.setPreferredSize(new java.awt.Dimension(55, 20));
 		addSettingRow("Gamma:", gammaSlider, gammaValueLabel, 3);
 
 		// Saturation Slider
 		saturationSlider = new JSlider(0, 200, originalSaturation);
-		saturationValueLabel = new JLabel();
+		saturationValueLabel = new JLabel("", JLabel.RIGHT);
+		saturationValueLabel.setPreferredSize(new java.awt.Dimension(55, 20));
 		addSettingRow("Saturation:", saturationSlider, saturationValueLabel, 4);
 
 		// Sharpness Slider
 		sharpnessSlider = new JSlider(-100, 100, originalSharpness);
-		sharpnessValueLabel = new JLabel();
+		sharpnessValueLabel = new JLabel("", JLabel.RIGHT);
+		sharpnessValueLabel.setPreferredSize(new java.awt.Dimension(55, 20));
 		addSettingRow("Sharpness:", sharpnessSlider, sharpnessValueLabel, 5);
 
 		// LCD Ghosting Slider
 		ghostingSlider = new JSlider(0, 90, originalGhosting);
-		ghostingValueLabel = new JLabel();
+		ghostingValueLabel = new JLabel("", JLabel.RIGHT);
+		ghostingValueLabel.setPreferredSize(new java.awt.Dimension(55, 20));
 		addSettingRow("LCD Ghosting:", ghostingSlider, ghostingValueLabel, 6);
 
 		// Invert Checkbox
@@ -242,11 +248,11 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 
 		int sharp = sharpnessSlider.getValue();
 		if (sharp == 0) {
-			sharpnessValueLabel.setText("Off");
+			sharpnessValueLabel.setText("0%");
 		} else if (sharp > 0) {
-			sharpnessValueLabel.setText("Sharpen " + sharp + "%");
+			sharpnessValueLabel.setText("+" + sharp + "%");
 		} else {
-			sharpnessValueLabel.setText("Blur " + (-sharp) + "%");
+			sharpnessValueLabel.setText(sharp + "%");
 		}
 
 		ghostingValueLabel.setText(ghostingSlider.getValue() + "%");
