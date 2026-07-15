@@ -101,6 +101,9 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
         
         Color awtColor = (Color) colorCache.get(new Integer(RGB));
         if (awtColor == null) {
+            if (colorCache.size() > 4096) {
+                colorCache.clear();
+            }
             if (filter != null) {
                 awtColor = new Color(filter.filterRGB(0, 0, color));
             } else {

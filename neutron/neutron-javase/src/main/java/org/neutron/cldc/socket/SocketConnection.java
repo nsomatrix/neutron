@@ -39,11 +39,26 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	}
 
 	public SocketConnection(String host, int port) throws IOException {
-		this.socket = new Socket(host, port);
+		this.socket = new java.net.Socket();
+		this.socket.setKeepAlive(true);
+		int timeout = Integer.getInteger("neutron.socket.timeout", 120000);
+		if (timeout > 0) {
+			this.socket.setSoTimeout(timeout);
+		}
+		this.socket.connect(new java.net.InetSocketAddress(host, port), Math.min(timeout, 30000));
 	}
 	
-	public SocketConnection(Socket socket) {
+	public SocketConnection(java.net.Socket socket) {
 		this.socket = socket;
+		try {
+			this.socket.setKeepAlive(true);
+			int timeout = Integer.getInteger("neutron.socket.timeout", 120000);
+			if (timeout > 0) {
+				this.socket.setSoTimeout(timeout);
+			}
+		} catch (java.io.IOException e) {
+			// ignore if we can't set it
+		}
 	}
 
 	public String getAddress() throws IOException {

@@ -125,6 +125,7 @@ public class Config {
 		}
 		urlsMRU.read(configXml.getChildOrNew("files").getChildOrNew("recent"));
 		initSystemProperties();
+		org.neutron.app.util.MemoryManager.init();
 	}
 
 	private static void loadConfigFile(String configFileName) throws IOException {
@@ -617,6 +618,26 @@ public class Config {
 		XMLElement optionsXml = configXml.getChildOrNew("options");
 		XMLElement sleepXml = optionsXml.getChildOrNew("sleepMode");
 		sleepXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static int getMemoryLimit() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return 64; // Default to 64MB
+		}
+		String val = optionsXml.getChildString("memoryLimit", "64");
+		try {
+			return Integer.parseInt(val);
+		} catch (NumberFormatException e) {
+			return 64;
+		}
+	}
+
+	public static void setMemoryLimit(int limit) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement limitXml = optionsXml.getChildOrNew("memoryLimit");
+		limitXml.setContent(String.valueOf(limit));
 		saveConfig();
 	}
 

@@ -836,6 +836,25 @@ public class Main extends JFrame {
 		}
 		menuOptions.add(menuTheme);
 
+		JMenu menuMemoryLimit = new JMenu("Memory Limit");
+		ButtonGroup memoryGroup = new ButtonGroup();
+		int[] memoryLimits = {0, 32, 64, 128, 256, 512};
+		String[] memoryLabels = {"Unlimited", "32 MB", "64 MB", "128 MB", "256 MB", "512 MB"};
+		int currentLimit = Config.getMemoryLimit();
+		for (int i = 0; i < memoryLimits.length; i++) {
+			final int limitVal = memoryLimits[i];
+			String label = memoryLabels[i];
+			JRadioButtonMenuItem limitItem = new JRadioButtonMenuItem(label, currentLimit == limitVal);
+			limitItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Config.setMemoryLimit(limitVal);
+				}
+			});
+			memoryGroup.add(limitItem);
+			menuMemoryLimit.add(limitItem);
+		}
+		menuOptions.add(menuMemoryLimit);
+
 		menuOptions.addSeparator();
 		JCheckBoxMenuItem menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse coordinates");
 		menuShowMouseCoordinates.setState(false);

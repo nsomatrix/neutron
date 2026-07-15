@@ -106,7 +106,7 @@ public class MIDletThread extends Thread {
 			threads = new WeakHashMap();
 			midlets.put(midletContext, threads);
 		}
-		threads.put(thread, midletContext);
+		threads.put(thread, Boolean.TRUE);
 	}
 	
 	//TODO overrite run() in user Threads using ASM

@@ -215,7 +215,7 @@ public class MIDletTimer extends Timer implements Runnable {
 			midlets.put(timer.midletContext, timers);
 		}
 		// Logger.debug("Register timer created from [" + timer.name + "]");
-		timers.put(timer, timer.midletContext);
+		timers.put(timer, Boolean.TRUE);
 	}
 
 	private static void unregister(MIDletTimer timer) {

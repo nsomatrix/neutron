@@ -81,7 +81,13 @@ public class Connection extends org.neutron.cldc.socket.SocketConnection impleme
 			SSLContext sc = SSLContext.getInstance("SSL");			
 			sc.init(null, trustAllCerts, new SecureRandom());
 			SSLSocketFactory factory = sc.getSocketFactory();
-			socket = factory.createSocket(host, port);
+			javax.net.ssl.SSLSocket sslSocket = (javax.net.ssl.SSLSocket) factory.createSocket(host, port);
+			sslSocket.setKeepAlive(true);
+			int timeout = Integer.getInteger("neutron.socket.timeout", 120000);
+			if (timeout > 0) {
+				sslSocket.setSoTimeout(timeout);
+			}
+			socket = sslSocket;
 		} catch (NoSuchAlgorithmException ex) {
 			throw new IOException(ex.toString());
 		} catch (KeyManagementException ex) {

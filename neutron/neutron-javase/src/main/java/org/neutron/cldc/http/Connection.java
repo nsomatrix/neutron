@@ -57,6 +57,14 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 			throw new IOException(ex.toString());
 		}
 		cn = url.openConnection();
+		int connectTimeout = Integer.getInteger("neutron.http.connect.timeout", 30000);
+		int readTimeout = Integer.getInteger("neutron.http.read.timeout", 30000);
+		if (connectTimeout > 0) {
+			cn.setConnectTimeout(connectTimeout);
+		}
+		if (readTimeout > 0) {
+			cn.setReadTimeout(readTimeout);
+		}
 		cn.setDoOutput(true);
 		// J2ME do not follow redirects. Test this url
 		// http://www.neutron.org/test/r/
