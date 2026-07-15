@@ -229,6 +229,8 @@ public class Main extends JFrame {
 				fileChooser.setFileFilter(fileFilter);
 				fileChooser.setDialogTitle("Open MIDlet File...");
 				fileChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentJadDirectory")));
+			} else {
+				fileChooser.updateUI();
 			}
 
 			int returnVal = fileChooser.showOpenDialog(Main.this);
@@ -274,6 +276,8 @@ public class Main extends JFrame {
 				captureFileChooser.setFileFilter(fileFilter);
 				captureFileChooser.setDialogTitle("Capture to GIF File...");
 				captureFileChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentCaptureDirectory")));
+			} else {
+				captureFileChooser.updateUI();
 			}
 
 			if (captureFileChooser.showSaveDialog(Main.this) == JFileChooser.APPROVE_OPTION) {
@@ -965,6 +969,7 @@ public class Main extends JFrame {
 	public static void applyTheme(String theme, SwingDeviceComponent devicePanel) {
 		try {
 			System.setProperty("flatlaf.useWindowDecorations", "true");
+			System.setProperty("flatlaf.useSystemFileChooser", "false");
 			if ("FlatLaf Light".equals(theme)) {
 				com.formdev.flatlaf.FlatLightLaf.setup();
 			} else if ("FlatLaf Dark".equals(theme)) {

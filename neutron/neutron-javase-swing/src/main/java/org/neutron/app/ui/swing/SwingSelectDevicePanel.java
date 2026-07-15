@@ -88,6 +88,8 @@ public class SwingSelectDevicePanel extends SwingDialogPanel {
 				fileFilter.addExtension("jar");
 				fileFilter.addExtension("zip");
 				fileChooser.setFileFilter(fileFilter);
+			} else {
+				fileChooser.updateUI();
 			}
 
 			if (fileChooser.showOpenDialog(SwingSelectDevicePanel.this) == JFileChooser.APPROVE_OPTION) {
