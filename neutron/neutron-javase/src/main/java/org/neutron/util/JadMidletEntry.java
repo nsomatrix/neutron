@@ -51,6 +51,11 @@ public class JadMidletEntry
   {
     return name;
   }
+
+  public String getIcon()
+  {
+    return icon;
+  }
   
   
   // remove it later

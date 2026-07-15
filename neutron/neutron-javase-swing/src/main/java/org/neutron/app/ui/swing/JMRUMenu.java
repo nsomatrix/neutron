@@ -26,14 +26,19 @@
  */
 package org.neutron.app.ui.swing;
 
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.AbstractAction;
+import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
+import org.neutron.app.Config;
 import org.neutron.app.util.MRUListListener;
+import org.neutron.app.util.MidletURLReference;
 
 /**
  * @author vlads
@@ -64,27 +69,76 @@ public class JMRUMenu extends JMenu implements MRUListListener {
 		super(s);
 	}
 
+	private class MRUAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+		private final MidletURLReference ref;
+
+		public MRUAction(String name, MidletURLReference ref) {
+			super(name);
+			this.ref = ref;
+		}
+
+		public String getUrl() {
+			return ref.getUrl();
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			JMRUMenu.this.fireActionPerformed(new MRUActionEvent(ref, e));
+		}
+	}
+
 	public void listItemChanged(final Object item) {
-		String label = item.toString();
+		if (!(item instanceof MidletURLReference)) {
+			return;
+		}
+		final MidletURLReference ref = (MidletURLReference) item;
+		String cleanName = ref.getCleanName();
+
 		for (int i = 0; i < getItemCount(); i++) {
-			if (getItem(i).getText().equals(label)) {
-				remove(i);
-				break;
+			JMenuItem mItem = getItem(i);
+			if (mItem != null && mItem.getAction() instanceof MRUAction) {
+				MRUAction mruAct = (MRUAction) mItem.getAction();
+				if (mruAct.getUrl().equals(ref.getUrl())) {
+					remove(i);
+					break;
+				}
 			}
 		}
-		AbstractAction a = new AbstractAction(label) {
 
-			private static final long serialVersionUID = 1L;
-
-			Object sourceMRU = item;
-
-			public void actionPerformed(ActionEvent e) {
-				JMRUMenu.this.fireActionPerformed(new MRUActionEvent(sourceMRU, e));
-			}
-		};
-
+		MRUAction a = new MRUAction(cleanName, ref);
 		JMenuItem menu = new JMenuItem(a);
+
+		try {
+			File iconFile = new File(new File(Config.getConfigPath(), "icons"), String.valueOf(ref.getUrl().hashCode()) + ".png");
+			if (iconFile.exists()) {
+				ImageIcon icon = new ImageIcon(iconFile.getAbsolutePath());
+				Image img = icon.getImage();
+				Image scaledImg = img.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+				menu.setIcon(new ImageIcon(scaledImg));
+			} else {
+				menu.setIcon(getDefaultIcon());
+			}
+		} catch (Exception ex) {
+			menu.setIcon(getDefaultIcon());
+		}
+
 		this.insert(menu, 0);
+	}
+
+	private ImageIcon getDefaultIcon() {
+		java.awt.image.BufferedImage img = new java.awt.image.BufferedImage(16, 16, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = img.createGraphics();
+		g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setColor(new java.awt.Color(120, 120, 120));
+		g.fillRoundRect(1, 4, 14, 8, 4, 4);
+		g.setColor(java.awt.Color.WHITE);
+		g.fillRect(3, 7, 3, 2);
+		g.fillRect(4, 6, 1, 4);
+		g.setColor(new java.awt.Color(200, 50, 50));
+		g.fillOval(10, 7, 2, 2);
+		g.fillOval(12, 7, 2, 2);
+		g.dispose();
+		return new ImageIcon(img);
 	}
 
 	/**

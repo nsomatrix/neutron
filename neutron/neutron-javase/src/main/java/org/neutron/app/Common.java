@@ -438,6 +438,39 @@ public class Common implements Neutron, CommonInterface {
             }
 
             Config.getUrlsMRU().push(new MidletURLReference(jad.getSuiteName(), urlString));
+            try {
+                String iconPath = jad.getProperty("MIDlet-Icon");
+                if (iconPath == null || iconPath.trim().length() == 0) {
+                    for (Enumeration e = jad.getMidletEntries().elements(); e.hasMoreElements();) {
+                        JadMidletEntry jadEntry = (JadMidletEntry) e.nextElement();
+                        if (jadEntry.getIcon() != null && jadEntry.getIcon().trim().length() > 0) {
+                            iconPath = jadEntry.getIcon().trim();
+                            break;
+                        }
+                    }
+                }
+                if (iconPath != null && iconPath.length() > 0) {
+                    String resourcePath = iconPath;
+                    if (resourcePath.startsWith("/")) {
+                        resourcePath = resourcePath.substring(1);
+                    }
+                    InputStream iconStream = midletClassLoader.getResourceAsStream(resourcePath);
+                    if (iconStream != null) {
+                        try {
+                            File iconsDir = new File(Config.getConfigPath(), "icons");
+                            if (!iconsDir.exists()) {
+                                iconsDir.mkdirs();
+                            }
+                            File cachedIconFile = new File(iconsDir, String.valueOf(urlString.hashCode()) + ".png");
+                            IOUtils.copyToFile(iconStream, cachedIconFile);
+                        } finally {
+                            IOUtils.closeQuietly(iconStream);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                Logger.error("Failed to cache game icon", ex);
+            }
         } catch (MalformedURLException ex) {
             throw ex;
         } catch (ClassNotFoundException ex) {

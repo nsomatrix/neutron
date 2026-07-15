@@ -129,5 +129,19 @@ public class MidletURLReference implements XMLItem {
 	public String getUrl() {
 		return this.url;
 	}
+
+	public String getCleanName() {
+		if (name != null && name.trim().length() > 0) {
+			return name.trim();
+		}
+		if (url != null) {
+			int lastSlash = url.lastIndexOf('/');
+			if (lastSlash != -1 && lastSlash < url.length() - 1) {
+				return url.substring(lastSlash + 1);
+			}
+			return url;
+		}
+		return "Unknown Game";
+	}
 	
 }
