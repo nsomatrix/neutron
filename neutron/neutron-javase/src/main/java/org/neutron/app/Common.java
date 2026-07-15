@@ -689,12 +689,19 @@ public class Common implements Neutron, CommonInterface {
             }
             setSuiteName(jad.getSuiteName());
 
+            Vector loadedEntries = new Vector();
             for (Enumeration e = jad.getMidletEntries().elements(); e.hasMoreElements();) {
                 JadMidletEntry jadEntry = (JadMidletEntry) e.nextElement();
                 Class midletClass = midletClassLoader.loadClass(jadEntry.getClassName());
-                Launcher.addMIDletEntry(new MIDletEntry(jadEntry.getName(), midletClass));
+                MIDletEntry entry = new MIDletEntry(jadEntry.getName(), midletClass);
+                Launcher.addMIDletEntry(entry);
+                loadedEntries.addElement(entry);
             }
-            startLauncher(MIDletBridge.getMIDletContext());
+            if (loadedEntries.size() == 1) {
+                initMIDlet(true, (MIDletEntry) loadedEntries.elementAt(0));
+            } else {
+                startLauncher(MIDletBridge.getMIDletContext());
+            }
             setStatusBar("");
         } finally {
             setResponseInterface(true);
