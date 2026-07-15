@@ -907,13 +907,16 @@ public class Main extends JFrame {
 		});
 		menuOptions.add(menuShowMouseCoordinates);
 
-		JMenu menuHelp = new JMenu("Help");
+		JMenu menuControls = new JMenu("Controls");
+
+		JMenu menuHelp = new JMenu("About");
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
 		menuHelp.add(menuAbout);
 
 		menuBar.add(menuFile);
 		menuBar.add(menuOptions);
+		menuBar.add(menuControls);
 		menuBar.add(menuHelp);
 		setJMenuBar(menuBar);
 
