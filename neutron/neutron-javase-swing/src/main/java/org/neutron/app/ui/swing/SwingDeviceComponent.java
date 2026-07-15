@@ -159,6 +159,7 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 			requestFocus();
 			org.neutron.app.util.SleepManager.notifyActivity();
 			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				org.neutron.app.util.SleepManager.setSleepModeActive(false);
 				return;
 			}
 			mouseButtonDown = true;
@@ -418,6 +419,7 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 	public void keyPressed(KeyEvent ev) {
 		org.neutron.app.util.SleepManager.notifyActivity();
 		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			org.neutron.app.util.SleepManager.setSleepModeActive(false);
 			return;
 		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {

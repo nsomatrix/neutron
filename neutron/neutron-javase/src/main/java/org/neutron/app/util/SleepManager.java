@@ -46,9 +46,8 @@ public class SleepManager {
     }
 
     public static void notifyActivity() {
-        lastActivityTime = System.currentTimeMillis();
-        if (sleepModeActive) {
-            setSleepModeActive(false);
+        if (!sleepModeActive) {
+            lastActivityTime = System.currentTimeMillis();
         }
     }
 
