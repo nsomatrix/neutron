@@ -767,6 +767,17 @@ public class Main extends JFrame {
 
 		menuFile.addSeparator();
 
+		menuStartCapture = new JMenuItem("Start Recording");
+		menuStartCapture.addActionListener(menuStartCaptureListener);
+		menuFile.add(menuStartCapture);
+
+		menuStopCapture = new JMenuItem("Stop Recording");
+		menuStopCapture.setEnabled(false);
+		menuStopCapture.addActionListener(menuStopCaptureListener);
+		menuFile.add(menuStopCapture);
+
+		menuFile.addSeparator();
+
 		JMenuItem menuItem = new JMenuItem("Exit");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q, ActionEvent.CTRL_MASK));
 		menuItem.addActionListener(menuExitListener);
@@ -788,14 +799,7 @@ public class Main extends JFrame {
 			menuScaleLCD.add(zoomLevels[i]);
 		}
 
-		menuStartCapture = new JMenuItem("Start capture to GIF...");
-		menuStartCapture.addActionListener(menuStartCaptureListener);
-		menuOptions.add(menuStartCapture);
 
-		menuStopCapture = new JMenuItem("Stop capture");
-		menuStopCapture.setEnabled(false);
-		menuStopCapture.addActionListener(menuStopCaptureListener);
-		menuOptions.add(menuStopCapture);
 
 		menuMIDletNetworkConnection = new JCheckBoxMenuItem("MIDlet Network access");
 		menuMIDletNetworkConnection.setState(true);
