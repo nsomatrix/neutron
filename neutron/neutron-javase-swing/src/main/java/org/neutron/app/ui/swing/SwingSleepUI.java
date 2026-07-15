@@ -155,17 +155,7 @@ public class SwingSleepUI {
         g2.fillOval(vx1 - 3, vy1 - 3, 6, 6);
         g2.fillOval(vx2 - 3, vy2 - 3, 6, 6);
 
-        // 7. Dynamic Stats Section
-        g2.setFont(new Font("SansSerif", Font.PLAIN, 9));
-        g2.setColor(subTextColor);
-        long freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024);
-        long totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024);
-        long usedMem = totalMem - freeMem;
-        String statsStr = "MEM: " + usedMem + "MB / " + totalMem + "MB";
-        FontMetrics fmStats = g2.getFontMetrics();
-        g2.drawString(statsStr, cx + (containerWidth - fmStats.stringWidth(statsStr)) / 2, cy + 185);
-
-        // 8. Pulsing Unlock Prompt at the bottom
+        // 7. Pulsing Unlock Prompt at the bottom
         double textPulse = Math.sin(System.currentTimeMillis() * 0.003);
         int alpha = (int) (120 + textPulse * 60); // pulse alpha between 60 and 180
         alpha = Math.max(0, Math.min(255, alpha));
@@ -174,6 +164,6 @@ public class SwingSleepUI {
         g2.setColor(new Color(textColor.getRed(), textColor.getGreen(), textColor.getBlue(), alpha));
         String promptStr = "TAP ANYWHERE TO WAKE UP";
         FontMetrics fmPrompt = g2.getFontMetrics();
-        g2.drawString(promptStr, cx + (containerWidth - fmPrompt.stringWidth(promptStr)) / 2, cy + 212);
+        g2.drawString(promptStr, cx + (containerWidth - fmPrompt.stringWidth(promptStr)) / 2, cy + 195);
     }
 }
