@@ -296,17 +296,17 @@ public class Swt extends Common {
 		shell.setMenuBar(bar);
 
 		MenuItem menuFile = new MenuItem(bar, SWT.CASCADE);
-		menuFile.setText("File");
+		menuFile.setText("Run");
 
 		Menu fileSubmenu = new Menu(shell, SWT.DROP_DOWN);
 		menuFile.setMenu(fileSubmenu);
 
 		menuOpenJADFile = new MenuItem(fileSubmenu, SWT.PUSH);
-		menuOpenJADFile.setText("Open MIDlet File...");
+		menuOpenJADFile.setText("Run JAR File");
 		menuOpenJADFile.addListener(SWT.Selection, menuOpenMIDletFileListener);
 
 		menuOpenJADURL = new MenuItem(fileSubmenu, 0);
-		menuOpenJADURL.setText("Open MIDlet URL...");
+		menuOpenJADURL.setText("Run from URL");
 		menuOpenJADURL.addListener(SWT.Selection, menuOpenMIDletURLListener);
 
 		new MenuItem(fileSubmenu, SWT.SEPARATOR);
@@ -316,7 +316,7 @@ public class Swt extends Common {
 		menuExit.addListener(SWT.Selection, menuExitListener);
 
 		MenuItem menuOptions = new MenuItem(bar, SWT.CASCADE);
-		menuOptions.setText("Options");
+		menuOptions.setText("Config");
 
 		Menu optionsSubmenu = new Menu(shell, SWT.DROP_DOWN);
 		menuOptions.setMenu(optionsSubmenu);

@@ -27,6 +27,7 @@ package org.neutron.app;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -238,11 +239,22 @@ public class Common implements Neutron, CommonInterface {
      * TODO add proper Error handling and display in this function.
      */
     public static void openMIDletUrlSafe(String urlString) {
-        try {
-            getInstance().openMIDletUrl(urlString);
-        } catch (IOException e) {
-            Message.error("Unable to open jad " + urlString, e);
-        }
+        openMIDletUrlSafe(urlString, null);
+    }
+
+    public static void openMIDletUrlSafe(final String urlString, final Runnable onDone) {
+        new Thread("MIDletLoaderThread") {
+            public void run() {
+                try {
+                    getInstance().openMIDletUrl(urlString);
+                    if (onDone != null) {
+                        onDone.run();
+                    }
+                } catch (IOException e) {
+                    Message.error("Unable to open jad " + urlString, e);
+                }
+            }
+        }.start();
     }
 
     protected void openMIDletUrl(String urlString) throws IOException {
@@ -339,14 +351,25 @@ public class Common implements Neutron, CommonInterface {
     }
 
     protected String saveJar2TmpFile(String jarUrl, boolean reportError) {
+        try {
+            return saveJar2TmpFile(new URL(jad.getJarURL()), reportError);
+        } catch (MalformedURLException e) {
+            if (reportError) {
+                Message.error("Unable to open jar " + jarUrl, e);
+            }
+            return null;
+        }
+    }
+
+    protected String saveJar2TmpFile(URL url, boolean reportError) {
         InputStream is = null;
         try {
-            URL url = new URL(jad.getJarURL());
             URLConnection conn = url.openConnection();
             if (url.getUserInfo() != null) {
                 String userInfo = new String(Base64Coder.encode(url.getUserInfo().getBytes("UTF-8")));
                 conn.setRequestProperty("Authorization", "Basic " + userInfo);
             }
+            int contentLength = conn.getContentLength();
             is = conn.getInputStream();
             File tmpDir = null;
             String systemTmpDir = MIDletSystemProperties.getSystemProperty("java.io.tmpdir");
@@ -358,15 +381,45 @@ public class Common implements Neutron, CommonInterface {
             }
             File tmp = File.createTempFile("me2-app-", ".jar", tmpDir);
             tmp.deleteOnExit();
-            IOUtils.copyToFile(is, tmp);
+            copyToFileWithProgress(is, tmp, contentLength, "Downloading JAR");
             return IOUtils.getCanonicalFileClassLoaderURL(tmp);
         } catch (IOException e) {
             if (reportError) {
-                Message.error("Unable to open jar " + jarUrl, e);
+                Message.error("Unable to open jar " + url, e);
             }
             return null;
         } finally {
             IOUtils.closeQuietly(is);
+        }
+    }
+
+    private void copyToFileWithProgress(InputStream is, File dst, int totalBytes, String label) throws IOException {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(dst);
+            byte[] buf = new byte[4096];
+            int bytesRead = 0;
+            int totalRead = 0;
+            long lastUpdate = 0;
+            while ((bytesRead = is.read(buf)) != -1) {
+                fos.write(buf, 0, bytesRead);
+                totalRead += bytesRead;
+                long now = System.currentTimeMillis();
+                if (now - lastUpdate > 100) {
+                    lastUpdate = now;
+                    String statusText;
+                    if (totalBytes > 0) {
+                        int pct = (int) ((totalRead * 100L) / totalBytes);
+                        statusText = label + ": " + (totalRead / 1024) + " KB / " + (totalBytes / 1024) + " KB (" + pct + "%)";
+                    } else {
+                        statusText = label + ": " + (totalRead / 1024) + " KB";
+                    }
+                    setStatusBar(statusText);
+                }
+            }
+            setStatusBar(label + " complete (" + (totalRead / 1024) + " KB)");
+        } finally {
+            IOUtils.closeQuietly(fos);
         }
     }
 
@@ -586,16 +639,17 @@ public class Common implements Neutron, CommonInterface {
                     return;
                 }
             }
-            // Support Basic Authentication; Copy jar file to tmp directory
-            if (url.getUserInfo() != null) {
-                String tmpURL = saveJar2TmpFile(jarUrl, true);
+            // Copy jar file to tmp directory for HTTP/HTTPS URLs (and basic auth) to show download progress
+            boolean isRemote = "http".equalsIgnoreCase(url.getProtocol()) || "https".equalsIgnoreCase(url.getProtocol());
+            if (isRemote || url.getUserInfo() != null) {
+                String tmpURL = saveJar2TmpFile(url, true);
                 if (tmpURL == null) {
                     return;
                 }
                 try {
                     url = new URL(tmpURL);
                 } catch (MalformedURLException e) {
-                    Logger.error("Unable to open tmporary jar url", e);
+                    Logger.error("Unable to open temporary jar url", e);
                 }
             }
             midletClassLoader.addURL(url);

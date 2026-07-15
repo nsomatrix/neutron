@@ -237,10 +237,17 @@ public class Main extends JFrame {
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
 				Config.setRecentDirectory("recentJadDirectory", fileChooser.getCurrentDirectory().getAbsolutePath());
 				String url = IOUtils.getCanonicalFileURL(fileChooser.getSelectedFile());
-				Common.openMIDletUrlSafe(url);
-				if (recordStoreManagerDialog != null) {
-					recordStoreManagerDialog.refresh();
-				}
+				Common.openMIDletUrlSafe(url, new Runnable() {
+					public void run() {
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								if (recordStoreManagerDialog != null) {
+									recordStoreManagerDialog.refresh();
+								}
+							}
+						});
+					}
+				});
 			}
 		}
 	};
@@ -251,10 +258,17 @@ public class Main extends JFrame {
 				midletUrlPanel = new MIDletUrlPanel();
 			}
 			if (SwingDialogWindow.show(Main.this, "Enter MIDlet URL:", midletUrlPanel, true)) {
-				Common.openMIDletUrlSafe(midletUrlPanel.getText());
-				if (recordStoreManagerDialog != null) {
-					recordStoreManagerDialog.refresh();
-				}
+				Common.openMIDletUrlSafe(midletUrlPanel.getText(), new Runnable() {
+					public void run() {
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								if (recordStoreManagerDialog != null) {
+									recordStoreManagerDialog.refresh();
+								}
+							}
+						});
+					}
+				});
 			}
 		}
 	};
@@ -586,18 +600,26 @@ public class Main extends JFrame {
 	};
 
 	private StatusBarListener statusBarListener = new StatusBarListener() {
-		public void statusBarChanged(String text) {
-			FontMetrics metrics = statusBar.getFontMetrics(statusBar.getFont());
-			statusBar.setPreferredSize(new Dimension(metrics.stringWidth(text), metrics.getHeight()));
-			statusBar.setText(text);
+		public void statusBarChanged(final String text) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					FontMetrics metrics = statusBar.getFontMetrics(statusBar.getFont());
+					statusBar.setPreferredSize(new Dimension(metrics.stringWidth(text), metrics.getHeight()));
+					statusBar.setText(text);
+				}
+			});
 		}
 	};
 
 	private ResponseInterfaceListener responseInterfaceListener = new ResponseInterfaceListener() {
-		public void stateChanged(boolean state) {
-			menuOpenMIDletFile.setEnabled(state);
-			menuOpenMIDletURL.setEnabled(state);
-			menuSelectDevice.setEnabled(state);
+		public void stateChanged(final boolean state) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					menuOpenMIDletFile.setEnabled(state);
+					menuOpenMIDletURL.setEnabled(state);
+					menuSelectDevice.setEnabled(state);
+				}
+			});
 		}
 	};
 
@@ -675,32 +697,39 @@ public class Main extends JFrame {
 
 		JMenuBar menuBar = new JMenuBar();
 
-		JMenu menuFile = new JMenu("File");
+		JMenu menuFile = new JMenu("Run");
 
-		menuOpenMIDletFile = new JMenuItem("Open MIDlet File...");
+		menuOpenMIDletFile = new JMenuItem("Run JAR File");
 		menuOpenMIDletFile.addActionListener(menuOpenMIDletFileListener);
 		menuFile.add(menuOpenMIDletFile);
 
-		menuOpenMIDletURL = new JMenuItem("Open MIDlet URL...");
+		menuOpenMIDletURL = new JMenuItem("Run from URL");
 		menuOpenMIDletURL.addActionListener(menuOpenMIDletURLListener);
 		menuFile.add(menuOpenMIDletURL);
 
-		JMenuItem menuItemTmp = new JMenuItem("Close MIDlet");
+		JMenuItem menuItemTmp = new JMenuItem("Terminate Process");
 		menuItemTmp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
 		menuItemTmp.addActionListener(menuCloseMidletListener);
 		menuFile.add(menuItemTmp);
 
 		menuFile.addSeparator();
 
-		JMRUMenu urlsMRU = new JMRUMenu("Recent MIDlets...");
+		JMRUMenu urlsMRU = new JMRUMenu("Installed Games");
 		urlsMRU.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				if (event instanceof JMRUMenu.MRUActionEvent) {
 					Common.openMIDletUrlSafe(((MidletURLReference) ((JMRUMenu.MRUActionEvent) event).getSourceMRU())
-							.getUrl());
-					if (recordStoreManagerDialog != null) {
-						recordStoreManagerDialog.refresh();
-					}
+							.getUrl(), new Runnable() {
+						public void run() {
+							SwingUtilities.invokeLater(new Runnable() {
+								public void run() {
+									if (recordStoreManagerDialog != null) {
+										recordStoreManagerDialog.refresh();
+									}
+								}
+							});
+						}
+					});
 				}
 			}
 		});
@@ -717,7 +746,7 @@ public class Main extends JFrame {
 		menuItem.addActionListener(menuExitListener);
 		menuFile.add(menuItem);
 
-		JMenu menuOptions = new JMenu("Options");
+		JMenu menuOptions = new JMenu("Config");
 
 		menuSelectDevice = new JMenuItem("Select device...");
 		menuSelectDevice.addActionListener(menuSelectDeviceListener);
