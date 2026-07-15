@@ -107,6 +107,10 @@ public class ChangeCallsMethodVisitor extends MethodAdapter implements Opcodes {
 				mv.visitMethodInsn(opcode, NEW_SYSTEM_PROPERTIES_CLASS, name, desc);
 				return;
 			}
+			if (name.equals("sleep") && owner.equals("java/lang/Thread")) {
+				mv.visitMethodInsn(opcode, codeName(MIDletThread.class), name, desc);
+				return;
+			}
 			break;
 		case INVOKEVIRTUAL:
 			if ((name.equals("getResourceAsStream")) && (owner.equals("java/lang/Class"))) {

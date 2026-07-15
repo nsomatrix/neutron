@@ -604,6 +604,22 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isSleepModeEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		String val = optionsXml.getChildString("sleepMode", "false");
+		return Boolean.parseBoolean(val);
+	}
+
+	public static void setSleepModeEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement sleepXml = optionsXml.getChildOrNew("sleepMode");
+		sleepXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
 	public static String preLoadTheme() {
 		File configFile = new File(getConfigPath(), "config2.xml");
 		if (!configFile.exists()) {

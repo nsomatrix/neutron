@@ -115,6 +115,9 @@ public class MIDletTimer extends Timer implements Runnable {
 	
 	public void run() {
 		while (!cancelled) {
+			if (SleepManager.isSleepModeActive()) {
+				SleepManager.checkSleep();
+			}
 			MIDletTimerTask task = null;
 			long nextTimeTask = Long.MAX_VALUE;
 			synchronized (tasks) {

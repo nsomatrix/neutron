@@ -157,6 +157,10 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 
 		public void mousePressed(MouseEvent e) {
 			requestFocus();
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			mouseButtonDown = true;
 			pressedX = e.getX();
 			pressedY = e.getY();
@@ -202,6 +206,10 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 		}
 
 		public void mouseReleased(MouseEvent e) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			mouseButtonDown = false;
 			MouseRepeatedTimerTask.stop();
 
@@ -233,10 +241,18 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 	private MouseMotionListener mouseMotionListener = new MouseMotionListener() {
 
 		public void mouseDragged(MouseEvent e) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			mouseMoved(e);
 		}
 
 		public void mouseMoved(MouseEvent e) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			if (showMouseCoordinates) {
 				StringBuffer buf = new StringBuffer();
 				if (mouseButtonDown) {
@@ -384,6 +400,10 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
  	//Input method support end
 
 	public void keyTyped(KeyEvent ev) {
+		org.neutron.app.util.SleepManager.notifyActivity();
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			return;
+		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {
 			return;
 		}
@@ -396,6 +416,10 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 	}
 
 	public void keyPressed(KeyEvent ev) {
+		org.neutron.app.util.SleepManager.notifyActivity();
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			return;
+		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {
 			return;
 		}
@@ -460,6 +484,10 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 	}
 
 	public void keyReleased(KeyEvent ev) {
+		org.neutron.app.util.SleepManager.notifyActivity();
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			return;
+		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {
 			return;
 		}
@@ -558,6 +586,11 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 		}
 
 		g.drawImage(offi, 0, 0, null);
+
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			g.setColor(new java.awt.Color(0, 0, 0, 180));
+			g.fillRect(0, 0, getWidth(), getHeight());
+		}
 	}
 
 	private void drawImageInShape(Graphics g, Image image, org.neutron.device.impl.Shape shape) {

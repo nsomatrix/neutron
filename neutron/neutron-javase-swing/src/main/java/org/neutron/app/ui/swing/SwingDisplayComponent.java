@@ -84,6 +84,15 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 			deviceComponent.requestFocus();
 			pressedPoint = e.getPoint();
 
+			org.neutron.app.util.SleepManager.notifyActivity();
+
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				if (SwingSleepUI.isWakeUpClicked(e.getX(), e.getY(), getWidth(), getHeight())) {
+					org.neutron.app.util.SleepManager.setSleepModeActive(false);
+				}
+				return;
+			}
+
 			if (MIDletBridge.getCurrentMIDlet() == null) {
 				return;
 			}
@@ -127,6 +136,11 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		}
 
 		public void mouseReleased(MouseEvent e) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
+
 			if (MIDletBridge.getCurrentMIDlet() == null) {
 				return;
 			}
@@ -183,6 +197,10 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	private MouseMotionListener mouseMotionListener = new MouseMotionListener() {
 
 		public void mouseDragged(MouseEvent e) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			Point scaledPt = scaleCoordinate(e.getPoint());
 			Point scaledPressedPt = scaleCoordinate(pressedPoint);
 			if (showMouseCoordinates) {
@@ -222,6 +240,10 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		}
 
 		public void mouseMoved(MouseEvent e) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			if (showMouseCoordinates) {
 				StringBuffer buf = new StringBuffer();
 				Point p = deviceCoordinate(DeviceFactory.getDevice().getDeviceDisplay(), e.getPoint());
@@ -235,6 +257,10 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	private MouseWheelListener mouseWheelListener = new MouseWheelListener() {
 
 		public void mouseWheelMoved(MouseWheelEvent ev) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+				return;
+			}
 			if (ev.getWheelRotation() > 0) {
 				// down
 				KeyEvent event = new KeyEvent(deviceComponent, 0, System.currentTimeMillis(), 0, KeyEvent.VK_DOWN,
@@ -252,6 +278,8 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 	};
 
+	private javax.swing.Timer sleepRepaintTimer;
+
 	SwingDisplayComponent(SwingDeviceComponent deviceComponent) {
 		this.deviceComponent = deviceComponent;
 
@@ -260,6 +288,36 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		addMouseListener(mouseListener);
 		addMouseMotionListener(mouseMotionListener);
 		addMouseWheelListener(mouseWheelListener);
+
+		org.neutron.app.util.SleepManager.setUiCallback(new Runnable() {
+			public void run() {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						boolean active = org.neutron.app.util.SleepManager.isSleepModeActive();
+						org.neutron.app.Main.updateSleepModeMenuState(org.neutron.app.util.SleepManager.isSleepEnabled());
+						if (active) {
+							if (sleepRepaintTimer == null) {
+								sleepRepaintTimer = new javax.swing.Timer(33, new java.awt.event.ActionListener() {
+									public void actionPerformed(java.awt.event.ActionEvent e) {
+										repaint();
+									}
+								});
+								sleepRepaintTimer.start();
+							}
+						} else {
+							if (sleepRepaintTimer != null) {
+								sleepRepaintTimer.stop();
+								sleepRepaintTimer = null;
+							}
+						}
+						repaint();
+						if (SwingDisplayComponent.this.deviceComponent != null) {
+							SwingDisplayComponent.this.deviceComponent.repaint();
+						}
+					}
+				});
+			}
+		});
 	}
 
 	public void init() {
@@ -289,10 +347,14 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	}
 
 	protected void paintComponent(Graphics g) {
-		J2SEGraphicsSurface localSurface = graphicsSurface;
-		if (localSurface != null) {
-			synchronized (localSurface) {
-				g.drawImage(localSurface.getImage(), 0, 0, getWidth(), getHeight(), null);
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			SwingSleepUI.paintScreensaver(g, getWidth(), getHeight());
+		} else {
+			J2SEGraphicsSurface localSurface = graphicsSurface;
+			if (localSurface != null) {
+				synchronized (localSurface) {
+					g.drawImage(localSurface.getImage(), 0, 0, getWidth(), getHeight(), null);
+				}
 			}
 		}
 	}

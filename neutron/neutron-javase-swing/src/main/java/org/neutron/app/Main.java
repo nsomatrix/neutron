@@ -156,6 +156,28 @@ public class Main extends JFrame {
 
 	private JCheckBoxMenuItem menuRecordStoreManager;
 
+	private JCheckBoxMenuItem menuSleepMode;
+
+	private static Main instance;
+
+	private ActionListener menuSleepModeListener = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			boolean enabled = menuSleepMode.isSelected();
+			Config.setSleepModeEnabled(enabled);
+			org.neutron.app.util.SleepManager.setSleepEnabled(enabled);
+		}
+	};
+
+	public static void updateSleepModeMenuState(final boolean active) {
+		if (instance != null && instance.menuSleepMode != null) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					instance.menuSleepMode.setSelected(active);
+				}
+			});
+		}
+	}
+
 	private JFrame scaledDisplayFrame;
 
 	private JMenu menuTheme;
@@ -691,6 +713,7 @@ public class Main extends JFrame {
 	}
 
 	public Main(DeviceEntry defaultDevice) {
+		instance = this;
 
 		this.logQueueAppender = new QueueAppender(1024);
 		Logger.addAppender(logQueueAppender);
@@ -786,6 +809,12 @@ public class Main extends JFrame {
 		menuLogConsole.addActionListener(menuLogConsoleListener);
 		menuOptions.add(menuLogConsole);
 
+		menuSleepMode = new JCheckBoxMenuItem("Sleep Mode");
+		menuSleepMode.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
+		menuSleepMode.setState(false);
+		menuSleepMode.addActionListener(menuSleepModeListener);
+		menuOptions.add(menuSleepMode);
+
 		menuTheme = new JMenu("Theme");
 		ButtonGroup themeGroup = new ButtonGroup();
 		String[] themes = {
@@ -835,6 +864,10 @@ public class Main extends JFrame {
 
 		Config.loadConfig(defaultDevice, emulatorContext);
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
+
+		boolean sleepEnabled = Config.isSleepModeEnabled();
+		menuSleepMode.setState(sleepEnabled);
+		org.neutron.app.util.SleepManager.setSleepEnabled(sleepEnabled);
 
 		Rectangle window = Config.getWindow("main", new Rectangle(0, 0, 160, 120));
 		this.setLocation(window.x, window.y);

@@ -79,6 +79,20 @@ public class MIDletThread extends Thread {
 		super(THREAD_NAME_PREFIX + name);
 		register(this);
 	}
+
+	public static void sleep(long millis) throws InterruptedException {
+		if (SleepManager.isSleepModeActive()) {
+			SleepManager.checkSleep();
+		}
+		Thread.sleep(millis);
+	}
+
+	public static void sleep(long millis, int nanos) throws InterruptedException {
+		if (SleepManager.isSleepModeActive()) {
+			SleepManager.checkSleep();
+		}
+		Thread.sleep(millis, nanos);
+	}
 	
 	private static void register(MIDletThread thread) {
 		MIDletContext midletContext = MIDletBridge.getMIDletContext();
