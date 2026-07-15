@@ -131,7 +131,48 @@ public class Logger {
 		return null;
 	}
 
+	private static String lastExceptionKey = null;
+	private static long lastExceptionTime = 0;
+	private static int suppressedCount = 0;
+
+	private static boolean checkRateLimit(Throwable throwable) {
+		if (throwable == null) {
+			return true;
+		}
+		long now = System.currentTimeMillis();
+		String key = throwable.getClass().getName();
+		StackTraceElement[] ste = throwable.getStackTrace();
+		if (ste != null && ste.length > 0) {
+			key += "@" + ste[0].toString();
+		}
+		if (throwable.getMessage() != null) {
+			key += ":" + throwable.getMessage();
+		}
+
+		synchronized (Logger.class) {
+			if (key.equals(lastExceptionKey)) {
+				if (now - lastExceptionTime < 2000) {
+					suppressedCount++;
+					lastExceptionTime = now;
+					return false;
+				}
+			}
+			if (suppressedCount > 0) {
+				String summary = "[Suppressed " + suppressedCount + " identical exceptions in the last " + (now - lastExceptionTime) + "ms]";
+				suppressedCount = 0;
+				write(LoggingEvent.WARN, summary, null);
+			}
+			lastExceptionKey = key;
+			lastExceptionTime = now;
+			suppressedCount = 0;
+		}
+		return true;
+	}
+
 	private static void write(int level, String message, Throwable throwable) {
+		if (throwable != null && !checkRateLimit(throwable)) {
+			return;
+		}
 		while ((message != null) && message.endsWith("\n")) {
 			message = message.substring(0, message.length() - 1);
 		}
@@ -139,6 +180,9 @@ public class Logger {
 	}
 
 	private static void write(int level, String message, Throwable throwable, Object data) {
+		if (throwable != null && !checkRateLimit(throwable)) {
+			return;
+		}
 		callAppenders(new LoggingEvent(level, message, getLocation(), throwable, data));
 	}
 
