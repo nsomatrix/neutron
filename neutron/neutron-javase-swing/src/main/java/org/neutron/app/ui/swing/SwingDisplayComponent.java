@@ -44,11 +44,16 @@ import javax.microedition.lcdui.Screen;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
 
 import org.neutron.DisplayAccess;
 import org.neutron.DisplayComponent;
 import org.neutron.MIDletAccess;
 import org.neutron.MIDletBridge;
+import org.neutron.app.Config;
 import org.neutron.app.Common;
 import org.neutron.app.ui.DisplayRepaintListener;
 import org.neutron.device.Device;
@@ -69,6 +74,16 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	private SwingDeviceComponent deviceComponent;
 
 	private J2SEGraphicsSurface graphicsSurface;
+
+	private BufferedImage scale2xCacheImage;
+	private int[] scale2xCacheData;
+
+	private BufferedImage adjustedCacheImage;
+	private int[] adjustedCacheData;
+
+	private BufferedImage convolvedCacheImage;
+
+	private BufferedImage ghostingCacheImage;
 
 	private SoftButton initialPressedSoftButton;
 
@@ -346,6 +361,120 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		return new Dimension(device.getDeviceDisplay().getFullWidth(), device.getDeviceDisplay().getFullHeight());
 	}
 
+	private BufferedImage getScale2xImage(BufferedImage src, int[] srcData) {
+		int width = src.getWidth();
+		int height = src.getHeight();
+		int destWidth = width * 2;
+		int destHeight = height * 2;
+
+		if (scale2xCacheImage == null || scale2xCacheImage.getWidth() != destWidth || scale2xCacheImage.getHeight() != destHeight) {
+			scale2xCacheImage = new BufferedImage(destWidth, destHeight, src.getType());
+			scale2xCacheData = ((java.awt.image.DataBufferInt) scale2xCacheImage.getRaster().getDataBuffer()).getData();
+		}
+
+		for (int y = 0; y < height; y++) {
+			int yPrev = y > 0 ? y - 1 : y;
+			int yNext = y < height - 1 ? y + 1 : y;
+
+			int rowPrevOffset = yPrev * width;
+			int rowCurrOffset = y * width;
+			int rowNextOffset = yNext * width;
+
+			int destRow0Offset = (y * 2) * destWidth;
+			int destRow1Offset = (y * 2 + 1) * destWidth;
+
+			for (int x = 0; x < width; x++) {
+				int xPrev = x > 0 ? x - 1 : x;
+				int xNext = x < width - 1 ? x + 1 : x;
+
+				int E = srcData[rowCurrOffset + x];
+				int B = srcData[rowPrevOffset + x];
+				int D = srcData[rowCurrOffset + xPrev];
+				int F = srcData[rowCurrOffset + xNext];
+				int H = srcData[rowNextOffset + x];
+
+				int E0, E1, E2, E3;
+				if (B != H && D != F) {
+					E0 = (D == B) ? D : E;
+					E1 = (B == F) ? F : E;
+					E2 = (H == D) ? D : E;
+					E3 = (F == H) ? F : E;
+				} else {
+					E0 = E;
+					E1 = E;
+					E2 = E;
+					E3 = E;
+				}
+
+				int destX = x * 2;
+				scale2xCacheData[destRow0Offset + destX] = E0;
+				scale2xCacheData[destRow0Offset + destX + 1] = E1;
+				scale2xCacheData[destRow1Offset + destX] = E2;
+				scale2xCacheData[destRow1Offset + destX + 1] = E3;
+			}
+		}
+
+		return scale2xCacheImage;
+	}
+
+	private void applyColorAdjustments(int[] srcPixels, int[] destPixels, int length, 
+	                                  int brightness, int contrastVal, float gamma, int saturationVal, boolean invert) {
+		float contrast = contrastVal / 100.0f;
+		float sat = saturationVal / 100.0f;
+
+		int[] gammaLut = null;
+		if (Math.abs(gamma - 1.0f) > 0.01f) {
+			gammaLut = new int[256];
+			for (int i = 0; i < 256; i++) {
+				gammaLut[i] = (int) (255.0 * Math.pow(i / 255.0, 1.0 / gamma));
+				if (gammaLut[i] > 255) gammaLut[i] = 255;
+				if (gammaLut[i] < 0) gammaLut[i] = 0;
+			}
+		}
+
+		for (int i = 0; i < length; i++) {
+			int argb = srcPixels[i];
+			int a = argb & 0xff000000;
+			int r = (argb >> 16) & 0xff;
+			int g = (argb >> 8) & 0xff;
+			int b = argb & 0xff;
+
+			if (invert) {
+				r = 255 - r;
+				g = 255 - g;
+				b = 255 - b;
+			}
+
+			if (brightness != 0 || contrastVal != 100) {
+				r = (int) (r * contrast + brightness);
+				g = (int) (g * contrast + brightness);
+				b = (int) (b * contrast + brightness);
+			}
+
+			if (gammaLut != null) {
+				if (r < 0) r = 0; else if (r > 255) r = 255;
+				if (g < 0) g = 0; else if (g > 255) g = 255;
+				if (b < 0) b = 0; else if (b > 255) b = 255;
+				r = gammaLut[r];
+				g = gammaLut[g];
+				b = gammaLut[b];
+			}
+
+			if (saturationVal != 100) {
+				int luma = (int) (0.299f * r + 0.587f * g + 0.114f * b);
+				r = (int) (luma + sat * (r - luma));
+				g = (int) (luma + sat * (g - luma));
+				b = (int) (luma + sat * (b - luma));
+			}
+
+			if (r < 0) r = 0; else if (r > 255) r = 255;
+			if (g < 0) g = 0; else if (g > 255) g = 255;
+			if (b < 0) b = 0; else if (b > 255) b = 255;
+
+			destPixels[i] = a | (r << 16) | (g << 8) | b;
+		}
+	}
+
 	protected void paintComponent(Graphics g) {
 		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
 			SwingSleepUI.paintScreensaver(g, getWidth(), getHeight());
@@ -353,7 +482,119 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 			J2SEGraphicsSurface localSurface = graphicsSurface;
 			if (localSurface != null) {
 				synchronized (localSurface) {
-					g.drawImage(localSurface.getImage(), 0, 0, getWidth(), getHeight(), null);
+					Graphics2D g2d = (Graphics2D) g;
+					String filter = Config.getGraphicsFilter();
+
+					BufferedImage currentImg = localSurface.getImage();
+					int[] currentData = localSurface.getImageData();
+
+					if ("Scale2x".equals(filter)) {
+						currentImg = getScale2xImage(currentImg, currentData);
+						currentData = scale2xCacheData;
+					}
+
+					int brightness = Config.getBrightness();
+					int contrast = Config.getContrast();
+					float gamma = Config.getGamma();
+					int saturation = Config.getSaturation();
+					boolean invert = Config.isInvert();
+
+					boolean hasColorAdjustments = (brightness != 0 || contrast != 100 || Math.abs(gamma - 1.0f) > 0.01f || saturation != 100 || invert);
+
+					if (hasColorAdjustments) {
+						int w = currentImg.getWidth();
+						int h = currentImg.getHeight();
+						if (adjustedCacheImage == null || adjustedCacheImage.getWidth() != w || adjustedCacheImage.getHeight() != h) {
+							adjustedCacheImage = new BufferedImage(w, h, currentImg.getType());
+							adjustedCacheData = ((java.awt.image.DataBufferInt) adjustedCacheImage.getRaster().getDataBuffer()).getData();
+						}
+						
+						applyColorAdjustments(currentData, adjustedCacheData, w * h, brightness, contrast, gamma, saturation, invert);
+						currentImg = adjustedCacheImage;
+					}
+
+					int sharpness = Config.getSharpness();
+					if (sharpness != 0) {
+						int w = currentImg.getWidth();
+						int h = currentImg.getHeight();
+						if (convolvedCacheImage == null || convolvedCacheImage.getWidth() != w || convolvedCacheImage.getHeight() != h) {
+							convolvedCacheImage = new BufferedImage(w, h, currentImg.getType());
+						}
+						
+						float amt = sharpness / 100.0f;
+						java.awt.image.Kernel kernel;
+						if (sharpness > 0) {
+							float[] sharpenKernel = {
+								0f, -amt, 0f,
+								-amt, 1f + 4f * amt, -amt,
+								0f, -amt, 0f
+							};
+							kernel = new java.awt.image.Kernel(3, 3, sharpenKernel);
+						} else {
+							float blurAmt = -sharpness / 100.0f;
+							float edge = blurAmt / 9.0f;
+							float center = 1.0f - 8.0f * edge;
+							float[] blurKernel = {
+								edge, edge, edge,
+								edge, center, edge,
+								edge, edge, edge
+							};
+							kernel = new java.awt.image.Kernel(3, 3, blurKernel);
+						}
+						
+						java.awt.image.ConvolveOp convolve = new java.awt.image.ConvolveOp(kernel, java.awt.image.ConvolveOp.EDGE_NO_OP, null);
+						convolve.filter(currentImg, convolvedCacheImage);
+						currentImg = convolvedCacheImage;
+					}
+
+					int ghosting = Config.getGhosting();
+					if (ghosting > 0) {
+						int w = currentImg.getWidth();
+						int h = currentImg.getHeight();
+						if (ghostingCacheImage == null || ghostingCacheImage.getWidth() != w || ghostingCacheImage.getHeight() != h) {
+							ghostingCacheImage = new BufferedImage(w, h, currentImg.getType());
+							Graphics2D gg = ghostingCacheImage.createGraphics();
+							gg.drawImage(currentImg, 0, 0, null);
+							gg.dispose();
+						} else {
+							Graphics2D gg = ghostingCacheImage.createGraphics();
+							float alpha = 1.0f - (ghosting / 100.0f);
+							gg.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+							gg.drawImage(currentImg, 0, 0, null);
+							gg.dispose();
+						}
+						currentImg = ghostingCacheImage;
+					}
+
+					if ("Bilinear".equals(filter)) {
+						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
+					} else if ("Bicubic".equals(filter)) {
+						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
+					} else if ("CRT Scanlines".equals(filter)) {
+						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
+						
+						g2d.setColor(new java.awt.Color(0, 0, 0, 45));
+						for (int y = 0; y < getHeight(); y += 2) {
+							g2d.drawLine(0, y, getWidth(), y);
+						}
+					} else if ("LCD Grid".equals(filter)) {
+						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
+						
+						g2d.setColor(new java.awt.Color(0, 0, 0, 30));
+						for (int y = 0; y < getHeight(); y += 3) {
+							g2d.drawLine(0, y, getWidth(), y);
+						}
+						for (int x = 0; x < getWidth(); x += 3) {
+							g2d.drawLine(x, 0, x, getHeight());
+						}
+					} else { // "Nearest Neighbor", "Scale2x", or default
+						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
+					}
 				}
 			}
 		}

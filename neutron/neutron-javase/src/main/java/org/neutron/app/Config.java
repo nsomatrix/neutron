@@ -605,6 +605,122 @@ public class Config {
 		saveConfig();
 	}
 
+	public static String getGraphicsFilter() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "Nearest Neighbor";
+		}
+		return optionsXml.getChildString("graphicsFilter", "Nearest Neighbor");
+	}
+
+	public static void setGraphicsFilter(String filter) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement filterXml = optionsXml.getChildOrNew("graphicsFilter");
+		filterXml.setContent(filter);
+		saveConfig();
+	}
+
+	public static int getBrightness() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return 0;
+		try {
+			return Integer.parseInt(optionsXml.getChildString("brightness", "0"));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static void setBrightness(int val) {
+		configXml.getChildOrNew("options").getChildOrNew("brightness").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
+	public static int getContrast() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return 100;
+		try {
+			return Integer.parseInt(optionsXml.getChildString("contrast", "100"));
+		} catch (NumberFormatException e) {
+			return 100;
+		}
+	}
+
+	public static void setContrast(int val) {
+		configXml.getChildOrNew("options").getChildOrNew("contrast").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
+	public static float getGamma() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return 1.0f;
+		try {
+			return Float.parseFloat(optionsXml.getChildString("gamma", "1.0"));
+		} catch (NumberFormatException e) {
+			return 1.0f;
+		}
+	}
+
+	public static void setGamma(float val) {
+		configXml.getChildOrNew("options").getChildOrNew("gamma").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
+	public static int getSaturation() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return 100;
+		try {
+			return Integer.parseInt(optionsXml.getChildString("saturation", "100"));
+		} catch (NumberFormatException e) {
+			return 100;
+		}
+	}
+
+	public static void setSaturation(int val) {
+		configXml.getChildOrNew("options").getChildOrNew("saturation").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
+	public static int getSharpness() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return 0;
+		try {
+			return Integer.parseInt(optionsXml.getChildString("sharpness", "0"));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static void setSharpness(int val) {
+		configXml.getChildOrNew("options").getChildOrNew("sharpness").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
+	public static int getGhosting() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return 0;
+		try {
+			return Integer.parseInt(optionsXml.getChildString("ghosting", "0"));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static void setGhosting(int val) {
+		configXml.getChildOrNew("options").getChildOrNew("ghosting").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
+	public static boolean isInvert() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) return false;
+		return Boolean.parseBoolean(optionsXml.getChildString("invert", "false"));
+	}
+
+	public static void setInvert(boolean val) {
+		configXml.getChildOrNew("options").getChildOrNew("invert").setContent(String.valueOf(val));
+		saveConfig();
+	}
+
 	public static boolean isSleepModeEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

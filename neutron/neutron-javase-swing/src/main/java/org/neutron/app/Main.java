@@ -100,6 +100,7 @@ import org.neutron.app.ui.swing.SwingDisplayComponent;
 import org.neutron.app.ui.swing.SwingErrorMessageDialogPanel;
 import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingSelectDevicePanel;
+import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -181,6 +182,8 @@ public class Main extends JFrame {
 	private JFrame scaledDisplayFrame;
 
 	private JMenu menuTheme;
+
+	private JMenu menuFilter;
 
 	private JCheckBoxMenuItem[] zoomLevels;
 
@@ -836,6 +839,41 @@ public class Main extends JFrame {
 		}
 		menuOptions.add(menuTheme);
 
+		menuFilter = new JMenu("Graphics Filter");
+		ButtonGroup filterGroup = new ButtonGroup();
+		String[] filters = {
+			"Nearest Neighbor", "Bilinear", "Bicubic", "Scale2x", "CRT Scanlines", "LCD Grid"
+		};
+		String currentFilter = Config.getGraphicsFilter();
+		for (final String filterName : filters) {
+			JRadioButtonMenuItem filterItem = new JRadioButtonMenuItem(filterName, filterName.equals(currentFilter));
+			filterItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Config.setGraphicsFilter(filterName);
+					if (devicePanel != null) {
+						SwingDisplayComponent sdc = (SwingDisplayComponent) devicePanel.getDisplayComponent();
+						if (sdc != null) {
+							sdc.repaint();
+						}
+					}
+				}
+			});
+			filterGroup.add(filterItem);
+			menuFilter.add(filterItem);
+		}
+		menuOptions.add(menuFilter);
+
+		JMenuItem itemVideoSettings = new JMenuItem("Video Settings");
+		itemVideoSettings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingVideoSettingsPanel panel = new SwingVideoSettingsPanel(devicePanel);
+				if (!SwingDialogWindow.show(Main.this, "Video Settings", panel, true)) {
+					panel.revertSettings();
+				}
+			}
+		});
+		menuOptions.add(itemVideoSettings);
+
 		JMenu menuMemoryLimit = new JMenu("Memory Limit");
 		ButtonGroup memoryGroup = new ButtonGroup();
 		int[] memoryLimits = {0, 32, 64, 128, 256, 512};
@@ -1028,6 +1066,22 @@ public class Main extends JFrame {
 		}
 	}
 
+	protected void updateFilterSelection() {
+		if (menuFilter == null) {
+			return;
+		}
+		String currentFilter = Config.getGraphicsFilter();
+		for (int i = 0; i < menuFilter.getItemCount(); i++) {
+			JMenuItem item = menuFilter.getItem(i);
+			if (item instanceof JRadioButtonMenuItem) {
+				if (item.getText().equals(currentFilter)) {
+					item.setSelected(true);
+					break;
+				}
+			}
+		}
+	}
+
 	protected void updateDevice() {
 		devicePanel.init();
 		if (((DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay()).isResizable()) {
@@ -1122,6 +1176,7 @@ public class Main extends JFrame {
 			}
 		}
 		app.updateThemeSelection();
+		app.updateFilterSelection();
 		app.updateDevice();
 
 		app.validate();
