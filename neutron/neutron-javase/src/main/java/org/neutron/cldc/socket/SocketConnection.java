@@ -39,7 +39,12 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	}
 
 	public SocketConnection(String host, int port) throws IOException {
-		this.socket = new java.net.Socket();
+		java.net.Proxy proxy = org.neutron.app.Config.getProxyInstance();
+		if (proxy != null && proxy.type() == java.net.Proxy.Type.SOCKS) {
+			this.socket = new java.net.Socket(proxy);
+		} else {
+			this.socket = new java.net.Socket();
+		}
 		this.socket.setKeepAlive(true);
 		int timeout = Integer.getInteger("neutron.socket.timeout", 120000);
 		if (timeout > 0) {

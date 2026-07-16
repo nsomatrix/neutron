@@ -56,7 +56,8 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		} catch (MalformedURLException ex) {
 			throw new IOException(ex.toString());
 		}
-		cn = url.openConnection();
+		java.net.Proxy proxy = org.neutron.app.Config.getProxyInstance();
+		cn = url.openConnection(proxy);
 		int connectTimeout = Integer.getInteger("neutron.http.connect.timeout", 30000);
 		int readTimeout = Integer.getInteger("neutron.http.read.timeout", 30000);
 		if (connectTimeout > 0) {

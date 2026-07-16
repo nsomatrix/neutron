@@ -364,7 +364,7 @@ public class Common implements Neutron, CommonInterface {
     protected String saveJar2TmpFile(URL url, boolean reportError) {
         InputStream is = null;
         try {
-            URLConnection conn = url.openConnection();
+            URLConnection conn = url.openConnection(Config.getProxyInstance());
             if (url.getUserInfo() != null) {
                 String userInfo = new String(Base64Coder.encode(url.getUserInfo().getBytes("UTF-8")));
                 conn.setRequestProperty("Authorization", "Basic " + userInfo);
@@ -594,7 +594,7 @@ public class Common implements Neutron, CommonInterface {
             final String message = "Unable to open jar " + jarUrl;
             URLConnection conn;
             try {
-                conn = jarUrl.openConnection();
+                conn = jarUrl.openConnection(Config.getProxyInstance());
             } catch (IOException e) {
                 Message.error(message, e);
                 return true;
@@ -1074,10 +1074,11 @@ public class Common implements Neutron, CommonInterface {
         JadProperties properties = new JadProperties();
 
         URL url = new URL(urlString);
+        java.net.Proxy proxy = Config.getProxyInstance();
         if (url.getUserInfo() == null) {
-            properties.read(url.openStream());
+            properties.read(url.openConnection(proxy).getInputStream());
         } else {
-            URLConnection cn = url.openConnection();
+            URLConnection cn = url.openConnection(proxy);
             String userInfo = new String(Base64Coder.encode(url.getUserInfo().getBytes("UTF-8")));
             cn.setRequestProperty("Authorization", "Basic " + userInfo);
             properties.read(cn.getInputStream());

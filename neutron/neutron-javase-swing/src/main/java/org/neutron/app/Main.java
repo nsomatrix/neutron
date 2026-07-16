@@ -101,6 +101,7 @@ import org.neutron.app.ui.swing.SwingErrorMessageDialogPanel;
 import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingSelectDevicePanel;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
+import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -908,6 +909,14 @@ public class Main extends JFrame {
 		menuOptions.add(menuShowMouseCoordinates);
 
 		JMenu menuControls = new JMenu("Controls");
+		JMenuItem menuProxySettings = new JMenuItem("X-Proxy");
+		menuProxySettings.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingProxySettingsPanel panel = new SwingProxySettingsPanel();
+				SwingDialogWindow.show(Main.this, "Proxy Settings", panel, true);
+			}
+		});
+		menuControls.add(menuProxySettings);
 
 		JMenu menuHelp = new JMenu("About");
 		JMenuItem menuAbout = new JMenuItem("About");
@@ -1042,6 +1051,11 @@ public class Main extends JFrame {
             SoftButton button = (SoftButton) en.nextElement();
             Rectangle paintable = button.getPaintable();
             paintable.y = height - paintable.height;
+            if ("SOFT2".equals(button.getName())) {
+                paintable.x = width - paintable.width - 1;
+            } else if ("SOFT1".equals(button.getName())) {
+                paintable.x = 1;
+            }
             menuh = paintable.height;
         }
         // resize the display area
@@ -1091,7 +1105,8 @@ public class Main extends JFrame {
 
 	protected void updateDevice() {
 		devicePanel.init();
-		if (((DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay()).isResizable()) {
+		DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+		if (deviceDisplay.isResizable()) {
 			setResizable(true);
 			resizeButton.setVisible(true);
 		} else {
@@ -1100,6 +1115,10 @@ public class Main extends JFrame {
 		}
 
 		pack();
+
+		if (deviceDisplay.isResizable()) {
+			setDeviceSize(deviceDisplay, devicePanel.getWidth(), devicePanel.getHeight());
+		}
 
 		devicePanel.requestFocus();
 	}

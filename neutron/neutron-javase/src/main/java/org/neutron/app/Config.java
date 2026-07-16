@@ -126,6 +126,7 @@ public class Config {
 		urlsMRU.read(configXml.getChildOrNew("files").getChildOrNew("recent"));
 		initSystemProperties();
 		org.neutron.app.util.MemoryManager.init();
+		initProxyAuthenticator();
 	}
 
 	private static void loadConfigFile(String configFileName) throws IOException {
@@ -756,6 +757,160 @@ public class Config {
 		limitXml.setContent(String.valueOf(limit));
 		saveConfig();
 	}
+
+	public static boolean isProxyEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("proxyEnabled", "false"));
+	}
+
+	public static void setProxyEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement enabledXml = optionsXml.getChildOrNew("proxyEnabled");
+		enabledXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static String getProxyType() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "HTTP";
+		}
+		return optionsXml.getChildString("proxyType", "HTTP");
+	}
+
+	public static void setProxyType(String type) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement typeXml = optionsXml.getChildOrNew("proxyType");
+		typeXml.setContent(type);
+		saveConfig();
+	}
+
+	public static String getProxyHost() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "";
+		}
+		return optionsXml.getChildString("proxyHost", "");
+	}
+
+	public static void setProxyHost(String host) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement hostXml = optionsXml.getChildOrNew("proxyHost");
+		hostXml.setContent(host);
+		saveConfig();
+	}
+
+	public static int getProxyPort() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return 8080;
+		}
+		try {
+			return Integer.parseInt(optionsXml.getChildString("proxyPort", "8080"));
+		} catch (NumberFormatException e) {
+			return 8080;
+		}
+	}
+
+	public static void setProxyPort(int port) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement portXml = optionsXml.getChildOrNew("proxyPort");
+		portXml.setContent(String.valueOf(port));
+		saveConfig();
+	}
+
+	public static boolean isProxyAuthEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("proxyAuthEnabled", "false"));
+	}
+
+	public static void setProxyAuthEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement authXml = optionsXml.getChildOrNew("proxyAuthEnabled");
+		authXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static String getProxyUsername() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "";
+		}
+		return optionsXml.getChildString("proxyUsername", "");
+	}
+
+	public static void setProxyUsername(String username) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement userXml = optionsXml.getChildOrNew("proxyUsername");
+		userXml.setContent(username);
+		saveConfig();
+	}
+
+	public static String getProxyPassword() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "";
+		}
+		return optionsXml.getChildString("proxyPassword", "");
+	}
+
+	public static void setProxyPassword(String password) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement passXml = optionsXml.getChildOrNew("proxyPassword");
+		passXml.setContent(password);
+		saveConfig();
+	}
+
+	public static java.net.Proxy getProxyInstance() {
+		if (!isProxyEnabled()) {
+			return java.net.Proxy.NO_PROXY;
+		}
+		String host = getProxyHost();
+		if (host == null || host.trim().isEmpty()) {
+			return java.net.Proxy.NO_PROXY;
+		}
+		int port = getProxyPort();
+		String typeStr = getProxyType();
+		java.net.Proxy.Type type = java.net.Proxy.Type.HTTP;
+		if ("SOCKS".equalsIgnoreCase(typeStr)) {
+			type = java.net.Proxy.Type.SOCKS;
+		}
+		try {
+			return new java.net.Proxy(type, new java.net.InetSocketAddress(host, port));
+		} catch (Exception e) {
+			Logger.error("Failed to create proxy object", e);
+			return java.net.Proxy.NO_PROXY;
+		}
+	}
+
+	public static void initProxyAuthenticator() {
+		try {
+			java.net.Authenticator.setDefault(new java.net.Authenticator() {
+				protected java.net.PasswordAuthentication getPasswordAuthentication() {
+					if (getRequestorType() == RequestorType.PROXY) {
+						if (isProxyEnabled() && isProxyAuthEnabled()) {
+							String username = getProxyUsername();
+							String password = getProxyPassword();
+							if (username != null && !username.isEmpty()) {
+								return new java.net.PasswordAuthentication(username, password.toCharArray());
+							}
+						}
+					}
+					return null;
+				}
+			});
+		} catch (SecurityException e) {
+			Logger.error("Cannot set default Authenticator", e);
+		}
+	}
+
+
 
 	public static String preLoadTheme() {
 		File configFile = new File(getConfigPath(), "config2.xml");
