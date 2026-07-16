@@ -102,18 +102,6 @@ public class SleepManager {
     }
 
     public static void checkSleep() {
-        if (!sleepModeActive) {
-            return;
-        }
-        synchronized (sleepLock) {
-            while (sleepModeActive) {
-                try {
-                    sleepLock.wait(1000);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }
+        // J2ME threads are no longer suspended during sleep mode to ensure that background farming and network connections remain active and run seamlessly.
     }
 }
