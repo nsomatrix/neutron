@@ -104,6 +104,8 @@ import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkSnifferPanel;
 import org.neutron.app.ui.swing.SwingPerfHUD;
+import org.neutron.app.ui.swing.SwingAutoClicker;
+import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -982,6 +984,20 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuHudOverlay);
 
+		JMenuItem menuAutoClicker = new JMenuItem("Tap Automator");
+		menuAutoClicker.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingAutoClickerSettingsPanel panel = new SwingAutoClickerSettingsPanel();
+				if (SwingDialogWindow.show(Main.this, "Tap Automator Settings", panel, true)) {
+					panel.applySettings();
+					if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
+						((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
+					}
+				}
+			}
+		});
+		menuControls.add(menuAutoClicker);
+
 		JMenu menuHelp = new JMenu("About");
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
@@ -1004,6 +1020,7 @@ public class Main extends JFrame {
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
 		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
 		org.neutron.device.ui.NetworkSniffer.setEnabled(Config.isNetworkSnifferEnabled());
+		org.neutron.app.ui.swing.SwingAutoClicker.init();
 
 		boolean sleepEnabled = Config.isSleepModeEnabled();
 		menuSleepMode.setState(sleepEnabled);

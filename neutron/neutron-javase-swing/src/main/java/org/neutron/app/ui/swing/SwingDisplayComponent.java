@@ -99,6 +99,13 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 			deviceComponent.requestFocus();
 			pressedPoint = e.getPoint();
 
+			if (e.isControlDown()) {
+				Point p = deviceCoordinate(DeviceFactory.getDevice().getDeviceDisplay(), e.getPoint());
+				SwingAutoClicker.setCoordinates(p.x, p.y);
+				repaint();
+				return;
+			}
+
 			org.neutron.app.util.SleepManager.notifyActivity();
 
 			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
@@ -597,6 +604,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 					}
 
 					SwingPerfHUD.paint(g2d, getWidth(), getHeight());
+					SwingAutoClicker.drawOverlay(g2d, SwingDisplayComponent.this);
 				}
 			}
 		}
@@ -727,5 +735,30 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		}
 
 		return null;
+	}
+
+	Point componentCoordinate(int devX, int devY) {
+		J2SEGraphicsSurface localSurface = graphicsSurface;
+		if (localSurface == null || localSurface.getImage() == null) {
+			return new Point(devX, devY);
+		}
+		int imgW = localSurface.getImage().getWidth();
+		int imgH = localSurface.getImage().getHeight();
+		int compW = getWidth();
+		int compH = getHeight();
+		if (imgW <= 0 || imgH <= 0 || compW <= 0 || compH <= 0) {
+			return new Point(devX, devY);
+		}
+		int scaledX = devX;
+		int scaledY = devY;
+		DeviceDisplay deviceDisplay = DeviceFactory.getDevice().getDeviceDisplay();
+		if (!deviceDisplay.isFullScreenMode()) {
+			org.neutron.device.impl.Rectangle pb = ((J2SEDeviceDisplay) deviceDisplay).getDisplayPaintable();
+			scaledX += pb.x;
+			scaledY += pb.y;
+		}
+		int compX = (int) (scaledX * (double) compW / imgW);
+		int compY = (int) (scaledY * (double) compH / imgH);
+		return new Point(compX, compY);
 	}
 }

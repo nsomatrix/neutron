@@ -828,6 +828,93 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isAutoClickerEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("autoClickerEnabled", "false"));
+	}
+
+	public static void setAutoClickerEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement clickerXml = optionsXml.getChildOrNew("autoClickerEnabled");
+		clickerXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static int getAutoClickerX() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return 0;
+		}
+		try {
+			return Integer.parseInt(optionsXml.getChildString("autoClickerX", "0"));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static void setAutoClickerX(int x) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement clickerXml = optionsXml.getChildOrNew("autoClickerX");
+		clickerXml.setContent(String.valueOf(x));
+		saveConfig();
+	}
+
+	public static int getAutoClickerY() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return 0;
+		}
+		try {
+			return Integer.parseInt(optionsXml.getChildString("autoClickerY", "0"));
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static void setAutoClickerY(int y) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement clickerXml = optionsXml.getChildOrNew("autoClickerY");
+		clickerXml.setContent(String.valueOf(y));
+		saveConfig();
+	}
+
+	public static int getAutoClickerInterval() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return 1000;
+		}
+		try {
+			return Integer.parseInt(optionsXml.getChildString("autoClickerInterval", "1000"));
+		} catch (NumberFormatException e) {
+			return 1000;
+		}
+	}
+
+	public static void setAutoClickerInterval(int interval) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement clickerXml = optionsXml.getChildOrNew("autoClickerInterval");
+		clickerXml.setContent(String.valueOf(interval));
+		saveConfig();
+	}
+
+	public static String getAutoClickerTargets() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "";
+		}
+		return optionsXml.getChildString("autoClickerTargets", "");
+	}
+
+	public static void setAutoClickerTargets(String targets) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement clickerXml = optionsXml.getChildOrNew("autoClickerTargets");
+		clickerXml.setContent(targets);
+		saveConfig();
+	}
+
 	public static boolean isProxyEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
