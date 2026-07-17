@@ -798,6 +798,36 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isPerfHudEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("perfHudEnabled", "false"));
+	}
+
+	public static void setPerfHudEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement hudXml = optionsXml.getChildOrNew("perfHudEnabled");
+		hudXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static boolean isNetworkSnifferEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return true;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("networkSnifferEnabled", "true"));
+	}
+
+	public static void setNetworkSnifferEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement snifferXml = optionsXml.getChildOrNew("networkSnifferEnabled");
+		snifferXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
 	public static boolean isProxyEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

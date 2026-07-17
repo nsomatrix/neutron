@@ -595,6 +595,8 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
 					}
+
+					SwingPerfHUD.paint(g2d, getWidth(), getHeight());
 				}
 			}
 		}

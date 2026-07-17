@@ -51,8 +51,10 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 			this.socket.setSoTimeout(timeout);
 		}
 		this.socket.connect(new java.net.InetSocketAddress(host, port), Math.min(timeout, 30000));
+		org.neutron.device.ui.NetworkSniffer.logEvent(
+			org.neutron.device.ui.NetworkSniffer.Type.SOCKET, host, String.valueOf(port), "CONNECTED"
+		);
 	}
-	
 	public SocketConnection(java.net.Socket socket) {
 		this.socket = socket;
 		try {
@@ -61,6 +63,11 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 			if (timeout > 0) {
 				this.socket.setSoTimeout(timeout);
 			}
+			org.neutron.device.ui.NetworkSniffer.logEvent(
+				org.neutron.device.ui.NetworkSniffer.Type.SOCKET, 
+				socket.getInetAddress() != null ? socket.getInetAddress().toString() : "unknown", 
+				String.valueOf(socket.getPort()), "CONNECTED"
+			);
 		} catch (java.io.IOException e) {
 			// ignore if we can't set it
 		}
@@ -182,6 +189,13 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	public void close() throws IOException {
 		// TODO fix differences between Java ME and Java SE
 		
+		try {
+			String host = socket.getInetAddress() != null ? socket.getInetAddress().toString() : "unknown";
+			String port = String.valueOf(socket.getPort());
+			org.neutron.device.ui.NetworkSniffer.logEvent(
+				org.neutron.device.ui.NetworkSniffer.Type.SOCKET, host, port, "CLOSED"
+			);
+		} catch (Exception e) {}
 		socket.close();
 	}
 

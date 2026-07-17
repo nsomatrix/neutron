@@ -72,6 +72,9 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		if (cn instanceof HttpURLConnection) {
 			((HttpURLConnection) cn).setInstanceFollowRedirects(false);
 		}
+		org.neutron.device.ui.NetworkSniffer.logEvent(
+			org.neutron.device.ui.NetworkSniffer.Type.HTTP, name, "CONNECTING", "Open Connection"
+		);
 		return this;
 	}
 
@@ -79,6 +82,12 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		if (cn == null) {
 			return;
 		}
+
+		String url = getURL();
+		String method = getRequestMethod();
+		org.neutron.device.ui.NetworkSniffer.logEvent(
+			org.neutron.device.ui.NetworkSniffer.Type.HTTP, url, method, "CLOSED"
+		);
 
 		if (cn instanceof HttpURLConnection) {
 			((HttpURLConnection) cn).disconnect();
@@ -196,7 +205,11 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		}
 
 		if (cn instanceof HttpURLConnection) {
-			return ((HttpURLConnection) cn).getResponseCode();
+			int code = ((HttpURLConnection) cn).getResponseCode();
+			org.neutron.device.ui.NetworkSniffer.logEvent(
+				org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "HTTP " + code
+			);
+			return code;
 		} else {
 			return -1;
 		}
@@ -327,6 +340,9 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		}
 
 		connected = true;
+		org.neutron.device.ui.NetworkSniffer.logEvent(
+			org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "STREAM_IN"
+		);
 
 		return cn.getInputStream();
 	}
@@ -341,6 +357,9 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		}
 
 		connected = true;
+		org.neutron.device.ui.NetworkSniffer.logEvent(
+			org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "STREAM_OUT"
+		);
 
 		return cn.getOutputStream();
 	}

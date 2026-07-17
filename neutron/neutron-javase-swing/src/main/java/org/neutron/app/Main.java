@@ -102,6 +102,8 @@ import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingSelectDevicePanel;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
+import org.neutron.app.ui.swing.SwingNetworkSnifferPanel;
+import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -957,6 +959,29 @@ public class Main extends JFrame {
 		}
 		menuControls.add(menuEmulationSpeed);
 
+		JMenuItem menuNetworkSniffer = new JMenuItem("Network Sniffer");
+		menuNetworkSniffer.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingNetworkSnifferPanel panel = new SwingNetworkSnifferPanel();
+				SwingDialogWindow.show(Main.this, "Network Sniffer", panel, true);
+				panel.dispose();
+			}
+		});
+		menuControls.add(menuNetworkSniffer);
+
+		final JCheckBoxMenuItem menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
+		menuHudOverlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean enabled = menuHudOverlay.isSelected();
+				Config.setPerfHudEnabled(enabled);
+				SwingPerfHUD.setEnabled(enabled);
+				if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
+					((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
+				}
+			}
+		});
+		menuControls.add(menuHudOverlay);
+
 		JMenu menuHelp = new JMenu("About");
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
@@ -977,6 +1002,8 @@ public class Main extends JFrame {
 		Config.loadConfig(defaultDevice, emulatorContext);
 		org.neutron.device.ui.EventDispatcher.maxFps = Config.getMaxFps();
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
+		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
+		org.neutron.device.ui.NetworkSniffer.setEnabled(Config.isNetworkSnifferEnabled());
 
 		boolean sleepEnabled = Config.isSleepModeEnabled();
 		menuSleepMode.setState(sleepEnabled);
