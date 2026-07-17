@@ -46,7 +46,7 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 		// Top Control Bar
 		JPanel controlBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		
-		final JCheckBox chkEnable = new JCheckBox("Enable Sniffing", NetworkSniffer.isEnabled());
+		final JCheckBox chkEnable = new JCheckBox("Enable Capturing", NetworkSniffer.isEnabled());
 		chkEnable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				NetworkSniffer.setEnabled(chkEnable.isSelected());

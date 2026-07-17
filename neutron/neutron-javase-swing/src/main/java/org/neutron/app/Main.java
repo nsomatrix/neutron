@@ -806,10 +806,7 @@ public class Main extends JFrame {
 
 
 
-		menuMIDletNetworkConnection = new JCheckBoxMenuItem("MIDlet Network access");
-		menuMIDletNetworkConnection.setState(true);
-		menuMIDletNetworkConnection.addActionListener(menuMIDletNetworkConnectionListener);
-		menuOptions.add(menuMIDletNetworkConnection);
+
 
 		menuRecordStoreManager = new JCheckBoxMenuItem("Record Store Manager");
 		menuRecordStoreManager.setState(false);
@@ -922,6 +919,11 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuProxySettings);
 
+		menuMIDletNetworkConnection = new JCheckBoxMenuItem("Network Access");
+		menuMIDletNetworkConnection.setState(true);
+		menuMIDletNetworkConnection.addActionListener(menuMIDletNetworkConnectionListener);
+		menuControls.add(menuMIDletNetworkConnection);
+
 		JMenu menuFrameRate = new JMenu("Frame Rate");
 		ButtonGroup fpsGroup = new ButtonGroup();
 		int currentFps = Config.getMaxFps();
@@ -961,15 +963,15 @@ public class Main extends JFrame {
 		}
 		menuControls.add(menuEmulationSpeed);
 
-		JMenuItem menuNetworkSniffer = new JMenuItem("Network Sniffer");
-		menuNetworkSniffer.addActionListener(new ActionListener() {
+		JMenuItem menuNetworkCapture = new JMenuItem("Network Capture");
+		menuNetworkCapture.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SwingNetworkSnifferPanel panel = new SwingNetworkSnifferPanel();
-				SwingDialogWindow.show(Main.this, "Network Sniffer", panel, true);
+				SwingDialogWindow.show(Main.this, "Network Capture", panel, true);
 				panel.dispose();
 			}
 		});
-		menuControls.add(menuNetworkSniffer);
+		menuControls.add(menuNetworkCapture);
 
 		final JCheckBoxMenuItem menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
 		menuHudOverlay.addActionListener(new ActionListener() {
