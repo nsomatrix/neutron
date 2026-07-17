@@ -344,7 +344,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 			org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "STREAM_IN"
 		);
 
-		return cn.getInputStream();
+		return new org.neutron.device.ui.NetworkActivityTracker.TrackingInputStream(cn.getInputStream());
 	}
 
 	public DataInputStream openDataInputStream() throws IOException {
@@ -361,7 +361,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 			org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "STREAM_OUT"
 		);
 
-		return cn.getOutputStream();
+		return new org.neutron.device.ui.NetworkActivityTracker.TrackingOutputStream(cn.getOutputStream());
 	}
 
 	public DataOutputStream openDataOutputStream() throws IOException {

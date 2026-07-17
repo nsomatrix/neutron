@@ -200,7 +200,7 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	}
 
 	public InputStream openInputStream() throws IOException {
-		return socket.getInputStream();
+		return new org.neutron.device.ui.NetworkActivityTracker.TrackingInputStream(socket.getInputStream());
 	}
 
 	public DataInputStream openDataInputStream() throws IOException {
@@ -208,7 +208,7 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	}
 
 	public OutputStream openOutputStream() throws IOException {
-		return socket.getOutputStream();
+		return new org.neutron.device.ui.NetworkActivityTracker.TrackingOutputStream(socket.getOutputStream());
 	}
 
 	public DataOutputStream openDataOutputStream() throws IOException {

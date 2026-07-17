@@ -69,10 +69,12 @@ public class Connection implements DatagramConnection, UDPDatagramConnection, Co
 
 	public void send(Datagram dgram) throws IOException {
 		socket.send(((DatagramImpl) dgram).getDatagramPacket());
+		org.neutron.device.ui.NetworkActivityTracker.trackWrite(dgram.getLength());
 	}
 
 	public void receive(Datagram dgram) throws IOException {
 		socket.receive(((DatagramImpl) dgram).getDatagramPacket());
+		org.neutron.device.ui.NetworkActivityTracker.trackRead(dgram.getLength());
 	}
 
 	public Datagram newDatagram(int size) throws IOException {

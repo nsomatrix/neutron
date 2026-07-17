@@ -828,6 +828,21 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isNetworkActivityMeterEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return true;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("networkActivityMeterEnabled", "true"));
+	}
+
+	public static void setNetworkActivityMeterEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement meterXml = optionsXml.getChildOrNew("networkActivityMeterEnabled");
+		meterXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
 	public static boolean isAutoClickerEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

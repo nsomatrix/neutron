@@ -103,6 +103,7 @@ import org.neutron.app.ui.swing.SwingSelectDevicePanel;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkSnifferPanel;
+import org.neutron.app.ui.swing.SwingNetworkActivityMeter;
 import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
@@ -168,6 +169,8 @@ public class Main extends JFrame {
 
 	private JCheckBoxMenuItem menuSleepMode;
 
+	private JCheckBoxMenuItem menuNetworkActivityMeter;
+
 	private static Main instance;
 
 	private ActionListener menuSleepModeListener = new ActionListener() {
@@ -209,6 +212,8 @@ public class Main extends JFrame {
 	private AnimatedGifEncoder encoder;
 
 	private JLabel statusBar = new JLabel("Status");
+
+	private SwingNetworkActivityMeter networkActivityMeter;
 
 	private JButton resizeButton = new JButton("Resize");
 
@@ -1056,6 +1061,20 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuNetworkCapture);
 
+		menuNetworkActivityMeter = new JCheckBoxMenuItem("Network Activity Meter", Config.isNetworkActivityMeterEnabled());
+		menuNetworkActivityMeter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean enabled = menuNetworkActivityMeter.isSelected();
+				Config.setNetworkActivityMeterEnabled(enabled);
+				if (networkActivityMeter != null) {
+					networkActivityMeter.setVisible(enabled);
+					networkActivityMeter.getParent().revalidate();
+					networkActivityMeter.getParent().repaint();
+				}
+			}
+		});
+		menuControls.add(menuNetworkActivityMeter);
+
 		final JCheckBoxMenuItem menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
 		menuHudOverlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1152,7 +1171,16 @@ public class Main extends JFrame {
 		JPanel statusPanel = new JPanel();
 		statusPanel.setLayout(new BorderLayout());
 		statusPanel.add(statusBar, "West");
-		statusPanel.add(this.resizeButton, "East");
+
+		JPanel statusRightPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
+		statusRightPanel.setOpaque(false);
+
+		networkActivityMeter = new SwingNetworkActivityMeter();
+		networkActivityMeter.setVisible(Config.isNetworkActivityMeterEnabled());
+		statusRightPanel.add(networkActivityMeter);
+		statusRightPanel.add(this.resizeButton);
+
+		statusPanel.add(statusRightPanel, "East");
 
 		getContentPane().add(statusPanel, "South");
 
