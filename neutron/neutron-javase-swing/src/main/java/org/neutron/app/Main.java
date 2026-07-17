@@ -880,7 +880,7 @@ public class Main extends JFrame {
 		menuRecordStoreManager.addActionListener(menuRecordStoreManagerListener);
 		menuOptions.add(menuRecordStoreManager);
 
-		menuLogConsole = new JCheckBoxMenuItem("Log console");
+		menuLogConsole = new JCheckBoxMenuItem("Log Console");
 		menuLogConsole.setState(false);
 		menuLogConsole.addActionListener(menuLogConsoleListener);
 		menuOptions.add(menuLogConsole);

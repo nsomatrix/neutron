@@ -91,7 +91,7 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 	}
 
 	public SwingLogConsoleDialog(Frame owner, QueueAppender logQueueAppender) {
-		super("Log console");
+		super("Log Console");
 
 		setIconImage(owner.getIconImage());
 
