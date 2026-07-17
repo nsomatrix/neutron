@@ -834,6 +834,22 @@ public class Main extends JFrame {
 
 		menuFile.addSeparator();
 
+		JMenuItem menuOpenRootDirectory = new JMenuItem("Open Root Directory");
+		menuOpenRootDirectory.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {
+					if (java.awt.Desktop.isDesktopSupported()) {
+						java.awt.Desktop.getDesktop().open(Config.getConfigPath());
+					} else {
+						JOptionPane.showMessageDialog(Main.this, "Desktop is not supported on this platform.", "Error", JOptionPane.ERROR_MESSAGE);
+					}
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(Main.this, "Failed to open directory: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		menuFile.add(menuOpenRootDirectory);
+
 		menuScreenshot = new JMenuItem("Take Screenshot");
 		menuScreenshot.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		menuScreenshot.addActionListener(menuScreenshotListener);
