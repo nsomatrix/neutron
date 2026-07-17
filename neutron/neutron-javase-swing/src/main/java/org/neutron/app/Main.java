@@ -104,6 +104,7 @@ import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkSnifferPanel;
 import org.neutron.app.ui.swing.SwingNetworkActivityMeter;
+import org.neutron.app.ui.swing.SwingPingMeter;
 import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
@@ -171,6 +172,8 @@ public class Main extends JFrame {
 
 	private JCheckBoxMenuItem menuNetworkActivityMeter;
 
+	private JCheckBoxMenuItem menuPingMeter;
+
 	private static Main instance;
 
 	private ActionListener menuSleepModeListener = new ActionListener() {
@@ -214,6 +217,8 @@ public class Main extends JFrame {
 	private JLabel statusBar = new JLabel("Status");
 
 	private SwingNetworkActivityMeter networkActivityMeter;
+
+	private SwingPingMeter pingMeter;
 
 	private JButton resizeButton = new JButton("Resize");
 
@@ -1075,6 +1080,21 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuNetworkActivityMeter);
 
+		menuPingMeter = new JCheckBoxMenuItem("Ping Indicator", Config.isPingMeterEnabled());
+		menuPingMeter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean enabled = menuPingMeter.isSelected();
+				Config.setPingMeterEnabled(enabled);
+				org.neutron.device.ui.NetworkActivityTracker.setPingEnabled(enabled);
+				if (pingMeter != null) {
+					pingMeter.setVisible(enabled);
+					pingMeter.getParent().revalidate();
+					pingMeter.getParent().repaint();
+				}
+			}
+		});
+		menuControls.add(menuPingMeter);
+
 		final JCheckBoxMenuItem menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
 		menuHudOverlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1178,6 +1198,12 @@ public class Main extends JFrame {
 		networkActivityMeter = new SwingNetworkActivityMeter();
 		networkActivityMeter.setVisible(Config.isNetworkActivityMeterEnabled());
 		statusRightPanel.add(networkActivityMeter);
+
+		pingMeter = new SwingPingMeter();
+		pingMeter.setVisible(Config.isPingMeterEnabled());
+		org.neutron.device.ui.NetworkActivityTracker.setPingEnabled(Config.isPingMeterEnabled());
+		statusRightPanel.add(pingMeter);
+
 		statusRightPanel.add(this.resizeButton);
 
 		statusPanel.add(statusRightPanel, "East");

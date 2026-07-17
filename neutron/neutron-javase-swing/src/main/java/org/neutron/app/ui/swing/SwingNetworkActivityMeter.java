@@ -45,7 +45,7 @@ public class SwingNetworkActivityMeter extends JPanel implements NetworkActivity
 		NetworkActivityTracker.addListener(this);
 	}
 
-	public void onActivityUpdate(final long totalRead, final long totalWritten, final double readSpeed, final double writeSpeed) {
+	public void onActivityUpdate(final long totalRead, final long totalWritten, final double readSpeed, final double writeSpeed, final int ping) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				rxLabel.setText("↓ " + formatSpeed(readSpeed));

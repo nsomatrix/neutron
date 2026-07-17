@@ -843,6 +843,21 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isPingMeterEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return true;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("pingMeterEnabled", "true"));
+	}
+
+	public static void setPingMeterEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement meterXml = optionsXml.getChildOrNew("pingMeterEnabled");
+		meterXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
 	public static boolean isAutoClickerEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

@@ -56,6 +56,10 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		} catch (MalformedURLException ex) {
 			throw new IOException(ex.toString());
 		}
+		org.neutron.device.ui.NetworkActivityTracker.setLastHostAndPort(
+			url.getHost(), 
+			url.getPort() != -1 ? url.getPort() : (url.getProtocol().equalsIgnoreCase("https") ? 443 : 80)
+		);
 		java.net.Proxy proxy = org.neutron.app.Config.getProxyInstance();
 		cn = url.openConnection(proxy);
 		int connectTimeout = Integer.getInteger("neutron.http.connect.timeout", 30000);

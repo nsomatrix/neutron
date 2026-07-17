@@ -9,7 +9,7 @@ import java.util.TimerTask;
 public class NetworkActivityTracker {
 
 	public interface NetworkActivityListener {
-		void onActivityUpdate(long totalRead, long totalWritten, double readSpeed, double writeSpeed);
+		void onActivityUpdate(long totalRead, long totalWritten, double readSpeed, double writeSpeed, int ping);
 	}
 
 	private static long totalBytesRead = 0;
@@ -18,8 +18,14 @@ public class NetworkActivityTracker {
 	private static double currentReadSpeed = 0.0; // KB/s
 	private static double currentWriteSpeed = 0.0; // KB/s
 
+	private static String lastHost = "8.8.8.8";
+	private static int lastPort = 53;
+	private static int currentPing = -1; // ms
+
 	private static final List listeners = Collections.synchronizedList(new ArrayList());
 	private static Timer timer;
+	private static volatile boolean pingRunning = false;
+	private static boolean pingEnabled = true;
 
 	static {
 		startTimer();
@@ -34,6 +40,7 @@ public class NetworkActivityTracker {
 			private long lastRead = 0;
 			private long lastWritten = 0;
 			private long lastTime = System.currentTimeMillis();
+			private int tickCount = 0;
 
 			public void run() {
 				long now = System.currentTimeMillis();
@@ -65,15 +72,92 @@ public class NetworkActivityTracker {
 					currentWriteSpeed = wSpeed;
 				}
 
-				notifyListeners(currentRead, currentWritten, rSpeed, wSpeed);
+				int pingVal;
+				synchronized (NetworkActivityTracker.class) {
+					pingVal = currentPing;
+				}
+
+				notifyListeners(currentRead, currentWritten, rSpeed, wSpeed, pingVal);
+
+				tickCount++;
+				if (tickCount >= 3) {
+					tickCount = 0;
+					triggerPingCheck();
+				}
 			}
 		}, 1000, 1000);
+	}
+
+	private static void triggerPingCheck() {
+		if (!pingEnabled || pingRunning) {
+			return;
+		}
+		pingRunning = true;
+		new Thread("NetworkPingChecker") {
+			public void run() {
+				String host;
+				int port;
+				synchronized (NetworkActivityTracker.class) {
+					host = lastHost;
+					port = lastPort;
+				}
+
+				long start = System.currentTimeMillis();
+				int pingVal = -1;
+				java.net.Socket socket = null;
+				try {
+					socket = new java.net.Socket();
+					socket.connect(new java.net.InetSocketAddress(host, port), 2000);
+					pingVal = (int) (System.currentTimeMillis() - start);
+				} catch (Exception e) {
+					if (e instanceof java.net.ConnectException) {
+						pingVal = (int) (System.currentTimeMillis() - start);
+					} else {
+						pingVal = -1;
+					}
+				} finally {
+					if (socket != null) {
+						try { socket.close(); } catch (Exception e) {}
+					}
+				}
+
+				long currentRead;
+				long currentWritten;
+				double rSpeed;
+				double wSpeed;
+				synchronized (NetworkActivityTracker.class) {
+					currentPing = pingVal;
+					currentRead = totalBytesRead;
+					currentWritten = totalBytesWritten;
+					rSpeed = currentReadSpeed;
+					wSpeed = currentWriteSpeed;
+				}
+				pingRunning = false;
+
+				notifyListeners(currentRead, currentWritten, rSpeed, wSpeed, pingVal);
+			}
+		}.start();
+	}
+
+	public static synchronized void setLastHostAndPort(String host, int port) {
+		if (host != null && !host.trim().isEmpty()) {
+			lastHost = host;
+			lastPort = port;
+		}
+	}
+
+	public static synchronized void setPingEnabled(boolean enabled) {
+		pingEnabled = enabled;
+	}
+
+	public static synchronized boolean isPingEnabled() {
+		return pingEnabled;
 	}
 
 	public static void addListener(NetworkActivityListener listener) {
 		listeners.add(listener);
 		synchronized (NetworkActivityTracker.class) {
-			listener.onActivityUpdate(totalBytesRead, totalBytesWritten, currentReadSpeed, currentWriteSpeed);
+			listener.onActivityUpdate(totalBytesRead, totalBytesWritten, currentReadSpeed, currentWriteSpeed, currentPing);
 		}
 	}
 
@@ -109,19 +193,24 @@ public class NetworkActivityTracker {
 		return currentWriteSpeed;
 	}
 
+	public static synchronized int getCurrentPing() {
+		return currentPing;
+	}
+
 	public static synchronized void reset() {
 		totalBytesRead = 0;
 		totalBytesWritten = 0;
 		currentReadSpeed = 0.0;
 		currentWriteSpeed = 0.0;
-		notifyListeners(0, 0, 0.0, 0.0);
+		currentPing = -1;
+		notifyListeners(0, 0, 0.0, 0.0, -1);
 	}
 
-	private static void notifyListeners(long totalRead, long totalWritten, double readSpeed, double writeSpeed) {
+	private static void notifyListeners(long totalRead, long totalWritten, double readSpeed, double writeSpeed, int ping) {
 		synchronized (listeners) {
 			for (int i = 0; i < listeners.size(); i++) {
 				try {
-					((NetworkActivityListener) listeners.get(i)).onActivityUpdate(totalRead, totalWritten, readSpeed, writeSpeed);
+					((NetworkActivityListener) listeners.get(i)).onActivityUpdate(totalRead, totalWritten, readSpeed, writeSpeed, ping);
 				} catch (Exception e) {
 					// ignore
 				}
