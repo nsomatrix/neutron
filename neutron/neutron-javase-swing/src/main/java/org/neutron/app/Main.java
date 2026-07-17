@@ -144,6 +144,8 @@ public class Main extends JFrame {
 
 	private JFileChooser captureFileChooser = null;
 
+	private JFileChooser screenshotFileChooser = null;
+
 	private JMenuItem menuOpenMIDletFile;
 
 	private JMenuItem menuOpenMIDletURL;
@@ -155,6 +157,8 @@ public class Main extends JFrame {
 	private JMenuItem menuStartCapture;
 
 	private JMenuItem menuStopCapture;
+
+	private JMenuItem menuScreenshot;
 
 	private JCheckBoxMenuItem menuMIDletNetworkConnection;
 
@@ -391,6 +395,64 @@ public class Main extends JFrame {
 		}
 	};
 
+	private ActionListener menuScreenshotListener = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			SwingDisplayComponent displayComponent = (SwingDisplayComponent) emulatorContext.getDisplayComponent();
+			J2SEGraphicsSurface graphicsSurface = displayComponent.getGraphicsSurface();
+			if (graphicsSurface == null || graphicsSurface.getImage() == null) {
+				JOptionPane.showMessageDialog(Main.this, "No active display to capture.", "Screenshot Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			if (screenshotFileChooser == null) {
+				ExtensionFileFilter fileFilter = new ExtensionFileFilter("PNG files");
+				fileFilter.addExtension("png");
+				screenshotFileChooser = new JFileChooser();
+				screenshotFileChooser.setFileFilter(fileFilter);
+				screenshotFileChooser.setDialogTitle("Save Screenshot...");
+				screenshotFileChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentCaptureDirectory")));
+			} else {
+				screenshotFileChooser.updateUI();
+			}
+
+			java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss");
+			String defaultName = "screenshot_" + sdf.format(new java.util.Date()) + ".png";
+			screenshotFileChooser.setSelectedFile(new File(screenshotFileChooser.getCurrentDirectory(), defaultName));
+
+			if (screenshotFileChooser.showSaveDialog(Main.this) == JFileChooser.APPROVE_OPTION) {
+				Config.setRecentDirectory("recentCaptureDirectory", screenshotFileChooser.getCurrentDirectory().getAbsolutePath());
+				File file = screenshotFileChooser.getSelectedFile();
+				String name = file.getName();
+				if (!name.toLowerCase().endsWith(".png") && name.indexOf('.') == -1) {
+					file = new File(file.getParentFile(), name + ".png");
+				}
+
+				if (file.exists()) {
+					int answer = JOptionPane.showConfirmDialog(Main.this, "Override the file:" + file + "?", "Question?",
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if (answer != JOptionPane.YES_OPTION) {
+						return;
+					}
+				}
+
+				try {
+					BufferedImage img = graphicsSurface.getImage();
+					BufferedImage imgCopy;
+					synchronized (graphicsSurface) {
+						imgCopy = new BufferedImage(img.getWidth(), img.getHeight(), img.getType());
+						java.awt.Graphics2D g = imgCopy.createGraphics();
+						g.drawImage(img, 0, 0, null);
+						g.dispose();
+					}
+					javax.imageio.ImageIO.write(imgCopy, "png", file);
+					Common.setStatusBar("Screenshot saved to " + file.getName());
+				} catch (Exception ex) {
+					JOptionPane.showMessageDialog(Main.this, "Failed to save screenshot: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		}
+	};
+
 	private ActionListener menuMIDletNetworkConnectionListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			org.neutron.cldc.http.Connection.setAllowNetworkConnection(menuMIDletNetworkConnection.getState());
@@ -471,7 +533,7 @@ public class Main extends JFrame {
 
 	private ActionListener menuSelectDeviceListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-			if (SwingDialogWindow.show(Main.this, "Select device...", selectDevicePanel, true)) {
+			if (SwingDialogWindow.show(Main.this, "Native Device", selectDevicePanel, true)) {
 				if (selectDevicePanel.getSelectedDeviceEntry().equals(deviceEntry)) {
 					return;
 				}
@@ -772,6 +834,11 @@ public class Main extends JFrame {
 
 		menuFile.addSeparator();
 
+		menuScreenshot = new JMenuItem("Take Screenshot");
+		menuScreenshot.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		menuScreenshot.addActionListener(menuScreenshotListener);
+		menuFile.add(menuScreenshot);
+
 		menuStartCapture = new JMenuItem("Start Recording");
 		menuStartCapture.addActionListener(menuStartCaptureListener);
 		menuFile.add(menuStartCapture);
@@ -790,7 +857,7 @@ public class Main extends JFrame {
 
 		JMenu menuOptions = new JMenu("Config");
 
-		menuSelectDevice = new JMenuItem("Select device...");
+		menuSelectDevice = new JMenuItem("Native Device");
 		menuSelectDevice.addActionListener(menuSelectDeviceListener);
 		menuOptions.add(menuSelectDevice);
 

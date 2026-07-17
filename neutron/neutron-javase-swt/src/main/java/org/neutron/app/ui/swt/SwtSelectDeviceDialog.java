@@ -287,7 +287,7 @@ public class SwtSelectDeviceDialog extends SwtDialog {
 	protected void configureShell(Shell shell) {
 		super.configureShell(shell);
 
-		shell.setText("Select device...");
+		shell.setText("Native Device");
 	}
 
 	protected Control createDialogArea(Composite composite) {

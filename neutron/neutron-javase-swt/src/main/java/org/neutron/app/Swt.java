@@ -322,7 +322,7 @@ public class Swt extends Common {
 		menuOptions.setMenu(optionsSubmenu);
 
 		menuSelectDevice = new MenuItem(optionsSubmenu, SWT.PUSH);
-		menuSelectDevice.setText("Select device...");
+		menuSelectDevice.setText("Native Device");
 		menuSelectDevice.addListener(SWT.Selection, menuSelectDeviceListener);
 
 		shell.setText("Neutron");
