@@ -877,7 +877,7 @@ public class Main extends JFrame {
 		menuSelectDevice.addActionListener(menuSelectDeviceListener);
 		menuOptions.add(menuSelectDevice);
 
-		JMenu menuScaleLCD = new JMenu("Scaled display");
+		JMenu menuScaleLCD = new JMenu("Scaled Display");
 		menuOptions.add(menuScaleLCD);
 		zoomLevels = new JCheckBoxMenuItem[3];
 		for (int i = 0; i < zoomLevels.length; ++i) {
@@ -983,7 +983,7 @@ public class Main extends JFrame {
 		menuOptions.add(menuMemoryLimit);
 
 		menuOptions.addSeparator();
-		JCheckBoxMenuItem menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse coordinates");
+		JCheckBoxMenuItem menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse Coordinates");
 		menuShowMouseCoordinates.setState(false);
 		menuShowMouseCoordinates.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
