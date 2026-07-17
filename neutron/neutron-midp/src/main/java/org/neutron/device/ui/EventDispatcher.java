@@ -44,7 +44,7 @@ public class EventDispatcher implements Runnable {
 
 	private Object serviceRepaintsLock = new Object();
 	
-	private long lastPaintEventTime = 0;
+	private long lastPaintEventTimeNs = 0;
 
 	public EventDispatcher() {
 	}
@@ -58,11 +58,13 @@ public class EventDispatcher implements Runnable {
 					event = head;
 
 					if (maxFps > 0 && event instanceof PaintEvent) {
-						long difference = System.currentTimeMillis() - lastPaintEventTime;
-						if (difference < (1000 / maxFps)) {
+						long targetFrameTimeNs = 1000000000L / maxFps;
+						long differenceNs = System.nanoTime() - lastPaintEventTimeNs;
+						if (differenceNs < targetFrameTimeNs) {
 							event = null;
+							long remainingNs = targetFrameTimeNs - differenceNs;
 							try {
-								wait((1000 / maxFps) - difference);
+								wait(remainingNs / 1000000L, (int) (remainingNs % 1000000L));
 							} catch (InterruptedException e) {
 							}
 						}
@@ -91,7 +93,7 @@ public class EventDispatcher implements Runnable {
 						synchronized (this) {
 							scheduledPaintEvent = null;
 						}
-						lastPaintEventTime = System.currentTimeMillis();
+						lastPaintEventTimeNs = System.nanoTime();
 						post(event);
 						serviceRepaintsLock.notifyAll();
 					}					

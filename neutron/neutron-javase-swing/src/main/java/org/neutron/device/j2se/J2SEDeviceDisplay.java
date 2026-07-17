@@ -448,6 +448,8 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 		}
 	}
 
+    private final org.neutron.device.ui.FpsLimiter gameCanvasFpsLimiter = new org.neutron.device.ui.FpsLimiter();
+
     public javax.microedition.lcdui.Graphics getGraphics(GameCanvas gameCanvas)
     {
         if (gameCanvasImage == null) {
@@ -458,6 +460,10 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
     }
     
     public void flushGraphics(GameCanvas gameCanvas, int x, int y, int width, int height) {
+        int maxFps = org.neutron.app.Config.getMaxFps();
+        if (maxFps > 0) {
+            gameCanvasFpsLimiter.limit(maxFps);
+        }
         if (gameCanvasImage != null) {
             J2SEGraphicsSurface surface = ((SwingDisplayComponent) context.getDisplayComponent()).getGraphicsSurface();
             if (surface != null) {

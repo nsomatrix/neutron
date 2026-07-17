@@ -758,6 +758,46 @@ public class Config {
 		saveConfig();
 	}
 
+	public static int getMaxFps() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return -1; // Default to -1 (unlimited)
+		}
+		String val = optionsXml.getChildString("maxFps", "-1");
+		try {
+			return Integer.parseInt(val);
+		} catch (NumberFormatException e) {
+			return -1;
+		}
+	}
+
+	public static void setMaxFps(int maxFps) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement maxFpsXml = optionsXml.getChildOrNew("maxFps");
+		maxFpsXml.setContent(String.valueOf(maxFps));
+		saveConfig();
+	}
+
+	public static double getSpeedMultiplier() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return 1.0;
+		}
+		String val = optionsXml.getChildString("speedMultiplier", "1.0");
+		try {
+			return Double.parseDouble(val);
+		} catch (NumberFormatException e) {
+			return 1.0;
+		}
+	}
+
+	public static void setSpeedMultiplier(double multiplier) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement multiplierXml = optionsXml.getChildOrNew("speedMultiplier");
+		multiplierXml.setContent(String.valueOf(multiplier));
+		saveConfig();
+	}
+
 	public static boolean isProxyEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

@@ -84,12 +84,23 @@ public class MIDletThread extends Thread {
 		if (SleepManager.isSleepModeActive()) {
 			SleepManager.checkSleep();
 		}
+		double multiplier = org.neutron.app.Config.getSpeedMultiplier();
+		if (multiplier > 0.0 && multiplier != 1.0) {
+			millis = (long) (millis / multiplier);
+		}
 		Thread.sleep(millis);
 	}
 
 	public static void sleep(long millis, int nanos) throws InterruptedException {
 		if (SleepManager.isSleepModeActive()) {
 			SleepManager.checkSleep();
+		}
+		double multiplier = org.neutron.app.Config.getSpeedMultiplier();
+		if (multiplier > 0.0 && multiplier != 1.0) {
+			long totalNanos = millis * 1000000L + nanos;
+			totalNanos = (long) (totalNanos / multiplier);
+			millis = totalNanos / 1000000L;
+			nanos = (int) (totalNanos % 1000000L);
 		}
 		Thread.sleep(millis, nanos);
 	}

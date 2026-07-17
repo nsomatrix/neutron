@@ -918,6 +918,45 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuProxySettings);
 
+		JMenu menuFrameRate = new JMenu("Frame Rate");
+		ButtonGroup fpsGroup = new ButtonGroup();
+		int currentFps = Config.getMaxFps();
+		int[] fpsValues = { -1, 60, 30, 20, 15 };
+		String[] fpsLabels = { "Unlimited", "60 FPS", "30 FPS", "20 FPS", "15 FPS" };
+		for (int i = 0; i < fpsValues.length; i++) {
+			final int fpsVal = fpsValues[i];
+			String label = fpsLabels[i];
+			JRadioButtonMenuItem fpsItem = new JRadioButtonMenuItem(label, currentFps == fpsVal);
+			fpsItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Config.setMaxFps(fpsVal);
+					org.neutron.device.ui.EventDispatcher.maxFps = fpsVal;
+				}
+			});
+			fpsGroup.add(fpsItem);
+			menuFrameRate.add(fpsItem);
+		}
+		menuControls.add(menuFrameRate);
+
+		JMenu menuEmulationSpeed = new JMenu("Emulation Speed");
+		ButtonGroup speedGroup = new ButtonGroup();
+		double currentSpeed = Config.getSpeedMultiplier();
+		double[] speedValues = { 1.0, 1.5, 2.0, 4.0, 8.0, 0.5 };
+		String[] speedLabels = { "Normal (1.0x)", "1.5x", "2.0x", "4.0x", "8.0x", "Slow Motion (0.5x)" };
+		for (int i = 0; i < speedValues.length; i++) {
+			final double speedVal = speedValues[i];
+			String label = speedLabels[i];
+			JRadioButtonMenuItem speedItem = new JRadioButtonMenuItem(label, Math.abs(currentSpeed - speedVal) < 0.01);
+			speedItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Config.setSpeedMultiplier(speedVal);
+				}
+			});
+			speedGroup.add(speedItem);
+			menuEmulationSpeed.add(speedItem);
+		}
+		menuControls.add(menuEmulationSpeed);
+
 		JMenu menuHelp = new JMenu("About");
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
@@ -936,6 +975,7 @@ public class Main extends JFrame {
 		addWindowListener(windowListener);
 
 		Config.loadConfig(defaultDevice, emulatorContext);
+		org.neutron.device.ui.EventDispatcher.maxFps = Config.getMaxFps();
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
 
 		boolean sleepEnabled = Config.isSleepModeEnabled();
