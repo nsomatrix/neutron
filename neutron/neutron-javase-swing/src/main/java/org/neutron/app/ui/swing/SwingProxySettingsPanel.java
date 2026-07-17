@@ -350,7 +350,14 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 		boolean enabled = proxyEnabledCheckBox.isSelected();
 		String type = (String) proxyTypeComboBox.getSelectedItem();
 		String host = proxyHostField.getText().trim();
-		int port = Integer.parseInt(proxyPortField.getText().trim());
+		
+		int port = originalPort;
+		try {
+			port = Integer.parseInt(proxyPortField.getText().trim());
+		} catch (NumberFormatException e) {
+			// keep original port if disabled and invalid
+		}
+
 		boolean auth = proxyAuthCheckBox.isSelected();
 		String username = proxyUsernameField.getText().trim();
 		String password = new String(proxyPasswordField.getPassword());
