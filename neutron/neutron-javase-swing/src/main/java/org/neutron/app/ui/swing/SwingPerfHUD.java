@@ -58,7 +58,7 @@ public class SwingPerfHUD {
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		// HUD design
-		int cardWidth = 160;
+		int cardWidth = 180;
 		int cardHeight = 95;
 		int margin = 10;
 		int x = margin;
@@ -88,7 +88,7 @@ public class SwingPerfHUD {
 		g2d.drawString("Speed: " + speedStr, x + 12, y + 38);
 
 		g2d.setColor(new Color(255, 180, 50)); // Orange
-		g2d.drawString("RAM: " + usedMem + "MB / " + maxMem + "MB", x + 12, y + 56);
+		g2d.drawString("JVM-RAM: " + usedMem + "MB / " + maxMem + "MB", x + 12, y + 56);
 
 		g2d.setColor(new Color(220, 100, 220)); // Purple
 		g2d.drawString("Threads: " + activeThreads, x + 12, y + 74);

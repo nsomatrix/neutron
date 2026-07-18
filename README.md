@@ -49,13 +49,13 @@ After a successful build, you can find the runnable JAR for the desktop applicat
 ### Location of the Runnable JAR
 
 The main runnable JAR for the Swing-based desktop application is located at:
-`neutron/neutron-javase-swing/build/libs/neutron-javase-swing-2.0.5-SNAPSHOT.jar`
+`neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.0.jar`
 
 ### Execution
 
 To run the Neutron desktop application, use the `java -jar` command:
 ```bash
-java -jar neutron/neutron-javase-swing/build/libs/neutron-javase-swing-2.0.5-SNAPSHOT.jar
+java -jar neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.0.jar
 ```
 This will launch the Neutron GUI, allowing you to load and run J2ME applications.
 

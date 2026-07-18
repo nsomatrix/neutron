@@ -111,6 +111,7 @@ import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
 import org.neutron.app.ui.swing.SwingLibraryExplorerDialog;
 import org.neutron.app.ui.swing.SwingSystemInfoDialog;
+import org.neutron.app.ui.swing.UpdateChecker;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -514,6 +515,12 @@ public class Main extends JFrame {
 	private ActionListener menuSystemInfoListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			SwingDialogWindow.show(Main.this, "System", new SwingSystemInfoDialog(), false);
+		}
+	};
+
+	private ActionListener menuCheckUpdatesListener = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			UpdateChecker.checkForUpdates(Main.this, false);
 		}
 	};
 
@@ -1216,6 +1223,10 @@ public class Main extends JFrame {
 		JMenuItem menuSystemInfo = new JMenuItem("System");
 		menuSystemInfo.addActionListener(menuSystemInfoListener);
 		menuMisc.add(menuSystemInfo);
+
+		JMenuItem menuCheckUpdates = new JMenuItem("Check for Updates");
+		menuCheckUpdates.addActionListener(menuCheckUpdatesListener);
+		menuMisc.add(menuCheckUpdates);
 
 		menuBar.add(menuFile);
 		menuBar.add(menuOptions);

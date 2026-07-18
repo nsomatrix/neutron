@@ -36,7 +36,7 @@ jar {
 
 task proguard(type: ProGuardTask, dependsOn: jar) {
     injars jar.archiveFile
-    outjars "${buildDir}/libs/neutron-javase-swing-2.0.5-SNAPSHOT-shrunk.jar"
+    outjars "${buildDir}/libs/neutron-javase-swing-${project.version}-shrunk.jar"
 
     if (System.getProperty('java.version').startsWith('1.')) {
         libraryjars "${System.getProperty('java.home')}/lib/rt.jar"
