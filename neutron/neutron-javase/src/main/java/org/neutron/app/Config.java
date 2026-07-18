@@ -827,33 +827,52 @@ public class Config {
 		saveConfig();
 	}
 
-	public static boolean isNetworkActivityMeterEnabled() {
+	public static boolean isShowMouseCoordinates() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return true;
+			return false;
 		}
-		return Boolean.parseBoolean(optionsXml.getChildString("networkActivityMeterEnabled", "true"));
+		return Boolean.parseBoolean(optionsXml.getChildString("showMouseCoordinates", "false"));
 	}
 
-	public static void setNetworkActivityMeterEnabled(boolean enabled) {
+	public static void setShowMouseCoordinates(boolean enabled) {
 		XMLElement optionsXml = configXml.getChildOrNew("options");
-		XMLElement meterXml = optionsXml.getChildOrNew("networkActivityMeterEnabled");
-		meterXml.setContent(String.valueOf(enabled));
+		XMLElement coordsXml = optionsXml.getChildOrNew("showMouseCoordinates");
+		coordsXml.setContent(String.valueOf(enabled));
 		saveConfig();
 	}
 
-	public static boolean isPingMeterEnabled() {
+	public static boolean isNetworkAccessEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
 			return true;
 		}
-		return Boolean.parseBoolean(optionsXml.getChildString("pingMeterEnabled", "true"));
+		return Boolean.parseBoolean(optionsXml.getChildString("networkAccess", "true"));
 	}
 
-	public static void setPingMeterEnabled(boolean enabled) {
+	public static void setNetworkAccessEnabled(boolean enabled) {
 		XMLElement optionsXml = configXml.getChildOrNew("options");
-		XMLElement meterXml = optionsXml.getChildOrNew("pingMeterEnabled");
-		meterXml.setContent(String.valueOf(enabled));
+		XMLElement accessXml = optionsXml.getChildOrNew("networkAccess");
+		accessXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static int getScaledDisplayZoom() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return -1;
+		}
+		try {
+			return Integer.parseInt(optionsXml.getChildString("scaledDisplayZoom", "-1"));
+		} catch (NumberFormatException e) {
+			return -1;
+		}
+	}
+
+	public static void setScaledDisplayZoom(int zoom) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement zoomXml = optionsXml.getChildOrNew("scaledDisplayZoom");
+		zoomXml.setContent(String.valueOf(zoom));
 		saveConfig();
 	}
 

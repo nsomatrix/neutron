@@ -88,7 +88,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 	private DisplayRepaintListener displayRepaintListener;
 
-	private boolean showMouseCoordinates = false;
+	private boolean showMouseCoordinates = org.neutron.app.Config.isShowMouseCoordinates();
 
 	private Point pressedPoint = new Point();
 
@@ -707,6 +707,8 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 	void switchShowMouseCoordinates() {
 		showMouseCoordinates = !showMouseCoordinates;
+		org.neutron.app.Config.setShowMouseCoordinates(showMouseCoordinates);
+		repaint();
 	}
 
 	public J2SEGraphicsSurface getGraphicsSurface() {

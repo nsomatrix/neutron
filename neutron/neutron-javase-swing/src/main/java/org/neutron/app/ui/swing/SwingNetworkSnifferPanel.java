@@ -49,7 +49,9 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 		final JCheckBox chkEnable = new JCheckBox("Enable Capturing", NetworkSniffer.isEnabled());
 		chkEnable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				NetworkSniffer.setEnabled(chkEnable.isSelected());
+				boolean enabled = chkEnable.isSelected();
+				NetworkSniffer.setEnabled(enabled);
+				org.neutron.app.Config.setNetworkSnifferEnabled(enabled);
 			}
 		});
 		controlBar.add(chkEnable);

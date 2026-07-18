@@ -465,9 +465,10 @@ public class Main extends JFrame {
 
 	private ActionListener menuMIDletNetworkConnectionListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-			org.neutron.cldc.http.Connection.setAllowNetworkConnection(menuMIDletNetworkConnection.getState());
+			boolean allowed = menuMIDletNetworkConnection.getState();
+			org.neutron.cldc.http.Connection.setAllowNetworkConnection(allowed);
+			Config.setNetworkAccessEnabled(allowed);
 		}
-
 	};
 
 	private ActionListener menuRecordStoreManagerListener = new ActionListener() {
@@ -615,6 +616,7 @@ public class Main extends JFrame {
 				scaledDisplayFrame.addWindowListener(new WindowAdapter() {
 					public void windowClosing(WindowEvent event) {
 						selectedZoomLevelMenuItem.setSelected(false);
+						menuScaledDisplayListener.actionPerformed(new ActionEvent(selectedZoomLevelMenuItem, ActionEvent.ACTION_PERFORMED, selectedZoomLevelMenuItem.getActionCommand()));
 					}
 				});
 				scaledDisplayFrame.getContentPane().addMouseListener(new MouseListener() {
@@ -676,12 +678,14 @@ public class Main extends JFrame {
 				scaledDisplayFrame.setLocation(window.x, window.y);
 				Config.setWindow("scaledDisplay", new Rectangle(scaledDisplayFrame.getX(), scaledDisplayFrame.getY(),
 						0, 0), false);
+				Config.setScaledDisplayZoom(scale);
 				scaledDisplayFrame.pack();
 				scaledDisplayFrame.setVisible(true);
 			} else {
 				((SwingDisplayComponent) emulatorContext.getDisplayComponent())
 						.removeDisplayRepaintListener(updateScaledImageListener);
 				scaledDisplayFrame.dispose();
+				Config.setScaledDisplayZoom(-1);
 			}
 		}
 
@@ -1102,7 +1106,7 @@ public class Main extends JFrame {
 
 		menuOptions.addSeparator();
 		JCheckBoxMenuItem menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse Coordinates");
-		menuShowMouseCoordinates.setState(false);
+		menuShowMouseCoordinates.setState(Config.isShowMouseCoordinates());
 		menuShowMouseCoordinates.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
 				devicePanel.switchShowMouseCoordinates();
@@ -1121,7 +1125,7 @@ public class Main extends JFrame {
 		menuControls.add(menuProxySettings);
 
 		menuMIDletNetworkConnection = new JCheckBoxMenuItem("Network Access");
-		menuMIDletNetworkConnection.setState(true);
+		menuMIDletNetworkConnection.setState(Config.isNetworkAccessEnabled());
 		menuMIDletNetworkConnection.addActionListener(menuMIDletNetworkConnectionListener);
 		menuControls.add(menuMIDletNetworkConnection);
 
@@ -1241,12 +1245,20 @@ public class Main extends JFrame {
 		addWindowListener(windowListener);
 
 		Config.loadConfig(defaultDevice, emulatorContext);
+		org.neutron.cldc.http.Connection.setAllowNetworkConnection(Config.isNetworkAccessEnabled());
 		org.neutron.device.ui.EventDispatcher.maxFps = Config.getMaxFps();
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
 		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
 		org.neutron.app.ui.swing.SwingNetworkOverlay.setEnabled(Config.isNetworkOverlayEnabled());
 		org.neutron.device.ui.NetworkSniffer.setEnabled(Config.isNetworkSnifferEnabled());
 		org.neutron.app.ui.swing.SwingAutoClicker.init();
+
+		int persistedZoom = Config.getScaledDisplayZoom();
+		if (persistedZoom >= 2 && persistedZoom <= 4) {
+			int index = persistedZoom - 2;
+			zoomLevels[index].setSelected(true);
+			menuScaledDisplayListener.actionPerformed(new ActionEvent(zoomLevels[index], ActionEvent.ACTION_PERFORMED, zoomLevels[index].getActionCommand()));
+		}
 
 		boolean sleepEnabled = Config.isSleepModeEnabled();
 		menuSleepMode.setState(sleepEnabled);
