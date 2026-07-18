@@ -8,4 +8,5 @@ dependencies {
     api project(':neutron:api')
     api project(':neutron:neutron-cldc')
     implementation 'asm:asm:3.1' // Assuming version 3.1 based on common usage with older projects
+    testImplementation 'junit:junit:3.8.2'
 }

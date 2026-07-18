@@ -972,6 +972,24 @@ public class Main extends JFrame {
 		});
 		menuFile.add(menuOpenRootDirectory);
 
+		JMenu menuSnapshot = new JMenu("Snapshot Manager");
+		JMenuItem menuBackup = new JMenuItem("Backup");
+		menuBackup.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				org.neutron.app.util.SnapshotManager.backup(Main.this);
+			}
+		});
+		menuSnapshot.add(menuBackup);
+
+		JMenuItem menuRestore = new JMenuItem("Restore");
+		menuRestore.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				org.neutron.app.util.SnapshotManager.restore(Main.this);
+			}
+		});
+		menuSnapshot.add(menuRestore);
+		menuFile.add(menuSnapshot);
+
 		menuScreenshot = new JMenuItem("Take Screenshot");
 		menuScreenshot.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
 		menuScreenshot.addActionListener(menuScreenshotListener);
