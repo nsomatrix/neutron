@@ -103,9 +103,9 @@ import org.neutron.app.ui.swing.SwingSelectDevicePanel;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkSnifferPanel;
-import org.neutron.app.ui.swing.SwingNetworkActivityMeter;
-import org.neutron.app.ui.swing.SwingPingMeter;
+import org.neutron.app.ui.swing.SwingStatusBar;
 import org.neutron.app.ui.swing.SwingPerfHUD;
+import org.neutron.app.ui.swing.SwingNetworkOverlay;
 import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
 import org.neutron.app.util.DeviceEntry;
@@ -170,9 +170,7 @@ public class Main extends JFrame {
 
 	private JCheckBoxMenuItem menuSleepMode;
 
-	private JCheckBoxMenuItem menuNetworkActivityMeter;
 
-	private JCheckBoxMenuItem menuPingMeter;
 
 	private static Main instance;
 
@@ -214,11 +212,9 @@ public class Main extends JFrame {
 
 	private AnimatedGifEncoder encoder;
 
-	private JLabel statusBar = new JLabel("Status");
+	private SwingStatusBar statusBar = new SwingStatusBar();
 
-	private SwingNetworkActivityMeter networkActivityMeter;
 
-	private SwingPingMeter pingMeter;
 
 	private JButton resizeButton = new JButton("Resize");
 
@@ -705,8 +701,6 @@ public class Main extends JFrame {
 		public void statusBarChanged(final String text) {
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
-					FontMetrics metrics = statusBar.getFontMetrics(statusBar.getFont());
-					statusBar.setPreferredSize(new Dimension(metrics.stringWidth(text), metrics.getHeight()));
 					statusBar.setText(text);
 				}
 			});
@@ -1066,35 +1060,6 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuNetworkCapture);
 
-		menuNetworkActivityMeter = new JCheckBoxMenuItem("Network Activity Meter", Config.isNetworkActivityMeterEnabled());
-		menuNetworkActivityMeter.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				boolean enabled = menuNetworkActivityMeter.isSelected();
-				Config.setNetworkActivityMeterEnabled(enabled);
-				if (networkActivityMeter != null) {
-					networkActivityMeter.setVisible(enabled);
-					networkActivityMeter.getParent().revalidate();
-					networkActivityMeter.getParent().repaint();
-				}
-			}
-		});
-		menuControls.add(menuNetworkActivityMeter);
-
-		menuPingMeter = new JCheckBoxMenuItem("Ping Indicator", Config.isPingMeterEnabled());
-		menuPingMeter.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				boolean enabled = menuPingMeter.isSelected();
-				Config.setPingMeterEnabled(enabled);
-				org.neutron.device.ui.NetworkActivityTracker.setPingEnabled(enabled);
-				if (pingMeter != null) {
-					pingMeter.setVisible(enabled);
-					pingMeter.getParent().revalidate();
-					pingMeter.getParent().repaint();
-				}
-			}
-		});
-		menuControls.add(menuPingMeter);
-
 		final JCheckBoxMenuItem menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
 		menuHudOverlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1107,6 +1072,20 @@ public class Main extends JFrame {
 			}
 		});
 		menuControls.add(menuHudOverlay);
+
+		final JCheckBoxMenuItem menuNetworkOverlay = new JCheckBoxMenuItem("Network Overlay", Config.isNetworkOverlayEnabled());
+		menuNetworkOverlay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean enabled = menuNetworkOverlay.isSelected();
+				Config.setNetworkOverlayEnabled(enabled);
+				SwingNetworkOverlay.setEnabled(enabled);
+				org.neutron.device.ui.NetworkActivityTracker.setPingEnabled(enabled);
+				if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
+					((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
+				}
+			}
+		});
+		menuControls.add(menuNetworkOverlay);
 
 		JMenuItem menuAutoClicker = new JMenuItem("Tap Automator");
 		menuAutoClicker.addActionListener(new ActionListener() {
@@ -1143,6 +1122,7 @@ public class Main extends JFrame {
 		org.neutron.device.ui.EventDispatcher.maxFps = Config.getMaxFps();
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
 		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
+		org.neutron.app.ui.swing.SwingNetworkOverlay.setEnabled(Config.isNetworkOverlayEnabled());
 		org.neutron.device.ui.NetworkSniffer.setEnabled(Config.isNetworkSnifferEnabled());
 		org.neutron.app.ui.swing.SwingAutoClicker.init();
 
@@ -1188,27 +1168,13 @@ public class Main extends JFrame {
 			}
 		});
 
-		JPanel statusPanel = new JPanel();
-		statusPanel.setLayout(new BorderLayout());
-		statusPanel.add(statusBar, "West");
+		org.neutron.device.ui.NetworkActivityTracker.setPingEnabled(Config.isNetworkOverlayEnabled());
 
-		JPanel statusRightPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 10, 0));
-		statusRightPanel.setOpaque(false);
+		this.resizeButton.putClientProperty("JButton.buttonType", "toolBarButton");
+		this.resizeButton.setFont(this.resizeButton.getFont().deriveFont(11.0f));
+		statusBar.getRightPanel().add(this.resizeButton);
 
-		networkActivityMeter = new SwingNetworkActivityMeter();
-		networkActivityMeter.setVisible(Config.isNetworkActivityMeterEnabled());
-		statusRightPanel.add(networkActivityMeter);
-
-		pingMeter = new SwingPingMeter();
-		pingMeter.setVisible(Config.isPingMeterEnabled());
-		org.neutron.device.ui.NetworkActivityTracker.setPingEnabled(Config.isPingMeterEnabled());
-		statusRightPanel.add(pingMeter);
-
-		statusRightPanel.add(this.resizeButton);
-
-		statusPanel.add(statusRightPanel, "East");
-
-		getContentPane().add(statusPanel, "South");
+		getContentPane().add(statusBar, "South");
 
 		Message.addListener(new SwingErrorMessageDialogPanel(this));
 

@@ -604,6 +604,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 					}
 
 					SwingPerfHUD.paint(g2d, getWidth(), getHeight());
+					SwingNetworkOverlay.paint(g2d, getWidth(), getHeight());
 					SwingAutoClicker.drawOverlay(g2d, SwingDisplayComponent.this);
 				}
 			}

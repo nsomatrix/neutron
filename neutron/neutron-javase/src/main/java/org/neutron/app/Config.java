@@ -858,6 +858,21 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isNetworkOverlayEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return true;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("networkOverlayEnabled", "true"));
+	}
+
+	public static void setNetworkOverlayEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement overlayXml = optionsXml.getChildOrNew("networkOverlayEnabled");
+		overlayXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
 	public static boolean isAutoClickerEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
