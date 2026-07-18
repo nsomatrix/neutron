@@ -183,6 +183,7 @@ public class Main extends JFrame {
 			boolean enabled = menuSleepMode.isSelected();
 			Config.setSleepModeEnabled(enabled);
 			org.neutron.app.util.SleepManager.setSleepEnabled(enabled);
+			Common.setStatusBar("Sleep Mode: " + (enabled ? "Enabled" : "Disabled"));
 		}
 	};
 
@@ -215,6 +216,8 @@ public class Main extends JFrame {
 	private DeviceEntry deviceEntry;
 
 	private AnimatedGifEncoder encoder;
+
+	private File currentCaptureFile;
 
 	private SwingStatusBar statusBar = new SwingStatusBar();
 
@@ -352,6 +355,8 @@ public class Main extends JFrame {
 
 				encoder = new AnimatedGifEncoder();
 				encoder.start(captureFile.getAbsolutePath());
+				currentCaptureFile = captureFile;
+				Common.setStatusBar("Recording screen to " + captureFile.getName() + "...");
 
 				menuStartCapture.setEnabled(false);
 				menuStopCapture.setEnabled(true);
@@ -396,9 +401,19 @@ public class Main extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			menuStopCapture.setEnabled(false);
 
+			String filename = "";
 			synchronized (Main.this) {
-				encoder.finish();
-				encoder = null;
+				if (encoder != null) {
+					encoder.finish();
+					encoder = null;
+					if (currentCaptureFile != null) {
+						filename = currentCaptureFile.getName();
+						currentCaptureFile = null;
+					}
+				}
+			}
+			if (!filename.isEmpty()) {
+				Common.setStatusBar("Recording saved to " + filename);
 			}
 
 			menuStartCapture.setEnabled(true);
@@ -468,6 +483,7 @@ public class Main extends JFrame {
 			boolean allowed = menuMIDletNetworkConnection.getState();
 			org.neutron.cldc.http.Connection.setAllowNetworkConnection(allowed);
 			Config.setNetworkAccessEnabled(allowed);
+			Common.setStatusBar("Network Access: " + (allowed ? "Enabled" : "Disabled"));
 		}
 	};
 
@@ -478,13 +494,16 @@ public class Main extends JFrame {
 				recordStoreManagerDialog.addWindowListener(new WindowAdapter() {
 					public void windowClosing(WindowEvent e) {
 						menuRecordStoreManager.setState(false);
+						Common.setStatusBar("Record Store Manager: Closed");
 					}
 				});
 				recordStoreManagerDialog.pack();
 				Rectangle window = Config.getWindow("recordStoreManager", new Rectangle(0, 0, 640, 320));
 				recordStoreManagerDialog.setBounds(window.x, window.y, window.width, window.height);
 			}
-			recordStoreManagerDialog.setVisible(!recordStoreManagerDialog.isVisible());
+			boolean visible = !recordStoreManagerDialog.isVisible();
+			recordStoreManagerDialog.setVisible(visible);
+			Common.setStatusBar("Record Store Manager: " + (visible ? "Opened" : "Closed"));
 		}
 	};
 
@@ -495,6 +514,7 @@ public class Main extends JFrame {
 				logConsoleDialog.addWindowListener(new WindowAdapter() {
 					public void windowClosing(WindowEvent e) {
 						menuLogConsole.setState(false);
+						Common.setStatusBar("Log Console: Closed");
 					}
 				});
 				logConsoleDialog.pack();
@@ -503,7 +523,9 @@ public class Main extends JFrame {
 				Rectangle window = Config.getWindow("logConsole", new Rectangle(0, 0, 640, 320));
 				logConsoleDialog.setBounds(window.x, window.y, window.width, window.height);
 			}
-			logConsoleDialog.setVisible(!logConsoleDialog.isVisible());
+			boolean visible = !logConsoleDialog.isVisible();
+			logConsoleDialog.setVisible(visible);
+			Common.setStatusBar("Log Console: " + (visible ? "Opened" : "Closed"));
 		}
 	};
 
@@ -681,11 +703,13 @@ public class Main extends JFrame {
 				Config.setScaledDisplayZoom(scale);
 				scaledDisplayFrame.pack();
 				scaledDisplayFrame.setVisible(true);
+				Common.setStatusBar("Scaled Display Zoom: " + scale + "x");
 			} else {
 				((SwingDisplayComponent) emulatorContext.getDisplayComponent())
 						.removeDisplayRepaintListener(updateScaledImageListener);
 				scaledDisplayFrame.dispose();
 				Config.setScaledDisplayZoom(-1);
+				Common.setStatusBar("Scaled Display Zoom: Off");
 			}
 		}
 
@@ -1061,6 +1085,7 @@ public class Main extends JFrame {
 				public void actionPerformed(ActionEvent e) {
 					Config.setTheme(themeName);
 					applyTheme(themeName, devicePanel);
+					Common.setStatusBar("Theme: " + themeName);
 				}
 			});
 			themeGroup.add(themeItem);
@@ -1085,6 +1110,7 @@ public class Main extends JFrame {
 							sdc.repaint();
 						}
 					}
+					Common.setStatusBar("Graphics Filter: " + filterName);
 				}
 			});
 			filterGroup.add(filterItem);
@@ -1110,11 +1136,12 @@ public class Main extends JFrame {
 		int currentLimit = Config.getMemoryLimit();
 		for (int i = 0; i < memoryLimits.length; i++) {
 			final int limitVal = memoryLimits[i];
-			String label = memoryLabels[i];
+			final String label = memoryLabels[i];
 			JRadioButtonMenuItem limitItem = new JRadioButtonMenuItem(label, currentLimit == limitVal);
 			limitItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Config.setMemoryLimit(limitVal);
+					Common.setStatusBar("Memory Limit: " + label);
 				}
 			});
 			memoryGroup.add(limitItem);
@@ -1154,12 +1181,13 @@ public class Main extends JFrame {
 		String[] fpsLabels = { "Unlimited", "60 FPS", "30 FPS", "20 FPS", "15 FPS" };
 		for (int i = 0; i < fpsValues.length; i++) {
 			final int fpsVal = fpsValues[i];
-			String label = fpsLabels[i];
+			final String label = fpsLabels[i];
 			JRadioButtonMenuItem fpsItem = new JRadioButtonMenuItem(label, currentFps == fpsVal);
 			fpsItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Config.setMaxFps(fpsVal);
 					org.neutron.device.ui.EventDispatcher.maxFps = fpsVal;
+					Common.setStatusBar("Frame Rate Limit: " + label);
 				}
 			});
 			fpsGroup.add(fpsItem);
@@ -1174,11 +1202,12 @@ public class Main extends JFrame {
 		String[] speedLabels = { "Normal (1.0x)", "1.5x", "2.0x", "4.0x", "8.0x", "Slow Motion (0.5x)" };
 		for (int i = 0; i < speedValues.length; i++) {
 			final double speedVal = speedValues[i];
-			String label = speedLabels[i];
+			final String label = speedLabels[i];
 			JRadioButtonMenuItem speedItem = new JRadioButtonMenuItem(label, Math.abs(currentSpeed - speedVal) < 0.01);
 			speedItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Config.setSpeedMultiplier(speedVal);
+					Common.setStatusBar("Emulation Speed: " + label);
 				}
 			});
 			speedGroup.add(speedItem);
@@ -1205,6 +1234,7 @@ public class Main extends JFrame {
 				if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
 					((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
 				}
+				Common.setStatusBar("HUD Overlay: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
 		menuControls.add(menuHudOverlay);
@@ -1219,6 +1249,7 @@ public class Main extends JFrame {
 				if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
 					((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
 				}
+				Common.setStatusBar("Network Overlay: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
 		menuControls.add(menuNetworkOverlay);

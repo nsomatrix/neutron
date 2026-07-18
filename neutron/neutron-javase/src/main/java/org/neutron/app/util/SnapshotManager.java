@@ -112,6 +112,7 @@ public class SnapshotManager {
 		SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 			@Override
 			protected Void doInBackground() throws Exception {
+				org.neutron.app.Common.setStatusBar("Backup started...");
 				try (FileOutputStream fos = new FileOutputStream(finalTargetFile);
 					 BufferedOutputStream bos = new BufferedOutputStream(fos);
 					 ZipOutputStream zos = new ZipOutputStream(bos)) {
@@ -126,12 +127,14 @@ public class SnapshotManager {
 				progressDialog.dispose();
 				try {
 					get();
+					org.neutron.app.Common.setStatusBar("Backup completed: " + finalTargetFile.getName());
 					JOptionPane.showMessageDialog(parent,
 							"Backup completed successfully!\nSaved to: " + finalTargetFile.getAbsolutePath(),
 							"Backup Success",
 							JOptionPane.INFORMATION_MESSAGE);
 				} catch (Exception e) {
 					Logger.error("Backup failed", e);
+					org.neutron.app.Common.setStatusBar("Backup failed");
 					JOptionPane.showMessageDialog(parent,
 							"Backup failed:\n" + e.getMessage(),
 							"Backup Error",
@@ -194,6 +197,7 @@ public class SnapshotManager {
 		SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
 			@Override
 			protected Void doInBackground() throws Exception {
+				org.neutron.app.Common.setStatusBar("Restore started...");
 				if (rootDir.exists()) {
 					deleteDirectoryExcept(rootDir, backupFile);
 				}
@@ -211,6 +215,7 @@ public class SnapshotManager {
 				progressDialog.dispose();
 				try {
 					get();
+					org.neutron.app.Common.setStatusBar("Restore completed successfully");
 					JOptionPane.showMessageDialog(parent,
 							"Restore completed successfully!\nThe emulator will now exit. Please restart it manually.",
 							"Restore Success",
@@ -218,6 +223,7 @@ public class SnapshotManager {
 					System.exit(0);
 				} catch (Exception e) {
 					Logger.error("Restore failed", e);
+					org.neutron.app.Common.setStatusBar("Restore failed");
 					JOptionPane.showMessageDialog(parent,
 							"Restore failed:\n" + e.getMessage(),
 							"Restore Error",
