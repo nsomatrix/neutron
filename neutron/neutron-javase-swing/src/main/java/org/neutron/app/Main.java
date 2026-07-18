@@ -110,6 +110,7 @@ import org.neutron.app.ui.swing.SwingNetworkOverlay;
 import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
 import org.neutron.app.ui.swing.SwingLibraryExplorerDialog;
+import org.neutron.app.ui.swing.SwingSystemInfoDialog;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -507,6 +508,12 @@ public class Main extends JFrame {
 	private ActionListener menuAboutListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			SwingDialogWindow.show(Main.this, "About", new SwingAboutDialog(), false);
+		}
+	};
+
+	private ActionListener menuSystemInfoListener = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			SwingDialogWindow.show(Main.this, "System", new SwingSystemInfoDialog(), false);
 		}
 	};
 
@@ -1205,6 +1212,10 @@ public class Main extends JFrame {
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
 		menuMisc.add(menuAbout);
+
+		JMenuItem menuSystemInfo = new JMenuItem("System");
+		menuSystemInfo.addActionListener(menuSystemInfoListener);
+		menuMisc.add(menuSystemInfo);
 
 		menuBar.add(menuFile);
 		menuBar.add(menuOptions);
