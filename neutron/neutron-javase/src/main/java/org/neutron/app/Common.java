@@ -555,6 +555,7 @@ public class Common implements Neutron, CommonInterface {
         try {
             launcher = new Launcher(this);
             MIDletBridge.getMIDletAccess(launcher).startApp();
+            setStatusBar("Ready");
         } catch (Throwable e) {
             Message.error("Unable to start launcher MIDlet, " + Message.getCauseMessage(e), e);
             handleStartMidletException(e);
@@ -1157,6 +1158,11 @@ public class Common implements Neutron, CommonInterface {
                 if (startMidlet) {
                     try {
                         MIDletBridge.getMIDletAccess(midlet).startApp();
+                        String name = getSuiteName();
+                        if (name == null || name.trim().isEmpty()) {
+                            name = midletClass.getSimpleName();
+                        }
+                        setStatusBar("Running: " + name);
                     } catch (MIDletStateChangeException e) {
                         Logger.error(e);
                     }
@@ -1175,6 +1181,11 @@ public class Common implements Neutron, CommonInterface {
         if (startMidlet) {
             try {
                 MIDletBridge.getMIDletAccess(midlet).startApp();
+                String name = getSuiteName();
+                if (name == null || name.trim().isEmpty()) {
+                    name = entry.getName();
+                }
+                setStatusBar("Running: " + name);
             } catch (MIDletStateChangeException e) {
                 Logger.error(e);
             }

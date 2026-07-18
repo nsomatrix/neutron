@@ -474,6 +474,7 @@ public class Main extends JFrame {
 					javax.imageio.ImageIO.write(imgCopy, "png", file);
 					Common.setStatusBar("Screenshot saved to " + file.getName());
 				} catch (Exception ex) {
+					Common.setStatusBar("Screenshot failed");
 					JOptionPane.showMessageDialog(Main.this, "Failed to save screenshot: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 				}
 			}
@@ -594,6 +595,7 @@ public class Main extends JFrame {
 				if (!setDevice(selectDevicePanel.getSelectedDeviceEntry())) {
 					return;
 				}
+				Common.setStatusBar("Device changed to: " + selectDevicePanel.getSelectedDeviceEntry().getName());
 				if (restartMidlet == 0) {
 					try {
 						common.initMIDlet(true);
@@ -988,6 +990,7 @@ public class Main extends JFrame {
 				try {
 					if (java.awt.Desktop.isDesktopSupported()) {
 						java.awt.Desktop.getDesktop().open(Config.getConfigPath());
+						Common.setStatusBar("Opened root directory");
 					} else {
 						JOptionPane.showMessageDialog(Main.this, "Desktop is not supported on this platform.", "Error", JOptionPane.ERROR_MESSAGE);
 					}
@@ -1124,7 +1127,9 @@ public class Main extends JFrame {
 		itemVideoSettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SwingVideoSettingsPanel panel = new SwingVideoSettingsPanel(devicePanel);
-				if (!SwingDialogWindow.show(Main.this, "Video Settings", panel, true)) {
+				if (SwingDialogWindow.show(Main.this, "Video Settings", panel, true)) {
+					Common.setStatusBar("Video Settings updated");
+				} else {
 					panel.revertSettings();
 				}
 			}
@@ -1166,7 +1171,9 @@ public class Main extends JFrame {
 		menuProxySettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				SwingProxySettingsPanel panel = new SwingProxySettingsPanel();
-				SwingDialogWindow.show(Main.this, "Proxy Settings", panel, true);
+				if (SwingDialogWindow.show(Main.this, "Proxy Settings", panel, true)) {
+					Common.setStatusBar("Proxy settings updated");
+				}
 			}
 		});
 		menuControls.add(menuProxySettings);
@@ -1265,6 +1272,7 @@ public class Main extends JFrame {
 					if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
 						((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
 					}
+					Common.setStatusBar("Tap Automator settings updated");
 				}
 			}
 		});

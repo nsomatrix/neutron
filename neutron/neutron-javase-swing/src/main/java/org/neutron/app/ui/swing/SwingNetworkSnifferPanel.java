@@ -52,6 +52,7 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 				boolean enabled = chkEnable.isSelected();
 				NetworkSniffer.setEnabled(enabled);
 				org.neutron.app.Config.setNetworkSnifferEnabled(enabled);
+				org.neutron.app.Common.setStatusBar("Network Capture: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
 		controlBar.add(chkEnable);
@@ -60,6 +61,7 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				NetworkSniffer.clear();
+				org.neutron.app.Common.setStatusBar("Network Capture: Logs cleared");
 			}
 		});
 		controlBar.add(btnClear);

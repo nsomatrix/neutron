@@ -93,15 +93,21 @@ public class SwingStatusBar extends JPanel {
 		}
 	}
 
-	public void setText(String text) {
-		if (text == null) {
-			text = "";
+	public void setText(final String text) {
+		if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+			javax.swing.SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					setText(text);
+				}
+			});
+			return;
 		}
-		text = text.trim();
+
+		String processedText = text == null ? "" : text.trim();
 
 		// 1. Coordinate check
-		if (text.matches("^-?\\d+,-?\\d+( -?\\d+x-?\\d+)?$")) {
-			coordinateLabel.setText("[" + text + "]");
+		if (processedText.matches("^-?\\d+,-?\\d+( -?\\d+x-?\\d+)?$")) {
+			coordinateLabel.setText("[" + processedText + "]");
 			coordinateLabel.setVisible(true);
 			coordinateTimeoutTimer.restart();
 			revalidate();
@@ -110,7 +116,7 @@ public class SwingStatusBar extends JPanel {
 		}
 
 		// 2. Resolution check
-		Matcher sizeMatcher = sizePattern.matcher(text);
+		Matcher sizeMatcher = sizePattern.matcher(processedText);
 		if (sizeMatcher.matches()) {
 			String size1 = sizeMatcher.group(2);
 			String size2 = sizeMatcher.group(3);
@@ -127,7 +133,7 @@ public class SwingStatusBar extends JPanel {
 		}
 
 		// 3. Normal status message check
-		MessageType type = classifyMessage(text);
+		MessageType type = classifyMessage(processedText);
 
 		if (type == MessageType.LOADING) {
 			if (revertTimer != null) {
@@ -135,13 +141,13 @@ public class SwingStatusBar extends JPanel {
 			}
 			activeTransient = false;
 			spinnerComponent.start();
-			transitionToText(text, false);
+			transitionToText(processedText, false);
 		} else if (type == MessageType.TRANSIENT) {
 			spinnerComponent.stop();
 			activeTransient = true;
-			transitionToText(text, true);
+			transitionToText(processedText, true);
 		} else { // PERSISTENT
-			persistentMessage = text;
+			persistentMessage = processedText;
 			if (!activeTransient) {
 				spinnerComponent.stop();
 				transitionToText(persistentMessage, false);

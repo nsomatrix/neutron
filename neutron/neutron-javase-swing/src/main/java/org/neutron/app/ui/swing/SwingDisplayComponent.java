@@ -708,6 +708,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	void switchShowMouseCoordinates() {
 		showMouseCoordinates = !showMouseCoordinates;
 		org.neutron.app.Config.setShowMouseCoordinates(showMouseCoordinates);
+		Common.setStatusBar("Mouse Coordinates: " + (showMouseCoordinates ? "Enabled" : "Disabled"));
 		repaint();
 	}
 

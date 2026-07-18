@@ -99,6 +99,7 @@ public class UpdateChecker {
 		final SwingWorker<UpdateInfo, Void> worker = new SwingWorker<UpdateInfo, Void>() {
 			@Override
 			protected UpdateInfo doInBackground() throws Exception {
+				org.neutron.app.Common.setStatusBar("Checking for updates...");
 				URL url = new URL(GITHUB_API_URL);
 				HttpURLConnection conn = (HttpURLConnection) url.openConnection(Config.getProxyInstance());
 				conn.setRequestMethod("GET");
@@ -161,6 +162,7 @@ public class UpdateChecker {
 				}
 
 				if (isCancelled()) {
+					org.neutron.app.Common.setStatusBar("");
 					return;
 				}
 
@@ -169,6 +171,7 @@ public class UpdateChecker {
 					String currentVersion = BuildVersion.getVersion();
 					
 					if (isNewerVersion(currentVersion, info.tagName)) {
+						org.neutron.app.Common.setStatusBar("Update available: " + info.tagName);
 						String message = "A new version of Neutron is available!\n\n"
 								+ "Current Version: " + currentVersion + "\n"
 								+ "Latest Version: " + info.tagName + "\n\n"
@@ -181,6 +184,7 @@ public class UpdateChecker {
 							openBrowser(info.htmlUrl);
 						}
 					} else {
+						org.neutron.app.Common.setStatusBar("Emulator is up to date (" + currentVersion + ")");
 						if (!silentOnNoUpdates) {
 							JOptionPane.showMessageDialog(parent,
 									"You are running the latest version of Neutron (" + currentVersion + ").",
@@ -189,6 +193,7 @@ public class UpdateChecker {
 					}
 				} catch (Exception e) {
 					Logger.error("Failed to check for updates", e);
+					org.neutron.app.Common.setStatusBar("Update check failed");
 					if (!silentOnNoUpdates) {
 						String errMsg = e.getCause() != null ? e.getCause().getMessage() : e.getMessage();
 						JOptionPane.showMessageDialog(parent,
