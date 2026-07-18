@@ -17,7 +17,6 @@ import java.awt.image.*;
  *    e.addFrame(image2);
  *    e.finish();
  * </pre>
- * No copyright asserted on the source code of this class.  May be used
  * for any purpose, however, refer to the Unisys LZW patent for restrictions
  * on use of the associated LZWEncoder class.  Please forward any corrections
  * to kweiner@fmsware.com.

@@ -1,7 +1,5 @@
 /**
  * Neutron 
- * Copyright (C) 2001-2007 Bartek Teodorczyk <barteo@barteo.net>
- * Copyright (C) 2007 Rushabh Doshi <radoshi@cs.stanford.edu> Pelago, Inc
  * 
  *  It is licensed under the following two licenses as alternatives:
  *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version

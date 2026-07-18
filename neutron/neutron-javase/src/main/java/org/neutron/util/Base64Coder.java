@@ -6,7 +6,6 @@
  * as described in RFC 1521.
  *
  * <p>
- * Copyright 2003: Christian d'Heureuse, Inventec Informatik AG, Switzerland.<br>
  * License: This is "Open Source" software and released under the <a href="http://www.gnu.org/licenses/lgpl.html" target="_top">GNU/LGPL</a> license.
  * It is provided "as is" without warranty of any kind. Please contact the author for other licensing arrangements.<br>
  * Home page: <a href="http://www.source-code.biz" target="_top">www.source-code.biz</a><br>

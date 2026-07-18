@@ -155,7 +155,6 @@ src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
   #end
 #end
 
-#macro ( copyright )
   #if ( $project )
     #set ( $currentYear = ${currentDate.year} + 1900 )
 

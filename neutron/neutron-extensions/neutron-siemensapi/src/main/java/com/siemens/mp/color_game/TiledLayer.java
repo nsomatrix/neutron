@@ -1,6 +1,5 @@
 /*
  *  Siemens API for Neutron
- *  Copyright (C) 2003 Markus Heberling <markus@heberling.net>
  *
  *  It is licensed under the following two licenses as alternatives:
  *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version

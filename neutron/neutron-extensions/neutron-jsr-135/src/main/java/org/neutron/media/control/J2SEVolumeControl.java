@@ -1,6 +1,5 @@
 /*
  *  Neutron
- *  Copyright (C) 2001-2010 Bartek Teodorczyk <barteo@barteo.net>
  *
  *  This library is free software; you can redistribute it and/or
  *  modify it under the terms of the GNU Lesser General Public

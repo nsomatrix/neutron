@@ -1,6 +1,5 @@
 /*
  *  PC Media MIDP Java Library
- *  Copyright (C) 2006 Travis Berthelot
  *
  *  It is licensed under the following two licenses as alternatives:
  *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version

@@ -1,7 +1,5 @@
 /**
  *  Neutron
- *  Copyright (C) 2006-2008 Bartek Teodorczyk <barteo@barteo.net>
- *  Copyright (C) 2006-2008 Vlad Skarzhevskyy
  *
  *  It is licensed under the following two licenses as alternatives:
  *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
@@ -78,11 +76,5 @@ public class SwingAboutDialog extends SwingDialogPanel {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		c.anchor = GridBagConstraints.WEST;
 		add(new JLabel("version: " + BuildVersion.getVersion()), c);
-
-		c.gridy = 2;
-		c.weightx = 0.0;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		add(new JLabel("Copyright (C) 2001-2008 Bartek Teodorczyk & co"), c);
-
 	}
 }

@@ -1,7 +1,6 @@
 /* XMLElement.java                                                 NanoXML/Lite
  *
  * This file is part of NanoXML 2 Lite.
- * Copyright (C) 2000-2002 Marc De Scheemaecker, All Rights Reserved.
  *
  * This software is provided 'as-is', without any express or implied warranty.
  * In no event will the authors be held liable for any damages arising from the
