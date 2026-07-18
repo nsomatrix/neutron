@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.WeakHashMap;
 
 import javax.microedition.io.ConnectionNotFoundException;
+import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.midlet.MIDlet;
 
@@ -54,7 +55,7 @@ public class MIDletBridge {
 	
 	static Map /*<MIDlet, MIDletContext>*/ midletContexts = null;
 
-	static MIDlet currentMIDlet = null;
+	static volatile MIDlet currentMIDlet = null;
 
 	public static void setNeutron(Neutron emulator) {
 		MIDletBridge.emulator = emulator;
@@ -63,7 +64,7 @@ public class MIDletBridge {
 			threadMIDletContexts = new ThreadLocal();
 		}
 		if (midletContexts == null) {
-			midletContexts = new WeakHashMap();
+			midletContexts = java.util.Collections.synchronizedMap(new WeakHashMap());
 		}
 	}
 	
@@ -151,12 +152,14 @@ public class MIDletBridge {
 			return;
 		}
 		emulator.destroyMIDletContext(midletContext);
-		if (midletContexts.containsValue(midletContext)) {
-			for (Iterator i = midletContexts.entrySet().iterator(); i.hasNext();) {
-				Map.Entry entry = (Map.Entry) i.next();
-				if (entry.getValue() == midletContext) {
-					midletContexts.remove(entry.getKey());
-					break;
+		synchronized (midletContexts) {
+			if (midletContexts.containsValue(midletContext)) {
+				for (Iterator i = midletContexts.entrySet().iterator(); i.hasNext();) {
+					Map.Entry entry = (Map.Entry) i.next();
+					if (entry.getValue() == midletContext) {
+						midletContexts.remove(entry.getKey());
+						break;
+					}
 				}
 			}
 		}
@@ -174,18 +177,41 @@ public class MIDletBridge {
 		
 		currentMIDlet = null;
 		
-		// Preserve only Launcher Context
-		for (Iterator i = midletContexts.entrySet().iterator(); i.hasNext();) {
-			Map.Entry entry = (Map.Entry) i.next();
-			MIDlet test = ((MIDletContext) entry.getValue()).getMIDlet();
-			if (test instanceof Launcher) {
-				midletContexts.clear();
-				midletContexts.put(entry.getKey(), entry.getValue());
-				return;
+		synchronized (midletContexts) {
+			MIDletContext launcherContext = null;
+			Object launcherKey = null;
+			for (Iterator i = midletContexts.entrySet().iterator(); i.hasNext();) {
+				Map.Entry entry = (Map.Entry) i.next();
+				MIDlet test = ((MIDletContext) entry.getValue()).getMIDlet();
+				if (test instanceof Launcher) {
+					launcherKey = entry.getKey();
+					launcherContext = (MIDletContext) entry.getValue();
+					break;
+				}
+			}
+			midletContexts.clear();
+			if (launcherContext != null) {
+				midletContexts.put(launcherKey, launcherContext);
 			}
 		}
-		// No Launcher found
-		midletContexts.clear();
+	}
+
+	public static MIDletContext getMIDletContext(Display display) {
+		if (display == null) {
+			return null;
+		}
+		synchronized (midletContexts) {
+			for (Iterator i = midletContexts.values().iterator(); i.hasNext();) {
+				MIDletContext context = (MIDletContext) i.next();
+				if (context.getMIDletAccess() != null) {
+					DisplayAccess da = context.getMIDletAccess().getDisplayAccess();
+					if (da != null && da.getDisplay() == display) {
+						return context;
+					}
+				}
+			}
+		}
+		return null;
 	}
 	
 	static Map /*<GameCanvas, GameCanvasKeyAccess>*/ gameCanvasAccesses = new WeakHashMap();	

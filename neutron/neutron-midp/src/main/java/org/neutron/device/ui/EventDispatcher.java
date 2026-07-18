@@ -46,6 +46,12 @@ public class EventDispatcher implements Runnable {
 	
 	private long lastPaintEventTimeNs = 0;
 
+	private javax.microedition.lcdui.Display display;
+
+	public void setDisplay(javax.microedition.lcdui.Display display) {
+		this.display = display;
+	}
+
 	public EventDispatcher() {
 	}
 	
@@ -163,6 +169,12 @@ public class EventDispatcher implements Runnable {
 	}
 
 	protected void post(Event event) {
+		if (display != null) {
+			org.neutron.MIDletContext context = org.neutron.MIDletBridge.getMIDletContext(display);
+			if (context != null) {
+				org.neutron.MIDletBridge.setThreadMIDletContext(context);
+			}
+		}
 		event.run();
 	}
 

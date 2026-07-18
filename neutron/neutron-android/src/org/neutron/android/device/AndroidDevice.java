@@ -91,6 +91,7 @@ public class AndroidDevice implements Device {
 
 		public EventDispatcher createEventDispatcher(Display display) {
 			EventDispatcher eventDispatcher = new EventDispatcher();
+			eventDispatcher.setDisplay(display);
 			Thread thread = new Thread(eventDispatcher, EventDispatcher.EVENT_DISPATCHER_NAME);
 			thread.setDaemon(true);
 			thread.start();
