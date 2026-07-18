@@ -50,6 +50,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.awt.Image;
+import nanoxml.XMLElement;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Iterator;                                                            
@@ -107,6 +109,7 @@ import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.ui.swing.SwingNetworkOverlay;
 import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
+import org.neutron.app.ui.swing.SwingLibraryExplorerDialog;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -803,6 +806,104 @@ public class Main extends JFrame {
 		menuOpenMIDletURL.addActionListener(menuOpenMIDletURLListener);
 		menuFile.add(menuOpenMIDletURL);
 
+		final JMenu menuConnectedDirs = new JMenu("Connected Directories");
+		menuConnectedDirs.addMenuListener(new javax.swing.event.MenuListener() {
+			public void menuSelected(javax.swing.event.MenuEvent e) {
+				menuConnectedDirs.removeAll();
+
+				JMenuItem explorerItem = new JMenuItem("Library Explorer");
+				explorerItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						SwingLibraryExplorerDialog dialog = new SwingLibraryExplorerDialog(Main.this);
+						dialog.setVisible(true);
+					}
+				});
+				menuConnectedDirs.add(explorerItem);
+
+				JMenuItem connectItem = new JMenuItem("Connect New Directory");
+				connectItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						JFileChooser chooser = new JFileChooser();
+						chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+						chooser.setDialogTitle("Select Directory of JAR Files");
+						String lastDir = Config.getRecentDirectory("recentLibraryDirectory");
+						if (lastDir != null && !lastDir.isEmpty()) {
+							chooser.setCurrentDirectory(new File(lastDir));
+						}
+						if (chooser.showOpenDialog(Main.this) == JFileChooser.APPROVE_OPTION) {
+							File dir = chooser.getSelectedFile();
+							Config.setRecentDirectory("recentLibraryDirectory", dir.getParent());
+							Config.addConnectedDirectory(dir.getAbsolutePath());
+							Common.setStatusBar("Connected directory: " + dir.getName());
+						}
+					}
+				});
+				menuConnectedDirs.add(connectItem);
+
+				java.util.List dirs = Config.getConnectedDirectories();
+				if (!dirs.isEmpty()) {
+					menuConnectedDirs.addSeparator();
+					for (int i = 0; i < dirs.size(); i++) {
+						final String dirPath = (String) dirs.get(i);
+						File dir = new File(dirPath);
+						String dirName = dir.getName();
+						if (dirName.isEmpty()) {
+							dirName = dirPath;
+						}
+						final JMenu dirMenu = new JMenu(dirName);
+						dirMenu.setToolTipText(dirPath);
+						dirMenu.add(new JMenuItem("Loading..."));
+
+						dirMenu.addMenuListener(new javax.swing.event.MenuListener() {
+							public void menuSelected(javax.swing.event.MenuEvent ev2) {
+								dirMenu.removeAll();
+								java.util.List games = getCachedOrScannedGames(dirPath);
+								if (games.isEmpty()) {
+									JMenuItem noneItem = new JMenuItem("(No JAR files found)");
+									noneItem.setEnabled(false);
+									dirMenu.add(noneItem);
+								} else {
+									for (int j = 0; j < games.size(); j++) {
+										final SwingLibraryExplorerDialog.GameInfo game = (SwingLibraryExplorerDialog.GameInfo) games.get(j);
+										JMenuItem gameItem = new JMenuItem(game.name);
+										if (game.iconCachePath != null) {
+											File iconFile = new File(game.iconCachePath);
+											if (iconFile.exists()) {
+												try {
+													ImageIcon icon = new ImageIcon(iconFile.getAbsolutePath());
+													if (icon.getIconWidth() != 16 || icon.getIconHeight() != 16) {
+														Image img = icon.getImage();
+														Image scaled = img.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+														icon = new ImageIcon(scaled);
+													}
+													gameItem.setIcon(icon);
+												} catch (Exception ex) {
+													// ignore icon load errors
+												}
+											}
+										}
+										gameItem.addActionListener(new ActionListener() {
+											public void actionPerformed(ActionEvent ev3) {
+												String url = IOUtils.getCanonicalFileURL(new File(game.jarPath));
+												Common.openMIDletUrlSafe(url, null);
+											}
+										});
+										dirMenu.add(gameItem);
+									}
+								}
+							}
+							public void menuDeselected(javax.swing.event.MenuEvent ev2) {}
+							public void menuCanceled(javax.swing.event.MenuEvent ev2) {}
+						});
+						menuConnectedDirs.add(dirMenu);
+					}
+				}
+			}
+			public void menuDeselected(javax.swing.event.MenuEvent e) {}
+			public void menuCanceled(javax.swing.event.MenuEvent e) {}
+		});
+		menuFile.add(menuConnectedDirs);
+
 		JMenuItem menuItemTmp = new JMenuItem("Terminate Process");
 		menuItemTmp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
 		menuItemTmp.addActionListener(menuCloseMidletListener);
@@ -1416,6 +1517,78 @@ public class Main extends JFrame {
 		app.addComponentListener(app.componentListener);
 
 		app.responseInterfaceListener.stateChanged(true);
+	}
+
+	private java.util.List getCachedOrScannedGames(String dirPath) {
+		java.util.List list = new java.util.ArrayList();
+		File dir = new File(dirPath);
+		if (!dir.exists() || !dir.isDirectory()) {
+			return list;
+		}
+
+		File cacheFile = new File(Config.getConfigPath(), "library_cache.xml");
+		XMLElement cacheXml = new XMLElement();
+		if (cacheFile.exists()) {
+			try {
+				java.io.InputStream is = new java.io.BufferedInputStream(new java.io.FileInputStream(cacheFile));
+				StringBuilder xml = new StringBuilder();
+				try {
+					while (is.available() > 0) {
+						byte[] b = new byte[is.available()];
+						int read = is.read(b);
+						xml.append(new String(b, 0, read));
+					}
+					cacheXml.parseString(xml.toString());
+				} finally {
+					is.close();
+				}
+			} catch (Exception e) {
+				// ignore
+			}
+		}
+
+		File[] files = dir.listFiles();
+		if (files != null) {
+			for (int i = 0; i < files.length; i++) {
+				File file = files[i];
+				if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
+					SwingLibraryExplorerDialog.GameInfo info = null;
+
+					for (Enumeration en = cacheXml.enumerateChildren(); en.hasMoreElements();) {
+						XMLElement child = (XMLElement) en.nextElement();
+						if ("game".equals(child.getName()) && file.getAbsolutePath().equals(child.getStringAttribute("jarPath"))) {
+							try {
+								long lastModified = Long.parseLong(child.getStringAttribute("lastModified"));
+								long size = Long.parseLong(child.getStringAttribute("size"));
+								if (lastModified == file.lastModified() && size == file.length()) {
+									info = new SwingLibraryExplorerDialog.GameInfo();
+									info.jarPath = file.getAbsolutePath();
+									info.lastModified = lastModified;
+									info.size = size;
+									info.name = child.getStringAttribute("name");
+									info.version = child.getStringAttribute("version");
+									info.vendor = child.getStringAttribute("vendor");
+									info.profile = child.getStringAttribute("profile");
+									info.iconCachePath = child.getStringAttribute("iconCachePath");
+									break;
+								}
+							} catch (Exception ex) {
+								// ignore
+							}
+						}
+					}
+
+					if (info == null) {
+						info = new SwingLibraryExplorerDialog.GameInfo();
+						info.jarPath = file.getAbsolutePath();
+						String fn = file.getName();
+						info.name = fn.endsWith(".jar") ? fn.substring(0, fn.length() - 4) : fn;
+					}
+					list.add(info);
+				}
+			}
+		}
+		return list;
 	}
 
 	private abstract class CountTimerTask extends TimerTask {

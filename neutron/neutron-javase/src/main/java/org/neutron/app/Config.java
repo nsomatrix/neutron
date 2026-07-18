@@ -1145,5 +1145,57 @@ public class Config {
 		return "FlatLaf Dark";
 	}
 
+	public static java.util.List getConnectedDirectories() {
+		java.util.List list = new java.util.ArrayList();
+		XMLElement dirsXml = configXml.getChild("connectedDirectories");
+		if (dirsXml == null) {
+			return list;
+		}
+		for (Enumeration e = dirsXml.enumerateChildren(); e.hasMoreElements();) {
+			XMLElement dir = (XMLElement) e.nextElement();
+			if (dir.getName().equals("directory")) {
+				String path = dir.getContent();
+				if (path != null && !path.trim().isEmpty()) {
+					list.add(path.trim());
+				}
+			}
+		}
+		return list;
+	}
+
+	public static void addConnectedDirectory(String path) {
+		if (path == null || path.trim().isEmpty()) {
+			return;
+		}
+		path = path.trim();
+		java.util.List current = getConnectedDirectories();
+		if (current.contains(path)) {
+			return;
+		}
+		XMLElement dirsXml = configXml.getChildOrNew("connectedDirectories");
+		XMLElement dirXml = dirsXml.addChild("directory");
+		dirXml.setContent(path);
+		saveConfig();
+	}
+
+	public static void removeConnectedDirectory(String path) {
+		if (path == null || path.trim().isEmpty()) {
+			return;
+		}
+		path = path.trim();
+		XMLElement dirsXml = configXml.getChild("connectedDirectories");
+		if (dirsXml == null) {
+			return;
+		}
+		for (Enumeration e = dirsXml.enumerateChildren(); e.hasMoreElements();) {
+			XMLElement dir = (XMLElement) e.nextElement();
+			if (dir.getName().equals("directory") && path.equals(dir.getContent())) {
+				dirsXml.removeChild(dir);
+				saveConfig();
+				break;
+			}
+		}
+	}
+
 }
 
