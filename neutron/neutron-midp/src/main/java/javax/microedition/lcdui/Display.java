@@ -586,6 +586,9 @@ public class Display {
 					 * (GameCanvas) nextDisplayable, 0); }
 					 */
 					// Andres Navarro
+					if (!(nextDisplayable instanceof Form) && !(nextDisplayable instanceof TextBox)) {
+						DeviceFactory.getDevice().getInputMethod().clearInputMethodListener();
+					}
 					nextDisplayable.showNotify(Display.this);
 					Display.this.current = nextDisplayable;
 

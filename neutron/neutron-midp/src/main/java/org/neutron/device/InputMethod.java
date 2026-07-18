@@ -60,6 +60,13 @@ public abstract class InputMethod
 	}
 
 
+	public void clearInputMethodListener()
+	{
+		inputMethodListener = null;
+		setInputMode(INPUT_NONE);
+	}
+
+
 	public void setInputMethodListener(InputMethodListener l)
 	{
 		inputMethodListener = l;

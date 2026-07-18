@@ -110,10 +110,23 @@ public class Form extends Screen
 			((FormUI) ui).delete(itemNum);
 		}
 
-		// TODO set focus to nearest item if deleted item is currently focused
+		// set focus to nearest item if deleted item is currently focused
 		items[itemNum].setOwner(null);
 		System.arraycopy(items, itemNum + 1, items, itemNum, numOfItems - itemNum - 1);
 		numOfItems--;
+		
+		if (focusItemIndex == itemNum) {
+			focusItemIndex = -1;
+			for (int i = 0; i < numOfItems; i++) {
+				if (items[i].isFocusable()) {
+					items[i].setFocus(true);
+					focusItemIndex = i;
+					break;
+				}
+			}
+		} else if (focusItemIndex > itemNum) {
+			focusItemIndex--;
+		}
 		
 		if (numOfItems == 0) {
 			focusItemIndex = -1;
@@ -268,6 +281,21 @@ public class Form extends Screen
 	{
 		super.showNotify();
 
+		if (focusItemIndex > -1 && focusItemIndex < numOfItems) {
+			if (items[focusItemIndex].isFocusable()) {
+				items[focusItemIndex].setFocus(true);
+			}
+		} else {
+			focusItemIndex = -1;
+			for (int i = 0; i < numOfItems; i++) {
+				if (items[i].isFocusable()) {
+					items[i].setFocus(true);
+					focusItemIndex = i;
+					break;
+				}
+			}
+		}
+
 		if (focusItemIndex < 0)
 			return;
 		int heightToItem = getHeightToItem(focusItemIndex);
@@ -283,8 +311,10 @@ public class Form extends Screen
 	{
 		super.hideNotify();
 
-		if (focusItemIndex > -1) {
-			items[focusItemIndex].setFocus(false);
+		for (int i = 0; i < numOfItems; i++) {
+			if (items[i] != null && items[i].isFocusable() && items[i].hasFocus()) {
+				items[i].setFocus(false);
+			}
 		}
 	}
 
