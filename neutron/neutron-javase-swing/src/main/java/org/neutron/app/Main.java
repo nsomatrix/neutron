@@ -221,6 +221,8 @@ public class Main extends JFrame {
 
 	private SwingStatusBar statusBar = new SwingStatusBar();
 
+	private JCheckBoxMenuItem menuShowMouseCoordinates;
+
 
 
 	private JButton resizeButton = new JButton("Resize");
@@ -1150,7 +1152,7 @@ public class Main extends JFrame {
 		menuOptions.add(menuMemoryLimit);
 
 		menuOptions.addSeparator();
-		JCheckBoxMenuItem menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse Coordinates");
+		menuShowMouseCoordinates = new JCheckBoxMenuItem("Mouse Coordinates");
 		menuShowMouseCoordinates.setState(Config.isShowMouseCoordinates());
 		menuShowMouseCoordinates.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
@@ -1356,6 +1358,41 @@ public class Main extends JFrame {
 		this.resizeButton.putClientProperty("JButton.buttonType", "toolBarButton");
 		this.resizeButton.setFont(this.resizeButton.getFont().deriveFont(11.0f));
 		statusBar.getRightPanel().add(this.resizeButton);
+
+		statusBar.setOnCoordinateBadgeClick(new Runnable() {
+			public void run() {
+				if (devicePanel != null) {
+					devicePanel.switchShowMouseCoordinates();
+					if (menuShowMouseCoordinates != null) {
+						menuShowMouseCoordinates.setSelected(Config.isShowMouseCoordinates());
+					}
+				}
+			}
+		});
+
+		statusBar.setOnResolutionBadgeClick(new Runnable() {
+			public void run() {
+				if (zoomLevels != null) {
+					int currentActiveIndex = -1;
+					for (int i = 0; i < zoomLevels.length; i++) {
+						if (zoomLevels[i].isSelected()) {
+							currentActiveIndex = i;
+							break;
+						}
+					}
+					int nextActiveIndex = currentActiveIndex + 1;
+					if (nextActiveIndex >= zoomLevels.length) {
+						if (currentActiveIndex != -1) {
+							zoomLevels[currentActiveIndex].setSelected(false);
+							menuScaledDisplayListener.actionPerformed(new ActionEvent(zoomLevels[currentActiveIndex], ActionEvent.ACTION_PERFORMED, zoomLevels[currentActiveIndex].getActionCommand()));
+						}
+					} else {
+						zoomLevels[nextActiveIndex].setSelected(true);
+						menuScaledDisplayListener.actionPerformed(new ActionEvent(zoomLevels[nextActiveIndex], ActionEvent.ACTION_PERFORMED, zoomLevels[nextActiveIndex].getActionCommand()));
+					}
+				}
+			}
+		});
 
 		getContentPane().add(statusBar, "South");
 

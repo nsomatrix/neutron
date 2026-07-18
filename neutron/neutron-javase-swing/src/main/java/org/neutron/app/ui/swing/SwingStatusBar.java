@@ -25,8 +25,8 @@ public class SwingStatusBar extends JPanel {
 	private static final long serialVersionUID = 1L;
 
 	private final JLabel messageLabel = new JLabel("");
-	private final JLabel coordinateLabel = new JLabel();
-	private final JLabel resolutionLabel = new JLabel();
+	private final BadgeLabel coordinateLabel = new BadgeLabel();
+	private final BadgeLabel resolutionLabel = new BadgeLabel();
 	private final SpinnerComponent spinnerComponent = new SpinnerComponent();
 
 	private final JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -157,6 +157,14 @@ public class SwingStatusBar extends JPanel {
 		return rightPanel;
 	}
 
+	public void setOnCoordinateBadgeClick(Runnable r) {
+		coordinateLabel.setClickAction(r);
+	}
+
+	public void setOnResolutionBadgeClick(Runnable r) {
+		resolutionLabel.setClickAction(r);
+	}
+
 	private MessageType classifyMessage(String text) {
 		if (text.isEmpty() || text.equalsIgnoreCase("Ready") || text.startsWith("Running")) {
 			return MessageType.PERSISTENT;
@@ -244,17 +252,15 @@ public class SwingStatusBar extends JPanel {
 		}
 	}
 
-	private void styleBadge(JLabel label) {
+	private void styleBadge(BadgeLabel label) {
 		Font font = label.getFont();
 		if (font != null) {
 			label.setFont(font.deriveFont(Font.BOLD, 10.0f));
 		}
-		label.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
-		label.setOpaque(true);
 		updateBadgeColors(label);
 	}
 
-	private void updateBadgeColors(JLabel label) {
+	private void updateBadgeColors(BadgeLabel label) {
 		if (isDarkTheme()) {
 			label.setBackground(new Color(255, 255, 255, 18));
 			label.setForeground(new Color(200, 200, 200));
@@ -366,6 +372,58 @@ public class SwingStatusBar extends JPanel {
 			g2.drawArc(x, y, size, size, 0, 120);
 
 			g2.dispose();
+		}
+	}
+
+	private static class BadgeLabel extends JLabel {
+		private static final long serialVersionUID = 1L;
+		private boolean hovered = false;
+		private Runnable clickAction;
+
+		public BadgeLabel() {
+			setOpaque(false);
+			setBorder(BorderFactory.createEmptyBorder(2, 8, 2, 8));
+			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			
+			addMouseListener(new java.awt.event.MouseAdapter() {
+				@Override
+				public void mouseEntered(java.awt.event.MouseEvent e) {
+					hovered = true;
+					repaint();
+				}
+				@Override
+				public void mouseExited(java.awt.event.MouseEvent e) {
+					hovered = false;
+					repaint();
+				}
+				@Override
+				public void mouseClicked(java.awt.event.MouseEvent e) {
+					if (clickAction != null) {
+						clickAction.run();
+					}
+				}
+			});
+		}
+
+		public void setClickAction(Runnable clickAction) {
+			this.clickAction = clickAction;
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			Graphics2D g2 = (Graphics2D) g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			
+			Color bg = getBackground();
+			if (hovered) {
+				int alpha = Math.min(255, bg.getAlpha() * 2);
+				bg = new Color(bg.getRed(), bg.getGreen(), bg.getBlue(), alpha);
+			}
+			g2.setColor(bg);
+			g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
+			g2.dispose();
+			
+			super.paintComponent(g);
 		}
 	}
 }
