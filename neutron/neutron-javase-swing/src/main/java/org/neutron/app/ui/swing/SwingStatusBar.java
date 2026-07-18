@@ -24,14 +24,14 @@ public class SwingStatusBar extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private final JLabel messageLabel = new JLabel("Ready");
+	private final JLabel messageLabel = new JLabel("");
 	private final JLabel coordinateLabel = new JLabel();
 	private final JLabel resolutionLabel = new JLabel();
 	private final SpinnerComponent spinnerComponent = new SpinnerComponent();
 
 	private final JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 
-	private String persistentMessage = "Ready";
+	private String persistentMessage = "";
 	private boolean activeTransient = false;
 
 	private Timer revertTimer;
@@ -141,7 +141,7 @@ public class SwingStatusBar extends JPanel {
 			activeTransient = true;
 			transitionToText(text, true);
 		} else { // PERSISTENT
-			persistentMessage = text.isEmpty() ? "Ready" : text;
+			persistentMessage = text;
 			if (!activeTransient) {
 				spinnerComponent.stop();
 				transitionToText(persistentMessage, false);
