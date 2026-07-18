@@ -1201,15 +1201,15 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuAutoClicker);
 
-		JMenu menuHelp = new JMenu("About");
+		JMenu menuMisc = new JMenu("Misc");
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
-		menuHelp.add(menuAbout);
+		menuMisc.add(menuAbout);
 
 		menuBar.add(menuFile);
 		menuBar.add(menuOptions);
 		menuBar.add(menuControls);
-		menuBar.add(menuHelp);
+		menuBar.add(menuMisc);
 		setJMenuBar(menuBar);
 
 		setTitle("Neutron");
