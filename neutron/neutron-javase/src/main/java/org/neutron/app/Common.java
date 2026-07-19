@@ -195,6 +195,13 @@ public class Common implements Neutron, CommonInterface {
         if ((midletContext != null) && (MIDletBridge.getMIDletContext() == midletContext) && !midletContext.isLauncher()) {
             Logger.debug("destroyMIDletContext");
         }
+        try {
+            Class<?> managerClass = Class.forName("javax.microedition.media.Manager");
+            java.lang.reflect.Method cleanupMethod = managerClass.getMethod("cleanupMedia");
+            cleanupMethod.invoke(null);
+        } catch (Throwable t) {
+            // Ignore if JSR-135 is not on the classpath
+        }
         MIDletThread.contextDestroyed(midletContext);
         synchronized (destroyNotify) {
             destroyNotify.notifyAll();

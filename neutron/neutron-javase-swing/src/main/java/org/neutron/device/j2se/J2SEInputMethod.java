@@ -407,6 +407,11 @@ public class J2SEInputMethod extends InputMethodImpl {
 		}
 		if (DeviceFactory.getDevice().hasRepeatEvents()) {
 			repeatModeKeyCodes.remove(new Integer(keyCode));
+			synchronized (this) {
+				if (keyReleasedDelayTimer == null) {
+					keyReleasedDelayTimer = org.neutron.util.ThreadUtils.createTimer("InputKeyReleasedDelayTimer");
+				}
+			}
 			keyReleasedDelayTimer.schedule(new KeyReleasedDelayTask(keyCode), 50);
 		} else {
 			MIDletAccess ma = MIDletBridge.getMIDletAccess();
@@ -437,5 +442,15 @@ public class J2SEInputMethod extends InputMethodImpl {
 		}
 
 		return null;
+	}
+
+	public void dispose() {
+		super.dispose();
+		synchronized (this) {
+			if (keyReleasedDelayTimer != null) {
+				keyReleasedDelayTimer.cancel();
+				keyReleasedDelayTimer = null;
+			}
+		}
 	}
 }

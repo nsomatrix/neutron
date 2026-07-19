@@ -85,6 +85,7 @@ public class IPhoneDevice implements Device {
 			eventDispatcher.setDisplay(display);
 
 			Thread thread = new Thread(eventDispatcher, EventDispatcher.EVENT_DISPATCHER_NAME);
+			eventDispatcher.setThread(thread);
 			thread.setDaemon(true);
 			thread.start();
 

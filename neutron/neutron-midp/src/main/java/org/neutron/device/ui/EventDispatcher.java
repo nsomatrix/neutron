@@ -47,6 +47,12 @@ public class EventDispatcher implements Runnable {
 
 	private javax.microedition.lcdui.Display display;
 
+	private Thread thread;
+
+	public void setThread(Thread thread) {
+		this.thread = thread;
+	}
+
 	public void setDisplay(javax.microedition.lcdui.Display display) {
 		this.display = display;
 	}
@@ -119,6 +125,13 @@ public class EventDispatcher implements Runnable {
 		}
 		synchronized (serviceRepaintsLock) {
 			serviceRepaintsLock.notifyAll();
+		}
+		if (thread != null && Thread.currentThread() != thread) {
+			try {
+				thread.join(1000);
+			} catch (InterruptedException e) {
+				// ignore
+			}
 		}
 	}
 

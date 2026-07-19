@@ -39,7 +39,7 @@ public abstract class InputMethodImpl extends InputMethod implements Runnable {
 	
 	protected int lastButtonCharIndex;
 
-	private boolean cancel;
+	private volatile boolean cancel;
 	
 	private Thread t;
 
@@ -48,9 +48,6 @@ public abstract class InputMethodImpl extends InputMethod implements Runnable {
 		this.lastButtonCharIndex = -1;
 		
 		this.cancel = false;
-		this.t = new Thread(this, "InputMethodThread");
-		this.t.setDaemon(true);
-		this.t.start();
 	}
 
 	// TODO to be removed when event dispatcher will run input method task
@@ -59,6 +56,14 @@ public abstract class InputMethodImpl extends InputMethod implements Runnable {
 		synchronized (this) {
 			notify();
 		}
+		if (t != null) {
+			try {
+				t.join(500);
+			} catch (InterruptedException e) {
+			}
+			t = null;
+		}
+		inputMethodListener = null;
 	}
 
 	// Runnable
@@ -91,6 +96,17 @@ public abstract class InputMethodImpl extends InputMethod implements Runnable {
 
         lastButton = null;
         lastButtonCharIndex = -1;
+
+        if (l != null) {
+            synchronized (this) {
+                if (t == null || !t.isAlive()) {
+                    cancel = false;
+                    t = new Thread(this, "InputMethodThread");
+                    t.setDaemon(true);
+                    t.start();
+                }
+            }
+        }
     }
 	
 	public void pointerPressed(int x, int y) {		

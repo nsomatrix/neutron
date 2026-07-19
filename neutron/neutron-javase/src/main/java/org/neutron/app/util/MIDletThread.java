@@ -180,6 +180,19 @@ public class MIDletThread extends Thread {
 							Logger.info("this thread [" + t.getName() + "] was created from " + t.callLocation);
 						}
 						t.interrupt();
+						try {
+							t.join(500);
+						} catch (InterruptedException e) {
+							// ignore
+						}
+						if (t.isAlive()) {
+							Logger.warn("MIDlet thread [" + t.getName() + "] did not terminate on interrupt. Stopping thread forcefully.");
+							try {
+								t.stop();
+							} catch (Throwable e) {
+								Logger.error("Failed to stop thread forcefully", e);
+							}
+						}
 					}
 				}
 			} else {

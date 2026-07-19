@@ -100,15 +100,20 @@ public final class Manager
         vMedia.remove(objMedia);
 	}
     
-    // TODO reduce visibility
     public static void cleanupMedia()
 	{
-        Iterator it = vMedia.iterator();
-        while (it.hasNext()) {
-            Player p = (Player) it.next();
-            p.close();
-            it = vMedia.iterator();
-        }
+		synchronized (vMedia) {
+			Vector copy = new Vector(vMedia);
+			vMedia.clear();
+			for (int i = 0; i < copy.size(); i++) {
+				Player p = (Player) copy.get(i);
+				try {
+					p.close();
+				} catch (Throwable t) {
+					// Ignore, proceed with cleaning up remaining media players
+				}
+			}
+		}
 	}
 
 }
