@@ -124,6 +124,10 @@ public class Common implements Neutron, CommonInterface {
 
     private String midletClassOrUrl = null;
 
+    private String midletClassNameToLaunch = null;
+
+    private boolean isReloading = false;
+
     private String jadURL = null;
     
     private String midletSuiteName = null;
@@ -656,6 +660,16 @@ public class Common implements Neutron, CommonInterface {
         // MIDletBridge.destroyMIDletContext(MIDletBridge.getMIDletContext());
         MIDletBridge.clear();
 
+        // Wait for previous midlet threads to terminate
+        long startWait = System.currentTimeMillis();
+        while (MIDletThread.hasRunningThreads(null) && (System.currentTimeMillis() - startWait < 3000)) {
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                break;
+            }
+        }
+
         setResponseInterface(false);
         try {
             URL url = null;
@@ -737,7 +751,24 @@ public class Common implements Neutron, CommonInterface {
                 Launcher.addMIDletEntry(entry);
                 loadedEntries.addElement(entry);
             }
-            if (loadedEntries.size() == 1) {
+            if (midletClassNameToLaunch != null) {
+                MIDletEntry matchingEntry = null;
+                for (int i = 0; i < loadedEntries.size(); i++) {
+                    MIDletEntry entry = (MIDletEntry) loadedEntries.elementAt(i);
+                    if (entry.getMIDletClass().getName().equals(midletClassNameToLaunch)) {
+                        matchingEntry = entry;
+                        break;
+                    }
+                }
+                midletClassNameToLaunch = null;
+                if (matchingEntry != null) {
+                    initMIDlet(true, matchingEntry);
+                } else if (loadedEntries.size() == 1) {
+                    initMIDlet(true, (MIDletEntry) loadedEntries.elementAt(0));
+                } else {
+                    startLauncher(MIDletBridge.getMIDletContext());
+                }
+            } else if (loadedEntries.size() == 1) {
                 initMIDlet(true, (MIDletEntry) loadedEntries.elementAt(0));
             } else {
                 startLauncher(MIDletBridge.getMIDletContext());
@@ -1184,6 +1215,21 @@ public class Common implements Neutron, CommonInterface {
     }
     
     public MIDlet initMIDlet(boolean startMidlet, MIDletEntry entry) {
+        if (!isReloading && midletClassOrUrl != null && Common.isMIDletUrlExtension(midletClassOrUrl)) {
+            midletClassNameToLaunch = entry.getMIDletClass().getName();
+            isReloading = true;
+            try {
+                File file = new File(midletClassOrUrl);
+                String url = file.exists() ? IOUtils.getCanonicalFileURL(file) : midletClassOrUrl;
+                openMIDletUrl(url);
+                return MIDletBridge.getCurrentMIDlet();
+            } catch (IOException exception) {
+                Logger.error("Cannot reload " + midletClassOrUrl + " URL", exception);
+            } finally {
+                isReloading = false;
+            }
+        }
+
         MIDlet midlet = loadMidlet(entry.getMIDletClass(), MIDletBridge.getMIDletAccess());
         if (startMidlet) {
             try {

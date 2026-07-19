@@ -252,7 +252,32 @@ public class Swt extends Common {
 			public boolean platformRequest(final String URL) {
 				new Thread(new Runnable() {
 					public void run() {
-						Message.info("MIDlet requests that the device handle the following URL: " + URL);
+						boolean opened = false;
+						try {
+							if (java.awt.Desktop.isDesktopSupported()) {
+								java.awt.Desktop desktop = java.awt.Desktop.getDesktop();
+								if (desktop.isSupported(java.awt.Desktop.Action.BROWSE)) {
+									desktop.browse(new java.net.URI(URL));
+									opened = true;
+								}
+							}
+						} catch (Exception e) {
+							org.neutron.log.Logger.error("Failed to open URL in browser: " + URL, e);
+						}
+
+						if (!opened) {
+							if (shell != null && !shell.isDisposed()) {
+								shell.getDisplay().asyncExec(new Runnable() {
+									public void run() {
+										Message.info("MIDlet requests that the device handle the following URL: " + URL);
+									}
+								});
+							} else {
+								org.neutron.log.Logger.info("MIDlet requested URL (fallback): " + URL);
+							}
+						} else {
+							org.neutron.log.Logger.info("MIDlet requested and opened URL: " + URL);
+						}
 					}
 				}).start();
 
