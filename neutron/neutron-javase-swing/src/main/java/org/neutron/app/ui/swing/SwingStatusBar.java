@@ -26,7 +26,6 @@ public class SwingStatusBar extends JPanel {
 
 	private final JLabel messageLabel = new JLabel("");
 	private final BadgeLabel coordinateLabel = new BadgeLabel();
-	private final BadgeLabel resolutionLabel = new BadgeLabel();
 	private final SpinnerComponent spinnerComponent = new SpinnerComponent();
 
 	private final JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
@@ -39,10 +38,6 @@ public class SwingStatusBar extends JPanel {
 	private Timer coordinateTimeoutTimer;
 
 	private double currentOpacity = 1.0;
-
-	private static final Pattern sizePattern = Pattern.compile(
-			"^(New size|Window size):\\s*(\\d+x\\d+)(?:\\s*\\(Scaled from:\\s*(\\d+x\\d+)\\))?\\s*$"
-	);
 
 	private enum MessageType {
 		PERSISTENT,
@@ -63,16 +58,13 @@ public class SwingStatusBar extends JPanel {
 
 		// Style badges
 		styleBadge(coordinateLabel);
-		styleBadge(resolutionLabel);
 
 		coordinateLabel.setVisible(false);
-		resolutionLabel.setVisible(false);
 
 		add(leftPanel, BorderLayout.WEST);
 
-		// Right compartment: resolution badge (other components like ping/meters will be added to this panel on the East by Main)
+		// Right compartment (other components like ping/meters will be added to this panel on the East by Main)
 		rightPanel.setOpaque(false);
-		rightPanel.add(resolutionLabel);
 		add(rightPanel, BorderLayout.EAST);
 
 		// Configure coordinate auto-hide timer
@@ -115,24 +107,7 @@ public class SwingStatusBar extends JPanel {
 			return;
 		}
 
-		// 2. Resolution check
-		Matcher sizeMatcher = sizePattern.matcher(processedText);
-		if (sizeMatcher.matches()) {
-			String size1 = sizeMatcher.group(2);
-			String size2 = sizeMatcher.group(3);
-
-			if (size2 != null && !size2.isEmpty()) {
-				resolutionLabel.setText(size2 + " (Scaled: " + size1 + ")");
-			} else {
-				resolutionLabel.setText(size1);
-			}
-			resolutionLabel.setVisible(true);
-			revalidate();
-			repaint();
-			return;
-		}
-
-		// 3. Normal status message check
+		// 2. Normal status message check
 		MessageType type = classifyMessage(processedText);
 
 		if (type == MessageType.LOADING) {
@@ -165,10 +140,6 @@ public class SwingStatusBar extends JPanel {
 
 	public void setOnCoordinateBadgeClick(Runnable r) {
 		coordinateLabel.setClickAction(r);
-	}
-
-	public void setOnResolutionBadgeClick(Runnable r) {
-		resolutionLabel.setClickAction(r);
 	}
 
 	private MessageType classifyMessage(String text) {
@@ -221,6 +192,9 @@ public class SwingStatusBar extends JPanel {
 	}
 
 	private void startRevertTimer() {
+		if (org.neutron.app.Config.isFullscreen()) {
+			return;
+		}
 		if (revertTimer == null) {
 			revertTimer = new Timer(3500, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -232,6 +206,16 @@ public class SwingStatusBar extends JPanel {
 		} else {
 			revertTimer.restart();
 		}
+	}
+
+	public void clearTransientMessage() {
+		if (revertTimer != null) {
+			revertTimer.stop();
+		}
+		activeTransient = false;
+		messageLabel.setText(persistentMessage);
+		currentOpacity = 1.0;
+		updateLabelColors();
 	}
 
 	private void updateLabelColors() {
@@ -252,9 +236,6 @@ public class SwingStatusBar extends JPanel {
 
 		if (coordinateLabel != null) {
 			updateBadgeColors(coordinateLabel);
-		}
-		if (resolutionLabel != null) {
-			updateBadgeColors(resolutionLabel);
 		}
 	}
 
@@ -295,6 +276,12 @@ public class SwingStatusBar extends JPanel {
 	public void updateUI() {
 		super.updateUI();
 		updateLabelColors();
+	}
+
+	@Override
+	public Dimension getPreferredSize() {
+		Dimension d = super.getPreferredSize();
+		return new Dimension(d.width, Math.max(d.height, 24));
 	}
 
 	@Override

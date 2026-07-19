@@ -231,7 +231,7 @@ public class Main extends JFrame {
 
 	private JButton floatingMenuButton;
 
-	private long lastActivityTime = System.currentTimeMillis();
+	private volatile long lastActivityTime = System.currentTimeMillis();
 
 	private Timer menuTimer;
 
@@ -801,6 +801,7 @@ public class Main extends JFrame {
 									public void run() {
 										if (Config.isFullscreen()) {
 											statusBar.setVisible(false);
+											statusBar.clearTransientMessage();
 											revalidate();
 											repaint();
 										}
@@ -1451,30 +1452,6 @@ public class Main extends JFrame {
 					devicePanel.switchShowMouseCoordinates();
 					if (menuShowMouseCoordinates != null) {
 						menuShowMouseCoordinates.setSelected(Config.isShowMouseCoordinates());
-					}
-				}
-			}
-		});
-
-		statusBar.setOnResolutionBadgeClick(new Runnable() {
-			public void run() {
-				if (zoomLevels != null) {
-					int currentActiveIndex = -1;
-					for (int i = 0; i < zoomLevels.length; i++) {
-						if (zoomLevels[i].isSelected()) {
-							currentActiveIndex = i;
-							break;
-						}
-					}
-					int nextActiveIndex = currentActiveIndex + 1;
-					if (nextActiveIndex >= zoomLevels.length) {
-						if (currentActiveIndex != -1) {
-							zoomLevels[currentActiveIndex].setSelected(false);
-							menuScaledDisplayListener.actionPerformed(new ActionEvent(zoomLevels[currentActiveIndex], ActionEvent.ACTION_PERFORMED, zoomLevels[currentActiveIndex].getActionCommand()));
-						}
-					} else {
-						zoomLevels[nextActiveIndex].setSelected(true);
-						menuScaledDisplayListener.actionPerformed(new ActionEvent(zoomLevels[nextActiveIndex], ActionEvent.ACTION_PERFORMED, zoomLevels[nextActiveIndex].getActionCommand()));
 					}
 				}
 			}
