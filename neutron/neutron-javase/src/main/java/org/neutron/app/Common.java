@@ -67,6 +67,7 @@ import org.neutron.app.launcher.Launcher;
 import org.neutron.app.ui.Message;
 import org.neutron.app.ui.ResponseInterfaceListener;
 import org.neutron.app.ui.StatusBarListener;
+import org.neutron.app.ui.GameStateListener;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.FileRecordStoreManager;
 import org.neutron.app.util.IOUtils;
@@ -109,6 +110,8 @@ public class Common implements Neutron, CommonInterface {
     private RecordStoreManager recordStoreManager;
 
     private ResponseInterfaceListener responseInterfaceListener = null;
+
+    private GameStateListener gameStateListener = null;
 
     private ExtensionsClassLoader extensionsClassLoader;
 
@@ -574,6 +577,7 @@ public class Common implements Neutron, CommonInterface {
             launcher = new Launcher(this);
             MIDletBridge.getMIDletAccess(launcher).startApp();
             setStatusBar("Ready");
+            notifyGameStateChanged(false);
         } catch (Throwable e) {
             Message.error("Unable to start launcher MIDlet, " + Message.getCauseMessage(e), e);
             handleStartMidletException(e);
@@ -596,6 +600,16 @@ public class Common implements Neutron, CommonInterface {
 
     public void setResponseInterfaceListener(ResponseInterfaceListener listener) {
         responseInterfaceListener = listener;
+    }
+
+    public void setGameStateListener(GameStateListener listener) {
+        gameStateListener = listener;
+    }
+
+    private void notifyGameStateChanged(boolean gameRunning) {
+        if (gameStateListener != null) {
+            gameStateListener.gameStateChanged(gameRunning);
+        }
     }
 
     protected void handleStartMidletException(Throwable e) {
@@ -1208,6 +1222,7 @@ public class Common implements Neutron, CommonInterface {
                             name = midletClass.getSimpleName();
                         }
                         setStatusBar("Running: " + name);
+                        notifyGameStateChanged(true);
                     } catch (MIDletStateChangeException e) {
                         Logger.error(e);
                     }
@@ -1246,6 +1261,7 @@ public class Common implements Neutron, CommonInterface {
                     name = entry.getName();
                 }
                 setStatusBar("Running: " + name);
+                notifyGameStateChanged(true);
             } catch (MIDletStateChangeException e) {
                 Logger.error(e);
             }

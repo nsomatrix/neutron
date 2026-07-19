@@ -88,6 +88,7 @@ import org.neutron.app.ui.DisplayRepaintListener;
 import org.neutron.app.ui.Message;
 import org.neutron.app.ui.ResponseInterfaceListener;
 import org.neutron.app.ui.StatusBarListener;
+import org.neutron.app.ui.GameStateListener;
 import org.neutron.app.ui.swing.DropTransferHandler;
 import org.neutron.app.ui.swing.ExtensionFileFilter;
 import org.neutron.app.ui.swing.JMRUMenu;
@@ -1354,6 +1355,15 @@ public class Main extends JFrame {
 		this.common = new Common(emulatorContext);
 		this.common.setStatusBarListener(statusBarListener);
 		this.common.setResponseInterfaceListener(responseInterfaceListener);
+		this.common.setGameStateListener(new GameStateListener() {
+			public void gameStateChanged(final boolean gameRunning) {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						updateResizeButtonVisibility();
+					}
+				});
+			}
+		});
 		this.common.loadImplementationsFromConfig();
 
 		this.resizeButton.addActionListener(new ActionListener() {
@@ -1541,16 +1551,33 @@ public class Main extends JFrame {
 		}
 	}
 
+	private void updateResizeButtonVisibility() {
+		if (DeviceFactory.getDevice() == null || DeviceFactory.getDevice().getDeviceDisplay() == null) {
+			resizeButton.setVisible(false);
+			return;
+		}
+		DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+		javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
+		boolean isGameRunning = (current != null && !(current instanceof org.neutron.app.launcher.Launcher));
+
+		if (deviceDisplay.isResizable()) {
+			resizeButton.setVisible(!isGameRunning);
+		} else {
+			resizeButton.setVisible(false);
+		}
+		statusBar.revalidate();
+		statusBar.repaint();
+	}
+
 	protected void updateDevice() {
 		devicePanel.init();
 		DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 		if (deviceDisplay.isResizable()) {
 			setResizable(true);
-			resizeButton.setVisible(true);
 		} else {
 			setResizable(false);
-			resizeButton.setVisible(false);
 		}
+		updateResizeButtonVisibility();
 
 		pack();
 
