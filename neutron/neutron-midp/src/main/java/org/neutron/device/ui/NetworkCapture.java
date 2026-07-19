@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-public class NetworkSniffer {
+public class NetworkCapture {
 	public enum Type { HTTP, SOCKET }
 
 	public static class NetworkEvent {
@@ -24,7 +24,7 @@ public class NetworkSniffer {
 		}
 	}
 
-	public interface NetworkSnifferListener {
+	public interface NetworkCaptureListener {
 		void onNetworkEvent(NetworkEvent event);
 		void onCleared();
 	}
@@ -39,14 +39,14 @@ public class NetworkSniffer {
 	}
 
 	public static void setEnabled(boolean enabled) {
-		NetworkSniffer.enabled = enabled;
+		NetworkCapture.enabled = enabled;
 	}
 
-	public static void addListener(NetworkSnifferListener listener) {
+	public static void addListener(NetworkCaptureListener listener) {
 		listeners.add(listener);
 	}
 
-	public static void removeListener(NetworkSnifferListener listener) {
+	public static void removeListener(NetworkCaptureListener listener) {
 		listeners.remove(listener);
 	}
 
@@ -64,7 +64,7 @@ public class NetworkSniffer {
 		synchronized (listeners) {
 			for (int i = 0; i < listeners.size(); i++) {
 				try {
-					((NetworkSnifferListener) listeners.get(i)).onNetworkEvent(event);
+					((NetworkCaptureListener) listeners.get(i)).onNetworkEvent(event);
 				} catch (Exception e) {
 				}
 			}
@@ -82,7 +82,7 @@ public class NetworkSniffer {
 		synchronized (listeners) {
 			for (int i = 0; i < listeners.size(); i++) {
 				try {
-					((NetworkSnifferListener) listeners.get(i)).onCleared();
+					((NetworkCaptureListener) listeners.get(i)).onCleared();
 				} catch (Exception e) {
 				}
 			}

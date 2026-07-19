@@ -75,8 +75,8 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		if (cn instanceof HttpURLConnection) {
 			((HttpURLConnection) cn).setInstanceFollowRedirects(false);
 		}
-		org.neutron.device.ui.NetworkSniffer.logEvent(
-			org.neutron.device.ui.NetworkSniffer.Type.HTTP, name, "CONNECTING", "Open Connection"
+		org.neutron.device.ui.NetworkCapture.logEvent(
+			org.neutron.device.ui.NetworkCapture.Type.HTTP, name, "CONNECTING", "Open Connection"
 		);
 		return this;
 	}
@@ -88,8 +88,8 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 
 		String url = getURL();
 		String method = getRequestMethod();
-		org.neutron.device.ui.NetworkSniffer.logEvent(
-			org.neutron.device.ui.NetworkSniffer.Type.HTTP, url, method, "CLOSED"
+		org.neutron.device.ui.NetworkCapture.logEvent(
+			org.neutron.device.ui.NetworkCapture.Type.HTTP, url, method, "CLOSED"
 		);
 
 		if (cn instanceof HttpURLConnection) {
@@ -209,8 +209,8 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 
 		if (cn instanceof HttpURLConnection) {
 			int code = ((HttpURLConnection) cn).getResponseCode();
-			org.neutron.device.ui.NetworkSniffer.logEvent(
-				org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "HTTP " + code
+			org.neutron.device.ui.NetworkCapture.logEvent(
+				org.neutron.device.ui.NetworkCapture.Type.HTTP, getURL(), getRequestMethod(), "HTTP " + code
 			);
 			return code;
 		} else {
@@ -343,8 +343,8 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		}
 
 		connected = true;
-		org.neutron.device.ui.NetworkSniffer.logEvent(
-			org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "STREAM_IN"
+		org.neutron.device.ui.NetworkCapture.logEvent(
+			org.neutron.device.ui.NetworkCapture.Type.HTTP, getURL(), getRequestMethod(), "STREAM_IN"
 		);
 
 		return new org.neutron.device.ui.NetworkActivityTracker.TrackingInputStream(cn.getInputStream());
@@ -360,8 +360,8 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		}
 
 		connected = true;
-		org.neutron.device.ui.NetworkSniffer.logEvent(
-			org.neutron.device.ui.NetworkSniffer.Type.HTTP, getURL(), getRequestMethod(), "STREAM_OUT"
+		org.neutron.device.ui.NetworkCapture.logEvent(
+			org.neutron.device.ui.NetworkCapture.Type.HTTP, getURL(), getRequestMethod(), "STREAM_OUT"
 		);
 
 		return new org.neutron.device.ui.NetworkActivityTracker.TrackingOutputStream(cn.getOutputStream());

@@ -105,7 +105,7 @@ import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingSelectDevicePanel;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
-import org.neutron.app.ui.swing.SwingNetworkSnifferPanel;
+import org.neutron.app.ui.swing.SwingNetworkCapturePanel;
 import org.neutron.app.ui.swing.SwingStatusBar;
 import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.ui.swing.SwingNetworkOverlay;
@@ -1297,7 +1297,7 @@ public class Main extends JFrame {
 		JMenuItem menuNetworkCapture = new JMenuItem("Network Capture");
 		menuNetworkCapture.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				SwingNetworkSnifferPanel panel = new SwingNetworkSnifferPanel();
+				SwingNetworkCapturePanel panel = new SwingNetworkCapturePanel();
 				SwingDialogWindow.show(Main.this, "Network Capture", panel, true);
 				panel.dispose();
 			}
@@ -1379,7 +1379,7 @@ public class Main extends JFrame {
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
 		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
 		org.neutron.app.ui.swing.SwingNetworkOverlay.setEnabled(Config.isNetworkOverlayEnabled());
-		org.neutron.device.ui.NetworkSniffer.setEnabled(Config.isNetworkSnifferEnabled());
+		org.neutron.device.ui.NetworkCapture.setEnabled(Config.isNetworkCaptureEnabled());
 		org.neutron.app.ui.swing.SwingAutoClicker.init();
 
 		int persistedZoom = Config.getScaledDisplayZoom();

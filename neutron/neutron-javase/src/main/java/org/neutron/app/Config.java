@@ -827,7 +827,7 @@ public class Config {
 		saveConfig();
 	}
 
-	public static boolean isNetworkSnifferEnabled() {
+	public static boolean isNetworkCaptureEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
 			return true;
@@ -835,7 +835,7 @@ public class Config {
 		return Boolean.parseBoolean(optionsXml.getChildString("networkSnifferEnabled", "true"));
 	}
 
-	public static void setNetworkSnifferEnabled(boolean enabled) {
+	public static void setNetworkCaptureEnabled(boolean enabled) {
 		XMLElement optionsXml = configXml.getChildOrNew("options");
 		XMLElement snifferXml = optionsXml.getChildOrNew("networkSnifferEnabled");
 		snifferXml.setContent(String.valueOf(enabled));

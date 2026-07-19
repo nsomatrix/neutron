@@ -51,8 +51,8 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 		}
 		this.socket.connect(new java.net.InetSocketAddress(host, port), Math.min(timeout, 30000));
 		org.neutron.device.ui.NetworkActivityTracker.setLastHostAndPort(host, port);
-		org.neutron.device.ui.NetworkSniffer.logEvent(
-			org.neutron.device.ui.NetworkSniffer.Type.SOCKET, host, String.valueOf(port), "CONNECTED"
+		org.neutron.device.ui.NetworkCapture.logEvent(
+			org.neutron.device.ui.NetworkCapture.Type.SOCKET, host, String.valueOf(port), "CONNECTED"
 		);
 	}
 	public SocketConnection(java.net.Socket socket) {
@@ -63,8 +63,8 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 			if (timeout > 0) {
 				this.socket.setSoTimeout(timeout);
 			}
-			org.neutron.device.ui.NetworkSniffer.logEvent(
-				org.neutron.device.ui.NetworkSniffer.Type.SOCKET, 
+			org.neutron.device.ui.NetworkCapture.logEvent(
+				org.neutron.device.ui.NetworkCapture.Type.SOCKET, 
 				socket.getInetAddress() != null ? socket.getInetAddress().toString() : "unknown", 
 				String.valueOf(socket.getPort()), "CONNECTED"
 			);
@@ -192,8 +192,8 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 		try {
 			String host = socket.getInetAddress() != null ? socket.getInetAddress().toString() : "unknown";
 			String port = String.valueOf(socket.getPort());
-			org.neutron.device.ui.NetworkSniffer.logEvent(
-				org.neutron.device.ui.NetworkSniffer.Type.SOCKET, host, port, "CLOSED"
+			org.neutron.device.ui.NetworkCapture.logEvent(
+				org.neutron.device.ui.NetworkCapture.Type.SOCKET, host, port, "CLOSED"
 			);
 		} catch (Exception e) {}
 		socket.close();

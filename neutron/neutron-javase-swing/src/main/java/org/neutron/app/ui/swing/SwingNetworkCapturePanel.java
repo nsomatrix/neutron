@@ -13,17 +13,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
-import org.neutron.device.ui.NetworkSniffer;
-import org.neutron.device.ui.NetworkSniffer.NetworkEvent;
-import org.neutron.device.ui.NetworkSniffer.NetworkSnifferListener;
+import org.neutron.device.ui.NetworkCapture;
+import org.neutron.device.ui.NetworkCapture.NetworkEvent;
+import org.neutron.device.ui.NetworkCapture.NetworkCaptureListener;
 
-public class SwingNetworkSnifferPanel extends SwingDialogPanel implements NetworkSnifferListener {
+public class SwingNetworkCapturePanel extends SwingDialogPanel implements NetworkCaptureListener {
 
 	private final DefaultTableModel tableModel;
 	private final JTable table;
 	private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
 
-	public SwingNetworkSnifferPanel() {
+	public SwingNetworkCapturePanel() {
 		setLayout(new BorderLayout());
 
 		// Columns
@@ -46,12 +46,12 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 		// Top Control Bar
 		JPanel controlBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
 		
-		final JCheckBox chkEnable = new JCheckBox("Enable Capturing", NetworkSniffer.isEnabled());
+		final JCheckBox chkEnable = new JCheckBox("Enable Capturing", NetworkCapture.isEnabled());
 		chkEnable.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean enabled = chkEnable.isSelected();
-				NetworkSniffer.setEnabled(enabled);
-				org.neutron.app.Config.setNetworkSnifferEnabled(enabled);
+				NetworkCapture.setEnabled(enabled);
+				org.neutron.app.Config.setNetworkCaptureEnabled(enabled);
 				org.neutron.app.Common.setStatusBar("Network Capture: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
@@ -60,7 +60,7 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 		JButton btnClear = new JButton("Clear Logs");
 		btnClear.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				NetworkSniffer.clear();
+				NetworkCapture.clear();
 				org.neutron.app.Common.setStatusBar("Network Capture: Logs cleared");
 			}
 		});
@@ -69,17 +69,17 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 		add(controlBar, BorderLayout.NORTH);
 
 		// Load existing events
-		List events = NetworkSniffer.getEvents();
+		List events = NetworkCapture.getEvents();
 		for (int i = 0; i < events.size(); i++) {
 			addEventToTable((NetworkEvent) events.get(i));
 		}
 
-		NetworkSniffer.addListener(this);
+		NetworkCapture.addListener(this);
 	}
 
 	private void addEventToTable(NetworkEvent event) {
 		String timeStr = dateFormat.format(event.timestamp);
-		String typeStr = event.type == NetworkSniffer.Type.HTTP ? "HTTP" : "SOCKET";
+		String typeStr = event.type == NetworkCapture.Type.HTTP ? "HTTP" : "SOCKET";
 		tableModel.addRow(new Object[] {
 			timeStr,
 			typeStr,
@@ -105,6 +105,6 @@ public class SwingNetworkSnifferPanel extends SwingDialogPanel implements Networ
 	}
 
 	public void dispose() {
-		NetworkSniffer.removeListener(this);
+		NetworkCapture.removeListener(this);
 	}
 }
