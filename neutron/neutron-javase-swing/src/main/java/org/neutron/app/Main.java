@@ -1444,6 +1444,7 @@ public class Main extends JFrame {
 
 		this.resizeButton.putClientProperty("JButton.buttonType", "toolBarButton");
 		this.resizeButton.setFont(this.resizeButton.getFont().deriveFont(11.0f));
+		this.resizeButton.setFocusable(false);
 		statusBar.getRightPanel().add(this.resizeButton);
 
 		statusBar.setOnCoordinateBadgeClick(new Runnable() {

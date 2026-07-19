@@ -794,7 +794,10 @@ public class Common implements Neutron, CommonInterface {
             } else {
                 startLauncher(MIDletBridge.getMIDletContext());
             }
-            setStatusBar("");
+            javax.microedition.midlet.MIDlet currentMIDlet = MIDletBridge.getCurrentMIDlet();
+            if (currentMIDlet == null || currentMIDlet instanceof org.neutron.app.launcher.Launcher) {
+                setStatusBar("");
+            }
         } finally {
             setResponseInterface(true);
         }

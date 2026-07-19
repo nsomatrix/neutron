@@ -30,6 +30,7 @@ public class SwingStatusBar extends JPanel {
 	private final JLabel messageLabel = new JLabel("");
 	private final BadgeLabel coordinateLabel = new BadgeLabel();
 	private final SpinnerComponent spinnerComponent = new SpinnerComponent();
+	private final StatusDotComponent statusDotComponent = new StatusDotComponent();
 
 	private final JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 
@@ -39,6 +40,7 @@ public class SwingStatusBar extends JPanel {
 	private Timer revertTimer;
 	private Timer fadeTimer;
 	private Timer coordinateTimeoutTimer;
+	private Timer persistentHideTimer;
 
 	private double currentOpacity = 1.0;
 
@@ -50,9 +52,9 @@ public class SwingStatusBar extends JPanel {
 
 	public SwingStatusBar() {
 		setLayout(new BorderLayout());
-		setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
+		setBorder(new javax.swing.border.EmptyBorder(3, 10, 3, 10));
 
-		// Left compartment: spinner, status message, coordinate badge
+		// Left compartment: status dot, spinner, status message, coordinate badge
 		JPanel leftPanel = new JPanel(new GridBagLayout());
 		leftPanel.setOpaque(false);
 
@@ -64,13 +66,17 @@ public class SwingStatusBar extends JPanel {
 
 		gbc.gridx = 0;
 		gbc.insets = new Insets(0, 0, 0, 8);
-		leftPanel.add(spinnerComponent, gbc);
+		leftPanel.add(statusDotComponent, gbc);
 
 		gbc.gridx = 1;
 		gbc.insets = new Insets(0, 0, 0, 8);
-		leftPanel.add(messageLabel, gbc);
+		leftPanel.add(spinnerComponent, gbc);
 
 		gbc.gridx = 2;
+		gbc.insets = new Insets(0, 0, 0, 8);
+		leftPanel.add(messageLabel, gbc);
+
+		gbc.gridx = 3;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		leftPanel.add(coordinateLabel, gbc);
 
@@ -113,6 +119,10 @@ public class SwingStatusBar extends JPanel {
 			return;
 		}
 
+		if (persistentHideTimer != null) {
+			persistentHideTimer.stop();
+		}
+
 		String processedText = text == null ? "" : text.trim();
 
 		// 1. Coordinate check
@@ -133,16 +143,27 @@ public class SwingStatusBar extends JPanel {
 				revertTimer.stop();
 			}
 			activeTransient = false;
+			statusDotComponent.setVisible(false);
 			spinnerComponent.start();
-			transitionToText(processedText, false);
+			if (processedText.equalsIgnoreCase("Loading...")) {
+				transitionToText("", false);
+			} else {
+				transitionToText(processedText, false);
+			}
 		} else if (type == MessageType.TRANSIENT) {
 			spinnerComponent.stop();
+			statusDotComponent.setVisible(true);
+			boolean isRunning = persistentMessage.startsWith("Running");
+			statusDotComponent.setMode(isRunning ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
 			activeTransient = true;
 			transitionToText(processedText, true);
 		} else { // PERSISTENT
 			persistentMessage = processedText;
+			boolean isRunning = persistentMessage.startsWith("Running");
+			statusDotComponent.setMode(isRunning ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
 			if (!activeTransient) {
 				spinnerComponent.stop();
+				statusDotComponent.setVisible(true);
 				transitionToText(persistentMessage, false);
 			}
 		}
@@ -156,12 +177,13 @@ public class SwingStatusBar extends JPanel {
 		return rightPanel;
 	}
 
+
 	public void setOnCoordinateBadgeClick(Runnable r) {
 		coordinateLabel.setClickAction(r);
 	}
 
 	private MessageType classifyMessage(String text) {
-		if (text.isEmpty() || text.equalsIgnoreCase("Ready") || text.startsWith("Running")) {
+		if (text.isEmpty() || text.equalsIgnoreCase("Ready") || text.startsWith("Ready to launch") || text.startsWith("Running")) {
 			return MessageType.PERSISTENT;
 		}
 		if (text.startsWith("Loading") || text.startsWith("Downloading") || (text.contains("...") && !text.contains("complete"))) {
@@ -174,10 +196,15 @@ public class SwingStatusBar extends JPanel {
 		if (fadeTimer != null) {
 			fadeTimer.stop();
 		}
+		if (persistentHideTimer != null) {
+			persistentHideTimer.stop();
+		}
 
 		if (newText.equals(messageLabel.getText()) && Math.abs(currentOpacity - 1.0) < 0.05) {
 			if (isTransient) {
 				startRevertTimer();
+			} else {
+				startPersistentHideTimer();
 			}
 			return;
 		}
@@ -200,6 +227,8 @@ public class SwingStatusBar extends JPanel {
 						fadeTimer.stop();
 						if (isTransient) {
 							startRevertTimer();
+						} else {
+							startPersistentHideTimer();
 						}
 					}
 				}
@@ -226,14 +255,54 @@ public class SwingStatusBar extends JPanel {
 		}
 	}
 
+	private void startPersistentHideTimer() {
+		if (persistentHideTimer == null) {
+			persistentHideTimer = new Timer(5000, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					fadeTextToEmpty();
+				}
+			});
+			persistentHideTimer.setRepeats(false);
+			persistentHideTimer.start();
+		} else {
+			persistentHideTimer.restart();
+		}
+	}
+
+	private void fadeTextToEmpty() {
+		if (fadeTimer != null) {
+			fadeTimer.stop();
+		}
+		fadeTimer = new Timer(15, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				currentOpacity -= 0.05; // smooth slow fade out
+				if (currentOpacity <= 0.0) {
+					currentOpacity = 0.0;
+					messageLabel.setText("");
+					fadeTimer.stop();
+				}
+				updateLabelColors();
+			}
+		});
+		fadeTimer.start();
+	}
+
 	public void clearTransientMessage() {
 		if (revertTimer != null) {
 			revertTimer.stop();
+		}
+		if (persistentHideTimer != null) {
+			persistentHideTimer.stop();
 		}
 		activeTransient = false;
 		messageLabel.setText(persistentMessage);
 		currentOpacity = 1.0;
 		updateLabelColors();
+		
+		boolean isRunning = persistentMessage.startsWith("Running");
+		statusDotComponent.setMode(isRunning ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
+
+		startPersistentHideTimer();
 	}
 
 	private void updateLabelColors() {
@@ -299,7 +368,7 @@ public class SwingStatusBar extends JPanel {
 	@Override
 	public Dimension getPreferredSize() {
 		Dimension d = super.getPreferredSize();
-		return new Dimension(d.width, Math.max(d.height, 24));
+		return new Dimension(d.width, 28);
 	}
 
 	@Override
@@ -381,6 +450,88 @@ public class SwingStatusBar extends JPanel {
 			// Draw active rotating part
 			g2.setColor(accent);
 			g2.drawArc(x, y, size, size, 0, 120);
+
+			g2.dispose();
+		}
+	}
+
+	private static class StatusDotComponent extends JComponent {
+		private static final long serialVersionUID = 1L;
+		
+		public enum Mode {
+			IDLE,
+			RUNNING
+		}
+		
+		private Mode mode = Mode.IDLE;
+		private float pulseAlpha = 0.0f;
+		private float pulseTime = 0.0f;
+		private final Timer pulseTimer;
+
+		public StatusDotComponent() {
+			setPreferredSize(new Dimension(16, 16));
+			
+			pulseTimer = new Timer(30, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					pulseTime += 0.05f;
+					if (pulseTime >= (float) (Math.PI * 2)) {
+						pulseTime = 0.0f;
+					}
+					pulseAlpha = (float) ((Math.sin(pulseTime) + 1.0) / 2.0);
+					repaint();
+				}
+			});
+		}
+
+		public void setMode(Mode mode) {
+			if (this.mode != mode) {
+				this.mode = mode;
+				if (mode == Mode.RUNNING) {
+					pulseTime = 0.0f;
+					pulseAlpha = 0.0f;
+					pulseTimer.start();
+				} else {
+					pulseTimer.stop();
+					pulseAlpha = 0.0f;
+				}
+				repaint();
+			}
+		}
+
+		@Override
+		protected void paintComponent(Graphics g) {
+			super.paintComponent(g);
+			Graphics2D g2 = (Graphics2D) g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			int w = getWidth();
+			int h = getHeight();
+			int size = 6;
+			int x = (w - size) / 2;
+			int y = (h - size) / 2;
+
+			if (mode == Mode.RUNNING) {
+				Color baseGreen = new Color(46, 204, 113); // Emerald Green
+				
+				float currentGlowRadius = size + (pulseAlpha * 6.0f);
+				int glowSize = Math.round(currentGlowRadius);
+				int gx = (w - glowSize) / 2;
+				int gy = (h - glowSize) / 2;
+				
+				int alpha = Math.round((1.0f - pulseAlpha) * 120);
+				g2.setColor(new Color(baseGreen.getRed(), baseGreen.getGreen(), baseGreen.getBlue(), alpha));
+				g2.fillOval(gx, gy, glowSize, glowSize);
+				
+				g2.setColor(baseGreen);
+				g2.fillOval(x, y, size, size);
+			} else {
+				Color accent = UIManager.getColor("ProgressBar.foreground");
+				if (accent == null) {
+					accent = new Color(52, 152, 219); // Fallback: sleek blue
+				}
+				g2.setColor(accent);
+				g2.fillOval(x, y, size, size);
+			}
 
 			g2.dispose();
 		}
