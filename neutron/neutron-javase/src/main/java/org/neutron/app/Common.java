@@ -553,6 +553,13 @@ public class Common implements Neutron, CommonInterface {
         }
 
         try {
+            // Clear the thread-local MIDletContext BEFORE creating the Launcher.
+            // The old game's context object is still in the thread-local from
+            // notifyDestroyed(). If we don't clear it, registerMIDletAccess will
+            // reuse it for the Launcher, and then the final destroyMIDletContext
+            // in MIDletBridge.notifyDestroyed() will destroy the Launcher's context
+            // since it's the same object reference.
+            MIDletBridge.setThreadMIDletContext(null);
             launcher = new Launcher(this);
             MIDletBridge.getMIDletAccess(launcher).startApp();
             setStatusBar("Ready");

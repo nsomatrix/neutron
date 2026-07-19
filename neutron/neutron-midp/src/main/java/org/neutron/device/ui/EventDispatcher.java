@@ -117,6 +117,9 @@ public class EventDispatcher implements Runnable {
 		synchronized (this) {
 			notify();
 		}
+		synchronized (serviceRepaintsLock) {
+			serviceRepaintsLock.notifyAll();
+		}
 	}
 
 	public void put(Event event) {
@@ -151,9 +154,12 @@ public class EventDispatcher implements Runnable {
 	}
 
 	public void serviceRepaints() {
+		if (cancelled) {
+			return;
+		}
 		synchronized (serviceRepaintsLock) {
 			synchronized (this) {
-				if (scheduledPaintEvent == null) {
+				if (scheduledPaintEvent == null || cancelled) {
 					return;
 				}
 

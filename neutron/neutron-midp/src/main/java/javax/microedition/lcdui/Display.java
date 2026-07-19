@@ -388,15 +388,7 @@ public class Display {
 
 		public void clean() {
 			if (current != null) {
-				eventDispatcher.put(new HideNotifyEvent(eventDispatcher, new Runnable() {
-					
-					private Displayable displayable = current;
-
-					public void run() {
-						displayable.hideNotify(Display.this);
-					}
-					
-				}));
+				current.hideNotify(Display.this);
 			}
 			eventDispatcher.cancel();
 			timer.cancel();
