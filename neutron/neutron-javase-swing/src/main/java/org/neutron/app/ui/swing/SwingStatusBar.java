@@ -7,6 +7,9 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,11 +53,26 @@ public class SwingStatusBar extends JPanel {
 		setBorder(BorderFactory.createEmptyBorder(4, 10, 4, 10));
 
 		// Left compartment: spinner, status message, coordinate badge
-		JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		JPanel leftPanel = new JPanel(new GridBagLayout());
 		leftPanel.setOpaque(false);
-		leftPanel.add(spinnerComponent);
-		leftPanel.add(messageLabel);
-		leftPanel.add(coordinateLabel);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridy = 0;
+		gbc.anchor = GridBagConstraints.WEST;
+		gbc.fill = GridBagConstraints.NONE;
+		gbc.weighty = 1.0;
+
+		gbc.gridx = 0;
+		gbc.insets = new Insets(0, 0, 0, 8);
+		leftPanel.add(spinnerComponent, gbc);
+
+		gbc.gridx = 1;
+		gbc.insets = new Insets(0, 0, 0, 8);
+		leftPanel.add(messageLabel, gbc);
+
+		gbc.gridx = 2;
+		gbc.insets = new Insets(0, 0, 0, 0);
+		leftPanel.add(coordinateLabel, gbc);
 
 		// Style badges
 		styleBadge(coordinateLabel);

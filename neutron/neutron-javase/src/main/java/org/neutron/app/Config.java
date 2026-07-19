@@ -894,9 +894,9 @@ public class Config {
 	public static boolean isNetworkOverlayEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return true;
+			return false;
 		}
-		return Boolean.parseBoolean(optionsXml.getChildString("networkOverlayEnabled", "true"));
+		return Boolean.parseBoolean(optionsXml.getChildString("networkOverlayEnabled", "false"));
 	}
 
 	public static void setNetworkOverlayEnabled(boolean enabled) {
