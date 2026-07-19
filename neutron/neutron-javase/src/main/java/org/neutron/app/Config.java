@@ -593,9 +593,9 @@ public class Config {
 	public static String getTheme() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return "FlatLaf Dark";
+			return "FlatLaf macOS Light";
 		}
-		return optionsXml.getChildString("theme", "FlatLaf Dark");
+		return optionsXml.getChildString("theme", "FlatLaf macOS Light");
 	}
 
 	public static void setTheme(String theme) {
@@ -1138,7 +1138,7 @@ public class Config {
 			configFile = new File(getConfigPath(), "config.xml");
 		}
 		if (!configFile.exists()) {
-			return "FlatLaf Dark";
+			return "FlatLaf macOS Light";
 		}
 		try {
 			java.io.InputStream is = new java.io.BufferedInputStream(new java.io.FileInputStream(configFile));
@@ -1153,7 +1153,7 @@ public class Config {
 				xmlRoot.parseString(xml);
 				XMLElement optionsXml = xmlRoot.getChild("options");
 				if (optionsXml != null) {
-					return optionsXml.getChildString("theme", "FlatLaf Dark");
+					return optionsXml.getChildString("theme", "FlatLaf macOS Light");
 				}
 			} finally {
 				is.close();
@@ -1161,7 +1161,7 @@ public class Config {
 		} catch (Exception ex) {
 			// ignore, fallback to default
 		}
-		return "FlatLaf Dark";
+		return "FlatLaf macOS Light";
 	}
 
 	public static java.util.List getConnectedDirectories() {
