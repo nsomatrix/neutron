@@ -737,6 +737,21 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isFullscreen() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("fullscreen", "false"));
+	}
+
+	public static void setFullscreen(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement fsXml = optionsXml.getChildOrNew("fullscreen");
+		fsXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
 	public static int getMemoryLimit() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

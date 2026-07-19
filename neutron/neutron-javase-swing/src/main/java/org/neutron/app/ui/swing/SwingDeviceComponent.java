@@ -543,6 +543,9 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 	}
 
 	protected void paintComponent(Graphics g) {
+		if (getSize().width <= 0 || getSize().height <= 0) {
+			return;
+		}
 		if (offg == null || offi.getWidth(null) != getSize().width || offi.getHeight(null) != getSize().height) {
 			offi = new J2SEMutableImage(getSize().width, getSize().height, false, 0x000000).getImage();
 			offg = offi.getGraphics();

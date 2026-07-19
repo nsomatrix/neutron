@@ -68,6 +68,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -223,6 +224,20 @@ public class Main extends JFrame {
 	private SwingStatusBar statusBar = new SwingStatusBar();
 
 	private JCheckBoxMenuItem menuShowMouseCoordinates;
+
+	private JCheckBoxMenuItem menuFullscreen;
+
+	private JMenuBar menuBar;
+
+	private JButton floatingMenuButton;
+
+	private long lastActivityTime = System.currentTimeMillis();
+
+	private Timer menuTimer;
+
+	private Timer statusBarHideTimer;
+
+	private java.awt.event.AWTEventListener awtEventListener;
 
 
 
@@ -772,6 +787,28 @@ public class Main extends JFrame {
 			SwingUtilities.invokeLater(new Runnable() {
 				public void run() {
 					statusBar.setText(text);
+					if (Config.isFullscreen() && text != null && !text.trim().isEmpty()) {
+						statusBar.setVisible(true);
+						revalidate();
+						repaint();
+						if (statusBarHideTimer != null) {
+							statusBarHideTimer.cancel();
+						}
+						statusBarHideTimer = new Timer(true);
+						statusBarHideTimer.schedule(new TimerTask() {
+							public void run() {
+								SwingUtilities.invokeLater(new Runnable() {
+									public void run() {
+										if (Config.isFullscreen()) {
+											statusBar.setVisible(false);
+											revalidate();
+											repaint();
+										}
+									}
+								});
+							}
+						}, 5000);
+					}
 				}
 			});
 		}
@@ -862,7 +899,7 @@ public class Main extends JFrame {
 		this.logQueueAppender = new QueueAppender(1024);
 		Logger.addAppender(logQueueAppender);
 
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JMenuBar();
 
 		JMenu menuFile = new JMenu("Run");
 
@@ -1189,6 +1226,16 @@ public class Main extends JFrame {
 		menuOptions.add(menuShowMouseCoordinates);
 
 		JMenu menuControls = new JMenu("Controls");
+		menuFullscreen = new JCheckBoxMenuItem("Fullscreen");
+		menuFullscreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
+		menuFullscreen.setState(Config.isFullscreen());
+		menuFullscreen.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setFullscreenMode(menuFullscreen.isSelected());
+			}
+		});
+		menuControls.add(menuFullscreen);
+
 		JMenuItem menuProxySettings = new JMenuItem("X-Proxy");
 		menuProxySettings.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -1438,6 +1485,100 @@ public class Main extends JFrame {
 		Message.addListener(new SwingErrorMessageDialogPanel(this));
 
 		devicePanel.setTransferHandler(new DropTransferHandler());
+
+		// Floating Menu Button setup
+		floatingMenuButton = new JButton("☰") {
+			@Override
+			protected void paintComponent(java.awt.Graphics g) {
+				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
+				g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+				// Shadow
+				g2.setColor(new java.awt.Color(0, 0, 0, 40));
+				g2.fillOval(1, 1, getWidth() - 2, getHeight() - 2);
+				// Background
+				if (getModel().isPressed()) {
+					g2.setColor(new java.awt.Color(80, 80, 80, 200));
+				} else if (getModel().isRollover()) {
+					g2.setColor(new java.awt.Color(110, 110, 110, 200));
+				} else {
+					g2.setColor(new java.awt.Color(130, 130, 130, 160));
+				}
+				g2.fillOval(2, 2, getWidth() - 4, getHeight() - 4);
+				// Border
+				g2.setColor(new java.awt.Color(255, 255, 255, 120));
+				g2.drawOval(2, 2, getWidth() - 4, getHeight() - 4);
+				g2.dispose();
+				super.paintComponent(g);
+			}
+		};
+		floatingMenuButton.setFocusable(false);
+		floatingMenuButton.setToolTipText("Show Menu Bar");
+		floatingMenuButton.setSize(32, 32);
+		floatingMenuButton.setContentAreaFilled(false);
+		floatingMenuButton.setBorderPainted(false);
+		floatingMenuButton.setFocusPainted(false);
+		floatingMenuButton.setOpaque(false);
+		floatingMenuButton.setForeground(java.awt.Color.WHITE);
+		floatingMenuButton.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
+		getLayeredPane().add(floatingMenuButton, JLayeredPane.PALETTE_LAYER);
+		floatingMenuButton.setVisible(false);
+
+		floatingMenuButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				menuBar.setVisible(true);
+				floatingMenuButton.setVisible(false);
+				revalidate();
+				repaint();
+				resetMenuInactivityTimer();
+			}
+		});
+
+		// Global listener to track mouse activity to reset 30s inactivity timer
+		awtEventListener = new java.awt.event.AWTEventListener() {
+			public void eventDispatched(java.awt.AWTEvent event) {
+				if (event instanceof java.awt.event.MouseEvent) {
+					resetMenuInactivityTimer();
+				}
+			}
+		};
+		try {
+			java.awt.Toolkit.getDefaultToolkit().addAWTEventListener(awtEventListener, java.awt.AWTEvent.MOUSE_EVENT_MASK | java.awt.AWTEvent.MOUSE_MOTION_EVENT_MASK);
+		} catch (SecurityException ex) {
+			// fallback
+		}
+
+		// Periodic checker to auto-hide menu bar after 30 seconds of inactivity
+		menuTimer = new Timer(true);
+		menuTimer.scheduleAtFixedRate(new TimerTask() {
+			@Override
+			public void run() {
+				if (Config.isFullscreen() && menuBar.isVisible()) {
+					boolean isMenuOpen = false;
+					try {
+						isMenuOpen = javax.swing.MenuSelectionManager.defaultManager().getSelectedPath().length > 0;
+					} catch (Exception ex) {
+						// ignore
+					}
+					if (isMenuOpen) {
+						resetMenuInactivityTimer();
+					} else if (System.currentTimeMillis() - lastActivityTime > 30000) {
+						SwingUtilities.invokeLater(new Runnable() {
+							public void run() {
+								if (Config.isFullscreen() && menuBar.isVisible()) {
+									menuBar.setVisible(false);
+									floatingMenuButton.setVisible(true);
+									revalidate();
+									repaint();
+								}
+							}
+						});
+					}
+				}
+			}
+		}, 1000, 1000);
+
+		// Set initial fullscreen mode
+		setFullscreenMode(Config.isFullscreen());
 	}
 
 	protected Component createContents(Container parent) {
@@ -1446,6 +1587,71 @@ public class Main extends JFrame {
 		addKeyListener(devicePanel);
 
 		return devicePanel;
+	}
+
+	@Override
+	public void validate() {
+		super.validate();
+		updateFloatingButtonBounds();
+	}
+
+	private void updateFloatingButtonBounds() {
+		if (floatingMenuButton != null && floatingMenuButton.isVisible()) {
+			Point p = SwingUtilities.convertPoint(getContentPane(), new Point(10, 10), getLayeredPane());
+			floatingMenuButton.setLocation(p.x, p.y);
+		}
+	}
+
+	public void setFullscreenMode(boolean enabled) {
+		Config.setFullscreen(enabled);
+		if (menuFullscreen != null) {
+			menuFullscreen.setSelected(enabled);
+		}
+		if (enabled) {
+			if (menuBar != null) {
+				menuBar.setVisible(false);
+			}
+			if (statusBar != null) {
+				statusBar.setVisible(false);
+			}
+			if (floatingMenuButton != null) {
+				floatingMenuButton.setVisible(true);
+			}
+		} else {
+			if (menuBar != null) {
+				menuBar.setVisible(true);
+			}
+			if (statusBar != null) {
+				statusBar.setVisible(true);
+			}
+			if (floatingMenuButton != null) {
+				floatingMenuButton.setVisible(false);
+			}
+		}
+		revalidate();
+		repaint();
+	}
+
+	private void resetMenuInactivityTimer() {
+		lastActivityTime = System.currentTimeMillis();
+	}
+
+	@Override
+	public void dispose() {
+		if (awtEventListener != null) {
+			try {
+				java.awt.Toolkit.getDefaultToolkit().removeAWTEventListener(awtEventListener);
+			} catch (SecurityException ex) {
+				// ignore
+			}
+		}
+		if (menuTimer != null) {
+			menuTimer.cancel();
+		}
+		if (statusBarHideTimer != null) {
+			statusBarHideTimer.cancel();
+		}
+		super.dispose();
 	}
 
 	public boolean setDevice(DeviceEntry entry) {
