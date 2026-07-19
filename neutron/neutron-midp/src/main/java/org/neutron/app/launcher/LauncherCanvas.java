@@ -356,32 +356,23 @@ public class LauncherCanvas extends Canvas {
     }
 
     private void drawLaunchButton(Graphics g, int w, int h, int bgColor, int fgColor, int selectBg, int selectFg) {
+        boolean hasMidlets = (Launcher.midletEntries != null && Launcher.midletEntries.size() > 0);
+        if (!hasMidlets) {
+            return;
+        }
+
         btnW = w - 24;
         btnH = 38;
         btnX = 12;
         btnY = h - btnH - 12;
 
-        boolean hasMidlets = (Launcher.midletEntries != null && Launcher.midletEntries.size() > 0);
-
-        if (hasMidlets) {
-            // Theme accent background, selection foreground text
-            g.setColor(selectBg);
-            g.fillRoundRect(btnX, btnY, btnW, btnH, 8, 8);
-            
-            g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
-            g.setColor(selectFg);
-            g.drawString("LAUNCH APP", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
-        } else {
-            // Disabled styled card
-            g.setColor(blend(bgColor, fgColor, 0.04f));
-            g.fillRoundRect(btnX, btnY, btnW, btnH, 8, 8);
-            g.setColor(blend(bgColor, fgColor, 0.12f));
-            g.drawRoundRect(btnX, btnY, btnW, btnH, 8, 8);
-
-            g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
-            g.setColor(blend(bgColor, fgColor, 0.40f));
-            g.drawString("WAITING FOR JAR", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
-        }
+        // Theme accent background, selection foreground text
+        g.setColor(selectBg);
+        g.fillRoundRect(btnX, btnY, btnW, btnH, 8, 8);
+        
+        g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
+        g.setColor(selectFg);
+        g.drawString("LAUNCH APP", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
     }
 
     protected void keyPressed(int keyCode) {
