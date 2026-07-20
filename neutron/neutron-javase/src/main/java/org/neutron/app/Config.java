@@ -1128,7 +1128,8 @@ public class Config {
 		try {
 			java.net.Authenticator.setDefault(new java.net.Authenticator() {
 				protected java.net.PasswordAuthentication getPasswordAuthentication() {
-					if (getRequestorType() == RequestorType.PROXY) {
+					String protocol = getRequestingProtocol();
+					if (getRequestorType() == RequestorType.PROXY || "SOCKS5".equalsIgnoreCase(protocol) || "SOCKS".equalsIgnoreCase(protocol)) {
 						if (isProxyEnabled() && isProxyAuthEnabled()) {
 							String username = getProxyUsername();
 							String password = getProxyPassword();

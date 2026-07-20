@@ -163,12 +163,23 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 		add(authPanel, c);
 
 		// 4. Test connection row
-		JPanel testPanel = new JPanel(new BorderLayout(10, 0));
+		JPanel testPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints tc = new GridBagConstraints();
+		tc.gridx = 0;
+		tc.weightx = 1.0;
+		tc.anchor = GridBagConstraints.WEST;
+
 		testButton = new JButton("Test Proxy Connection");
+		tc.gridy = 0;
+		tc.fill = GridBagConstraints.NONE;
+		tc.insets = new Insets(0, 0, 4, 0);
+		testPanel.add(testButton, tc);
+
 		statusLabel = new JLabel("Click to verify proxy configuration.");
-		statusLabel.setPreferredSize(new Dimension(280, 20));
-		testPanel.add(testButton, BorderLayout.WEST);
-		testPanel.add(statusLabel, BorderLayout.CENTER);
+		tc.gridy = 1;
+		tc.fill = GridBagConstraints.HORIZONTAL;
+		tc.insets = new Insets(0, 0, 0, 0);
+		testPanel.add(statusLabel, tc);
 
 		c.gridy = 3;
 		c.gridx = 0;
@@ -213,6 +224,7 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 			statusLabel.setText("Click to verify proxy configuration.");
 			statusLabel.setForeground(UIManager.getLookAndFeelDefaults().getColor("Label.foreground"));
 		}
+		repack();
 	}
 
 	private void testProxyConnection() {
@@ -220,6 +232,7 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 		if (host.isEmpty()) {
 			statusLabel.setText("Error: Host is empty.");
 			statusLabel.setForeground(Color.RED);
+			repack();
 			return;
 		}
 
@@ -232,6 +245,7 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 		} catch (NumberFormatException e) {
 			statusLabel.setText("Error: Port must be 1 - 65535.");
 			statusLabel.setForeground(Color.RED);
+			repack();
 			return;
 		}
 
@@ -244,6 +258,7 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 		testButton.setEnabled(false);
 		statusLabel.setText("Testing connection...");
 		statusLabel.setForeground(Color.BLUE);
+		repack();
 
 		// Store dialog values temporarily in Config for Authenticator
 		Config.setProxyEnabled(true);
@@ -298,6 +313,7 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 							statusLabel.setText("Connection Failed: " + testError);
 							statusLabel.setForeground(Color.RED);
 						}
+						repack();
 					}
 				});
 			}
@@ -312,6 +328,17 @@ public class SwingProxySettingsPanel extends SwingDialogPanel {
 		Config.setProxyAuthEnabled(auth);
 		Config.setProxyUsername(username);
 		Config.setProxyPassword(password);
+	}
+
+	private void repack() {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				java.awt.Window window = SwingUtilities.getWindowAncestor(SwingProxySettingsPanel.this);
+				if (window != null) {
+					window.pack();
+				}
+			}
+		});
 	}
 
 	public boolean check(boolean showErrors) {
