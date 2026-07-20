@@ -66,11 +66,17 @@ public class Connection implements DatagramConnection, UDPDatagramConnection, Co
 	}
 
 	public void send(Datagram dgram) throws IOException {
+		if (!org.neutron.cldc.http.Connection.isAllowNetworkConnection()) {
+			throw new IOException("No network");
+		}
 		socket.send(((DatagramImpl) dgram).getDatagramPacket());
 		org.neutron.device.ui.NetworkActivityTracker.trackWrite(dgram.getLength());
 	}
 
 	public void receive(Datagram dgram) throws IOException {
+		if (!org.neutron.cldc.http.Connection.isAllowNetworkConnection()) {
+			throw new IOException("No network");
+		}
 		socket.receive(((DatagramImpl) dgram).getDatagramPacket());
 		org.neutron.device.ui.NetworkActivityTracker.trackRead(dgram.getLength());
 	}

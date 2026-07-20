@@ -26,6 +26,15 @@ public class NetworkActivityTracker {
 	private static Timer timer;
 	private static volatile boolean pingRunning = false;
 	private static boolean pingEnabled = true;
+	private static volatile boolean networkAccessEnabled = true;
+
+	public static void setNetworkAccessEnabled(boolean enabled) {
+		networkAccessEnabled = enabled;
+	}
+
+	public static boolean isNetworkAccessEnabled() {
+		return networkAccessEnabled;
+	}
 
 	static {
 		startTimer();
@@ -225,7 +234,14 @@ public class NetworkActivityTracker {
 			this.in = in;
 		}
 
+		private void checkNetworkAccess() throws java.io.IOException {
+			if (!networkAccessEnabled) {
+				throw new java.io.IOException("No network");
+			}
+		}
+
 		public int read() throws java.io.IOException {
+			checkNetworkAccess();
 			int b = in.read();
 			if (b != -1) {
 				trackRead(1);
@@ -234,6 +250,7 @@ public class NetworkActivityTracker {
 		}
 
 		public int read(byte[] b) throws java.io.IOException {
+			checkNetworkAccess();
 			int n = in.read(b);
 			if (n > 0) {
 				trackRead(n);
@@ -242,6 +259,7 @@ public class NetworkActivityTracker {
 		}
 
 		public int read(byte[] b, int off, int len) throws java.io.IOException {
+			checkNetworkAccess();
 			int n = in.read(b, off, len);
 			if (n > 0) {
 				trackRead(n);
@@ -250,10 +268,12 @@ public class NetworkActivityTracker {
 		}
 
 		public long skip(long n) throws java.io.IOException {
+			checkNetworkAccess();
 			return in.skip(n);
 		}
 
 		public int available() throws java.io.IOException {
+			checkNetworkAccess();
 			return in.available();
 		}
 
@@ -266,6 +286,7 @@ public class NetworkActivityTracker {
 		}
 
 		public synchronized void reset() throws java.io.IOException {
+			checkNetworkAccess();
 			in.reset();
 		}
 
@@ -281,22 +302,32 @@ public class NetworkActivityTracker {
 			this.out = out;
 		}
 
+		private void checkNetworkAccess() throws java.io.IOException {
+			if (!networkAccessEnabled) {
+				throw new java.io.IOException("No network");
+			}
+		}
+
 		public void write(int b) throws java.io.IOException {
+			checkNetworkAccess();
 			out.write(b);
 			trackWrite(1);
 		}
 
 		public void write(byte[] b) throws java.io.IOException {
+			checkNetworkAccess();
 			out.write(b);
 			trackWrite(b.length);
 		}
 
 		public void write(byte[] b, int off, int len) throws java.io.IOException {
+			checkNetworkAccess();
 			out.write(b, off, len);
 			trackWrite(len);
 		}
 
 		public void flush() throws java.io.IOException {
+			checkNetworkAccess();
 			out.flush();
 		}
 

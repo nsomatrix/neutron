@@ -5,6 +5,7 @@
 -allowaccessmodification
 -dontwarn
 -dontnote
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
 
 # Keep all microedition classes and members intact so MIDlets can find and call them
 -keep class javax.microedition.** {

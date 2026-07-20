@@ -38,6 +38,9 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 	}
 
 	public SocketConnection(String host, int port) throws IOException {
+		if (!org.neutron.cldc.http.Connection.isAllowNetworkConnection()) {
+			throw new IOException("No network");
+		}
 		java.net.Proxy proxy = org.neutron.app.Config.getProxyInstance();
 		if (proxy != null && proxy.type() == java.net.Proxy.Type.SOCKS) {
 			this.socket = new java.net.Socket(proxy);

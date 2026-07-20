@@ -522,6 +522,7 @@ public class Main extends JFrame {
 		public void actionPerformed(ActionEvent e) {
 			boolean allowed = menuMIDletNetworkConnection.getState();
 			org.neutron.cldc.http.Connection.setAllowNetworkConnection(allowed);
+			org.neutron.device.ui.NetworkActivityTracker.setNetworkAccessEnabled(allowed);
 			Config.setNetworkAccessEnabled(allowed);
 			Common.setStatusBar("Network Access: " + (allowed ? "Enabled" : "Disabled"));
 		}
@@ -1375,6 +1376,7 @@ public class Main extends JFrame {
 
 		Config.loadConfig(defaultDevice, emulatorContext);
 		org.neutron.cldc.http.Connection.setAllowNetworkConnection(Config.isNetworkAccessEnabled());
+		org.neutron.device.ui.NetworkActivityTracker.setNetworkAccessEnabled(Config.isNetworkAccessEnabled());
 		org.neutron.device.ui.EventDispatcher.maxFps = Config.getMaxFps();
 		Logger.setLocationEnabled(Config.isLogConsoleLocationEnabled());
 		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
@@ -1580,34 +1582,38 @@ public class Main extends JFrame {
 		}
 	}
 
-	public void setFullscreenMode(boolean enabled) {
+	public void setFullscreenMode(final boolean enabled) {
 		Config.setFullscreen(enabled);
-		if (menuFullscreen != null) {
-			menuFullscreen.setSelected(enabled);
-		}
-		if (enabled) {
-			if (menuBar != null) {
-				menuBar.setVisible(false);
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				if (menuFullscreen != null) {
+					menuFullscreen.setSelected(enabled);
+				}
+				if (enabled) {
+					if (menuBar != null) {
+						menuBar.setVisible(false);
+					}
+					if (statusBar != null) {
+						statusBar.setVisible(false);
+					}
+					if (floatingMenuButton != null) {
+						floatingMenuButton.setVisible(true);
+					}
+				} else {
+					if (menuBar != null) {
+						menuBar.setVisible(true);
+					}
+					if (statusBar != null) {
+						statusBar.setVisible(true);
+					}
+					if (floatingMenuButton != null) {
+						floatingMenuButton.setVisible(false);
+					}
+				}
+				revalidate();
+				repaint();
 			}
-			if (statusBar != null) {
-				statusBar.setVisible(false);
-			}
-			if (floatingMenuButton != null) {
-				floatingMenuButton.setVisible(true);
-			}
-		} else {
-			if (menuBar != null) {
-				menuBar.setVisible(true);
-			}
-			if (statusBar != null) {
-				statusBar.setVisible(true);
-			}
-			if (floatingMenuButton != null) {
-				floatingMenuButton.setVisible(false);
-			}
-		}
-		revalidate();
-		repaint();
+		});
 	}
 
 	private void resetMenuInactivityTimer() {
@@ -1886,64 +1892,12 @@ public class Main extends JFrame {
 			return list;
 		}
 
-		File cacheFile = new File(Config.getConfigPath(), "library_cache.xml");
-		XMLElement cacheXml = new XMLElement();
-		if (cacheFile.exists()) {
-			try {
-				java.io.InputStream is = new java.io.BufferedInputStream(new java.io.FileInputStream(cacheFile));
-				StringBuilder xml = new StringBuilder();
-				try {
-					while (is.available() > 0) {
-						byte[] b = new byte[is.available()];
-						int read = is.read(b);
-						xml.append(new String(b, 0, read));
-					}
-					cacheXml.parseString(xml.toString());
-				} finally {
-					is.close();
-				}
-			} catch (Exception e) {
-				// ignore
-			}
-		}
-
 		File[] files = dir.listFiles();
 		if (files != null) {
 			for (int i = 0; i < files.length; i++) {
 				File file = files[i];
 				if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
-					SwingLibraryExplorerDialog.GameInfo info = null;
-
-					for (Enumeration en = cacheXml.enumerateChildren(); en.hasMoreElements();) {
-						XMLElement child = (XMLElement) en.nextElement();
-						if ("game".equals(child.getName()) && file.getAbsolutePath().equals(child.getStringAttribute("jarPath"))) {
-							try {
-								long lastModified = Long.parseLong(child.getStringAttribute("lastModified"));
-								long size = Long.parseLong(child.getStringAttribute("size"));
-								if (lastModified == file.lastModified() && size == file.length()) {
-									info = new SwingLibraryExplorerDialog.GameInfo();
-									info.jarPath = file.getAbsolutePath();
-									info.lastModified = lastModified;
-									info.size = size;
-									info.name = child.getStringAttribute("name");
-									info.version = child.getStringAttribute("version");
-									info.vendor = child.getStringAttribute("vendor");
-									info.profile = child.getStringAttribute("profile");
-									info.iconCachePath = child.getStringAttribute("iconCachePath");
-									break;
-								}
-							} catch (Exception ex) {
-								// ignore
-							}
-						}
-					}
-
-					if (info == null) {
-						info = new SwingLibraryExplorerDialog.GameInfo();
-						info.jarPath = file.getAbsolutePath();
-						String fn = file.getName();
-						info.name = fn.endsWith(".jar") ? fn.substring(0, fn.length() - 4) : fn;
-					}
+					SwingLibraryExplorerDialog.GameInfo info = SwingLibraryExplorerDialog.getOrScanGame(file);
 					list.add(info);
 				}
 			}

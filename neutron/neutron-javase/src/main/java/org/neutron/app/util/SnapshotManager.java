@@ -113,6 +113,7 @@ public class SnapshotManager {
 			@Override
 			protected Void doInBackground() throws Exception {
 				org.neutron.app.Common.setStatusBar("Backup started...");
+				org.neutron.app.Config.saveConfig();
 				try (FileOutputStream fos = new FileOutputStream(finalTargetFile);
 					 BufferedOutputStream bos = new BufferedOutputStream(fos);
 					 ZipOutputStream zos = new ZipOutputStream(bos)) {

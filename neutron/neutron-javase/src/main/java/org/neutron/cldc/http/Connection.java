@@ -198,7 +198,14 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		cn.setRequestProperty(key, value);
 	}
 
+	private void checkNetworkAccess() throws IOException {
+		if (!isAllowNetworkConnection()) {
+			throw new IOException("No network");
+		}
+	}
+
 	public int getResponseCode() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -219,6 +226,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public String getResponseMessage() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -235,6 +243,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public long getExpiration() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -247,6 +256,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public long getDate() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -259,6 +269,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public long getLastModified() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -271,6 +282,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public String getHeaderField(String name) throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -283,6 +295,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public int getHeaderFieldInt(String name, int def) throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -295,6 +308,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public long getHeaderFieldDate(String name, long def) throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -307,6 +321,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public String getHeaderField(int n) throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -319,6 +334,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public String getHeaderFieldKey(int n) throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -338,6 +354,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public InputStream openInputStream() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}
@@ -355,6 +372,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 	}
 
 	public OutputStream openOutputStream() throws IOException {
+		checkNetworkAccess();
 		if (cn == null) {
 			throw new IOException();
 		}

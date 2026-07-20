@@ -323,98 +323,12 @@ public class SwingLibraryExplorerDialog extends JDialog {
 					return games;
 				}
 
-				loadCache();
-				File iconsCacheDir = new File(Config.getConfigPath(), "cache/icons");
-				iconsCacheDir.mkdirs();
-
 				for (File file : files) {
 					if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
-						GameInfo info = getCachedGame(file);
-						if (info == null) {
-							info = new GameInfo();
-							info.jarPath = file.getAbsolutePath();
-							info.lastModified = file.lastModified();
-							info.size = file.length();
-							info.name = file.getName();
-							info.version = "1.0.0";
-							info.vendor = "Unknown";
-							info.profile = "MIDP-2.0";
-
-							try (JarFile jar = new JarFile(file)) {
-								Manifest mf = jar.getManifest();
-								if (mf != null) {
-									Attributes attr = mf.getMainAttributes();
-									String mName = attr.getValue("MIDlet-Name");
-									if (mName != null && !mName.trim().isEmpty()) {
-										info.name = mName.trim();
-									}
-									String mVer = attr.getValue("MIDlet-Version");
-									if (mVer != null && !mVer.trim().isEmpty()) {
-										info.version = mVer.trim();
-									}
-									String mVendor = attr.getValue("MIDlet-Vendor");
-									if (mVendor != null && !mVendor.trim().isEmpty()) {
-										info.vendor = mVendor.trim();
-									}
-									String mProfile = attr.getValue("MicroEdition-Profile");
-									if (mProfile != null && !mProfile.trim().isEmpty()) {
-										info.profile = mProfile.trim();
-									}
-
-									String iconPath = attr.getValue("MIDlet-Icon");
-									if (iconPath == null || iconPath.trim().isEmpty()) {
-										String midlet1 = attr.getValue("MIDlet-1");
-										if (midlet1 != null) {
-											String[] parts = midlet1.split(",");
-											if (parts.length > 1) {
-												iconPath = parts[1].trim();
-											}
-										}
-									}
-
-									if (iconPath != null) {
-										iconPath = iconPath.trim();
-										if (iconPath.startsWith("/")) {
-											iconPath = iconPath.substring(1);
-										}
-										JarEntry entry = jar.getJarEntry(iconPath);
-										if (entry != null) {
-											File iconFile = new File(iconsCacheDir, String.valueOf(info.jarPath.hashCode()) + ".png");
-											try (InputStream is = jar.getInputStream(entry)) {
-												IOUtils.copyToFile(is, iconFile);
-												info.iconCachePath = iconFile.getAbsolutePath();
-											}
-										}
-									}
-								}
-							} catch (Exception e) {
-								continue;
-							}
-							cacheGame(info);
-						}
-
-						// Load cached icon image
-						if (info.iconCachePath != null) {
-							File iconFile = new File(info.iconCachePath);
-							if (iconFile.exists()) {
-								try {
-									ImageIcon icon = new ImageIcon(iconFile.getAbsolutePath());
-									if (icon.getIconWidth() != 32 || icon.getIconHeight() != 32) {
-										Image img = icon.getImage();
-										Image scaled = img.getScaledInstance(32, 32, Image.SCALE_SMOOTH);
-										icon = new ImageIcon(scaled);
-									}
-									info.icon = icon;
-								} catch (Exception e) {
-									// ignore load errors
-								}
-							}
-						}
+						GameInfo info = getOrScanGame(file);
 						games.add(info);
 					}
 				}
-
-				saveCache();
 				return games;
 			}
 
@@ -451,6 +365,106 @@ public class SwingLibraryExplorerDialog extends JDialog {
 				// Refresh any status if needed
 			}
 		});
+	}
+
+	public static synchronized GameInfo getOrScanGame(File file) {
+		loadCache();
+		GameInfo info = getCachedGame(file);
+		boolean iconMissing = false;
+		if (info != null && info.iconCachePath != null) {
+			if (!new File(info.iconCachePath).exists()) {
+				iconMissing = true;
+			}
+		}
+
+		if (info == null || iconMissing) {
+			if (info == null) {
+				info = new GameInfo();
+				info.jarPath = file.getAbsolutePath();
+				info.lastModified = file.lastModified();
+				info.size = file.length();
+				info.name = file.getName();
+				info.version = "1.0.0";
+				info.vendor = "Unknown";
+				info.profile = "MIDP-2.0";
+			}
+
+			File iconsCacheDir = new File(Config.getConfigPath(), "cache/icons");
+			iconsCacheDir.mkdirs();
+
+			try (JarFile jar = new JarFile(file)) {
+				Manifest mf = jar.getManifest();
+				if (mf != null) {
+					Attributes attr = mf.getMainAttributes();
+					String mName = attr.getValue("MIDlet-Name");
+					if (mName != null && !mName.trim().isEmpty()) {
+						info.name = mName.trim();
+					}
+					String mVer = attr.getValue("MIDlet-Version");
+					if (mVer != null && !mVer.trim().isEmpty()) {
+						info.version = mVer.trim();
+					}
+					String mVendor = attr.getValue("MIDlet-Vendor");
+					if (mVendor != null && !mVendor.trim().isEmpty()) {
+						info.vendor = mVendor.trim();
+					}
+					String mProfile = attr.getValue("MicroEdition-Profile");
+					if (mProfile != null && !mProfile.trim().isEmpty()) {
+						info.profile = mProfile.trim();
+					}
+
+					String iconPath = attr.getValue("MIDlet-Icon");
+					if (iconPath == null || iconPath.trim().isEmpty()) {
+						String midlet1 = attr.getValue("MIDlet-1");
+						if (midlet1 != null) {
+							String[] parts = midlet1.split(",");
+							if (parts.length > 1) {
+								iconPath = parts[1].trim();
+							}
+						}
+					}
+
+					if (iconPath != null) {
+						iconPath = iconPath.trim();
+						if (iconPath.startsWith("/")) {
+							iconPath = iconPath.substring(1);
+						}
+						JarEntry entry = jar.getJarEntry(iconPath);
+						if (entry != null) {
+							File iconFile = new File(iconsCacheDir, String.valueOf(info.jarPath.hashCode()) + ".png");
+							try (InputStream is = jar.getInputStream(entry)) {
+								IOUtils.copyToFile(is, iconFile);
+								info.iconCachePath = iconFile.getAbsolutePath();
+							}
+						}
+					}
+				}
+			} catch (Exception e) {
+				// use defaults
+			}
+			cacheGame(info);
+			saveCache();
+		}
+
+		// Load cached icon image
+		if (info.iconCachePath != null) {
+			File iconFile = new File(info.iconCachePath);
+			if (iconFile.exists()) {
+				try {
+					ImageIcon icon = new ImageIcon(iconFile.getAbsolutePath());
+					if (icon.getIconWidth() != 32 || icon.getIconHeight() != 32) {
+						Image img = icon.getImage();
+						Image scaled = img.getScaledInstance(32, 32, Image.SCALE_SMOOTH);
+						icon = new ImageIcon(scaled);
+					}
+					info.icon = icon;
+				} catch (Exception e) {
+					// ignore load errors
+				}
+			}
+		}
+
+		return info;
 	}
 
 	// --- Caching Logic ---

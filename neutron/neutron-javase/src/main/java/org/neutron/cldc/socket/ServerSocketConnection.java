@@ -53,6 +53,9 @@ public class ServerSocketConnection implements
 	}
 
 	public StreamConnection acceptAndOpen() throws IOException {
+		if (!org.neutron.cldc.http.Connection.isAllowNetworkConnection()) {
+			throw new IOException("No network");
+		}
 		return new SocketConnection(serverSocket.accept());
 	}
 
