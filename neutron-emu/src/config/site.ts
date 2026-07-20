@@ -5,10 +5,9 @@ export const siteConfig = {
     "Fast, accurate, and lightweight Java ME emulator. Open source and cross-platform.",
   url: "https://neutron-emu.vercel.app",
   ogImage: "/og-image.png",
-  creator: "Neutron Team",
+  creator: "Manish K",
   github: "https://github.com/nsomatrix/neutron",
   download: "https://github.com/nsomatrix/neutron/releases",
-  twitter: "@neutron_emu",
 
   nav: {
     main: [
