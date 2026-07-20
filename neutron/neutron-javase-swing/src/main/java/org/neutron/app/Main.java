@@ -65,6 +65,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -204,6 +205,8 @@ public class Main extends JFrame {
 	private SwingDeviceComponent devicePanel;
 
 	private SwingLogConsoleDialog logConsoleDialog;
+
+	private JDialog docsDialog;
 
 	private RecordStoreManagerDialog recordStoreManagerDialog;
 
@@ -573,6 +576,38 @@ public class Main extends JFrame {
 	private ActionListener menuSystemInfoListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			SwingDialogWindow.show(Main.this, "System", new SwingSystemInfoDialog(), false);
+		}
+	};
+
+	private ActionListener menuDocsListener = new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+			if (docsDialog == null) {
+				docsDialog = new JDialog(Main.this, "Help & Documentation", false);
+				final org.neutron.app.ui.swing.SwingDocsDialog panel = new org.neutron.app.ui.swing.SwingDocsDialog();
+				docsDialog.getContentPane().setLayout(new BorderLayout());
+				docsDialog.getContentPane().add(panel, BorderLayout.CENTER);
+
+				javax.swing.JPanel actionPanel = new javax.swing.JPanel();
+				actionPanel.add(panel.btOk);
+				docsDialog.getContentPane().add(actionPanel, BorderLayout.SOUTH);
+				docsDialog.pack();
+
+				// Center relative to parent window
+				Dimension frameSize = docsDialog.getSize();
+				int x = Main.this.getLocation().x + ((Main.this.getWidth() - frameSize.width) / 2);
+				int y = Main.this.getLocation().y + ((Main.this.getHeight() - frameSize.height) / 2);
+				docsDialog.setLocation(Math.max(0, x), Math.max(0, y));
+
+				panel.btOk.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent ev) {
+						docsDialog.setVisible(false);
+					}
+				});
+
+				docsDialog.setIconImage(Main.this.getIconImage());
+			}
+			docsDialog.setVisible(true);
+			docsDialog.toFront();
 		}
 	};
 
@@ -1305,6 +1340,10 @@ public class Main extends JFrame {
 		JMenuItem menuSystemInfo = new JMenuItem("System");
 		menuSystemInfo.addActionListener(menuSystemInfoListener);
 		menuMisc.add(menuSystemInfo);
+
+		JMenuItem menuDocs = new JMenuItem("Docs");
+		menuDocs.addActionListener(menuDocsListener);
+		menuMisc.add(menuDocs);
 
 
 		menuBar.add(menuFile);
