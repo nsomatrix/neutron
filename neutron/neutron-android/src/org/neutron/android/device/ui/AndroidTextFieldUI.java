@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: AndroidTextFieldUI.java 1931 2009-02-05 21:00:52Z barteo $
+ *  @version $Id: AndroidTextFieldUI.java 1931 2009-02-05 21:00:52Z neutron $
  */
 
 package org.neutron.android.device.ui;

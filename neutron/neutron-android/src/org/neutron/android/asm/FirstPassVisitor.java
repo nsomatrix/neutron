@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: FirstPassVisitor.java 1784 2008-10-20 14:22:57Z barteo $
+ *  @version $Id: FirstPassVisitor.java 1784 2008-10-20 14:22:57Z neutron $
  */
 
 package org.neutron.android.asm;

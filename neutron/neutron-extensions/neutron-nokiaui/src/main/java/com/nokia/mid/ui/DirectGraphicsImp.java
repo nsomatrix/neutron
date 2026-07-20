@@ -21,7 +21,7 @@
  *  limitations.
  *
  *  Contributor(s):
- *    Bartek Teodorczyk <barteo@barteo.net>
+ *    Neutron Developer <dev@neutron.org>
  */
 
 package com.nokia.mid.ui;

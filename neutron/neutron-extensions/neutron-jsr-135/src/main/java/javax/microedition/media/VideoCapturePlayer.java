@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: Neutron.java 2183 2009-10-19 08:36:28Z barteo $
+ *  @version $Id: Neutron.java 2183 2009-10-19 08:36:28Z neutron $
  */
 
 package javax.microedition.media;

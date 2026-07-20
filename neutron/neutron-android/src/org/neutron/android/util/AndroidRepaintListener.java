@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: CustomFrameLayout.java 1918 2009-01-21 12:56:43Z barteo $
+ *  @version $Id: CustomFrameLayout.java 1918 2009-01-21 12:56:43Z neutron $
  */
 
 package org.neutron.android.util;

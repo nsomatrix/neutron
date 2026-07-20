@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: J2SEImageStringItemUI.java 1907 2009-01-12 13:19:36Z barteo $
+ *  @version $Id: J2SEImageStringItemUI.java 1907 2009-01-12 13:19:36Z neutron $
  */
 
 package org.neutron.device.j2se.ui;

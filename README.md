@@ -62,7 +62,7 @@ This will launch the Neutron GUI, allowing you to load and run J2ME applications
 ## Resources
 
 *   **Source Code:** [https://github.com/nsomatrix/neutron](https://github.com/nsomatrix/neutron)
-*   **Original Code:** [https://github.com/barteo/neutron](https://github.com/barteo/neutron)
+*   **Original Code:** [https://github.com/nsomatrix/neutron](https://github.com/nsomatrix/neutron)
 
 
 ## Contributing

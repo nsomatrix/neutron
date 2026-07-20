@@ -1,8 +1,8 @@
-Created-By: Bartek Teodorczyk
+Created-By: Neutron Developer
 MIDlet-1: SimpleDemo, , org.neutron.midp.examples.simpledemo.SimpleDemo
 MIDlet-Jar-Size: 15283
 MIDlet-Jar-URL: simpledemo.jar
 MIDlet-Name: SimpleDemo
-MIDlet-Vendor: Bartek Teodorczyk
+MIDlet-Vendor: Neutron Developer
 MIDlet-Version: 1.0
 Manifest-Version: 1.0

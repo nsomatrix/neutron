@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: AndroidClassVisitor.java 2472 2011-01-23 13:39:51Z barteo@gmail.com $
+ *  @version $Id: AndroidClassVisitor.java 2472 2011-01-23 13:39:51Z neutron@gmail.com $
  */
 
 package org.neutron.android.util;

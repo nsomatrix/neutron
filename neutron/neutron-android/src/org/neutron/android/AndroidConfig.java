@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: AndroidConfig.java 2419 2010-09-17 09:47:12Z barteo@gmail.com $
+ *  @version $Id: AndroidConfig.java 2419 2010-09-17 09:47:12Z neutron@gmail.com $
  */
 
 package org.neutron.android;

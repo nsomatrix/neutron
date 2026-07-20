@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  *
- *  @version $Id: MIDletTimer.java 1970 2009-03-12 13:51:04Z barteo $
+ *  @version $Id: MIDletTimer.java 1970 2009-03-12 13:51:04Z neutron $
  */
 
 package org.neutron.app.util;

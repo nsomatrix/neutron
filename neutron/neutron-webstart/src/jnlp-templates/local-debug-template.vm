@@ -4,7 +4,7 @@
   codebase="http://localhost:8080/neutron-webstart/">
   <information>
     <title>Neutron</title>
-    <vendor>Bartek Teodorczyk & Vlad Skarzhevskyy</vendor>
+    <vendor>Neutron Developer & Vlad Skarzhevskyy</vendor>
     <homepage href="http://www.neutron.org/"/>
     <description>Neutron</description>
     <description kind="short">Neutron</description>

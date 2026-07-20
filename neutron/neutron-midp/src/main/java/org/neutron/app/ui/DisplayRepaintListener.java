@@ -20,7 +20,7 @@
  *  See the LGPL or the AL for the specific language governing permissions and
  *  limitations.
  * 
- * @version $Id: DisplayRepaintListener.java 2097 2009-06-16 13:16:59Z barteo $
+ * @version $Id: DisplayRepaintListener.java 2097 2009-06-16 13:16:59Z neutron $
  */
  
 package org.neutron.app.ui;
