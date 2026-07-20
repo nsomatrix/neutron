@@ -47,14 +47,6 @@ export const docsConfig: DocsSidebarItem[] = [
     ],
   },
   {
-    title: "API Reference",
-    href: "/docs/api-reference",
-  },
-  {
-    title: "FAQ",
-    href: "/docs/faq",
-  },
-  {
     title: "Changelog",
     href: "/changelog",
   },

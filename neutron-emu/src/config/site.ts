@@ -36,8 +36,6 @@ export const siteConfig = {
     resources: [
       { title: "Documentation", href: "/docs" },
       { title: "Quick Start", href: "/docs/getting-started/quick-start" },
-      { title: "API Reference", href: "/docs/api-reference" },
-      { title: "FAQ", href: "/docs/faq" },
     ],
     community: [
       { title: "GitHub", href: "https://github.com/nicokosi/neutron" },
@@ -52,7 +50,6 @@ export const siteConfig = {
     ],
     legal: [
       { title: "License", href: "/license" },
-      { title: "Privacy", href: "/privacy" },
     ],
   },
 

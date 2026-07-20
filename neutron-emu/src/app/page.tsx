@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
+import logoImg from "@/assets/ntn.png";
 import {
   ArrowRight,
   Download,
@@ -59,7 +61,7 @@ export default function HomePage() {
           />
         </div>
 
-        <div className="mx-auto max-w-screen-xl px-4 py-24 sm:py-32 lg:py-40">
+        <div className="mx-auto max-w-screen-xl px-4 pt-10 pb-20 sm:pt-16 sm:pb-28 lg:pt-20 lg:pb-36">
           <motion.div
             className="mx-auto max-w-3xl text-center"
             initial="initial"
@@ -74,10 +76,28 @@ export default function HomePage() {
               >
                 <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <span>
-                  Neutron <span className="md:hidden">v2.0</span><span className="hidden md:inline">v1.0</span> is now available
+                  Neutron v1.0 is now available
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 shrink-0" />
               </Link>
+            </motion.div>
+
+            {/* Logo */}
+            <motion.div
+              variants={fadeUp}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="mt-8 flex justify-center"
+            >
+              <div className="relative h-16 w-16 overflow-hidden rounded-2xl border border-border bg-card p-2.5 shadow-xl shadow-primary/5">
+                <Image
+                  src={logoImg}
+                  alt="Neutron Logo"
+                  width={64}
+                  height={64}
+                  className="h-full w-full object-contain"
+                  priority
+                />
+              </div>
             </motion.div>
 
             {/* Headline */}

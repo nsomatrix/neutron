@@ -6,70 +6,83 @@ order: 5
 
 ## Overview
 
-Neutron provides a complete Java ME runtime environment with support for the most commonly used APIs and extensions. This page provides an overview of all major features.
+Neutron is a modern, high-performance Java ME runtime environment designed for developers, retro-gaming enthusiasts, and system preservationists. It provides a robust desktop interface with rich developer tools, versatile display filtering, custom skin support, and strict compliance J2ME mobile APIs.
 
-## MIDP 2.0 Support
+Below is an interactive directory of the major features built into the Neutron desktop emulator.
 
-Full implementation of the Mobile Information Device Profile 2.0 specification:
+<AccordionGroup>
+  <AccordionPanel title="1. Core Runtime Engine" value="runtime">
+    Neutron implements the standard specifications of the Java 2 Micro Edition (J2ME) environment, ensuring high compatibility with classic applications and games.
 
-- **LCDUI** — Complete UI toolkit including Forms, Lists, TextBoxes, Alerts, and Canvas
-- **Game API** — GameCanvas, Sprite, TiledLayer, and LayerManager
-- **RMS** — Record Management System for persistent data storage
-- **Networking** — HTTP, HTTPS, Socket, and Datagram connections
-- **Media** — Audio playback via MMAPI (Mobile Media API)
-- **Push Registry** — Scheduled and network-triggered MIDlet activation
+    - **CLDC 1.1 Compliance** — Fully implements the Connected Limited Device Configuration (CLDC) 1.1 standard, including `java.lang`, `java.util`, and `java.io` packages, floating-point arithmetic, thread scheduling, and the Generic Connection Framework (GCF).
+    - **MIDP 2.0 Compliance** — Supports the complete Mobile Information Device Profile (MIDP) 2.0 suite, including LCDUI controls (Forms, Lists, TextBoxes, Alerts, and Canvas) and J2ME Game API (GameCanvas, Sprites, TiledLayers, and LayerManager).
+    - **Memory Management** — Custom VM heap configuration (adjustable from 32MB up to 512MB) with an automated garbage collection (GC) monitor to ensure stability.
+    - **Sleep Mode** (`Ctrl+L`) — Dynamically throttle emulator worker threads when the application is idle to reduce host CPU consumption.
+  </AccordionPanel>
 
-## CLDC 1.1 Support
+  <AccordionPanel title="2. File & Execution Management" value="execution">
+    Getting your games and applications up and running is seamless, whether launching from local storage or the internet.
 
-Full Connected Limited Device Configuration 1.1 implementation:
+    - **Local Execution** — Load `.jar` and `.jad` files directly. The last opened directory is automatically saved.
+    - **Remote Execution** — Launch MIDlets directly via HTTP/HTTPS URLs by pasting the remote link.
+    - **Library Explorer** — A graphical dashboard cataloging all scanned files, displaying application names, version numbers, and developer icons.
+    - **Connected Directories** — Scan and register folders in bulk. Connected directories are automatically monitored and cataloged in the emulator sidebar launcher.
+    - **Recently Played (MRU)** — Keep track of recently played games and launch them instantly via a shortcut list.
+    - **Snapshot Manager** — Package your configurations, settings, and RMS database files into a single `.zip` backup file or restore them to clone your emulator state.
+  </AccordionPanel>
 
-- Complete `java.lang`, `java.util`, and `java.io` packages
-- Floating-point math support
-- Thread management
-- Generic Connection Framework (GCF)
+  <AccordionPanel title="3. High-Fidelity Display & Video Settings" value="display">
+    Neutron provides custom rendering and display options to adapt low-resolution J2ME canvases to modern, high-DPI desktop screens.
 
-## Display Features
+    - **Dynamic Resolution Presets** — Quick scaling setups from 128×160 to 480×800.
+    - **Integer & Smooth Scaling** — Run displays scaled up to 2x, 3x, or 4x without blurred pixels.
+    - **Graphics Rendering Filters** — Renders the screen using a variety of classic and modern filters:
+      - *Bilinear / Bicubic*: For smooth anti-aliased scaling.
+      - *Scale2x*: For pixel-art enhancement.
+      - *CRT Scanlines / LCD Grid*: To recreate authentic CRT or handheld screen grids.
+    - **Hardware Video Adjustments** — Dedicated sliders for Brightness, Contrast, Gamma, Saturation, Sharpness, Ghosting, and Color Inversion.
+    - **Fullscreen Mode** (`F11`) — Immersive borderless fullscreen display featuring an auto-hiding navigation bar and cohesive overlay notifications.
+    - **Modern Skinning Engine** — Fully integrates with UIManager skins, supporting modern Look-and-Feel templates like FlatLaf (macOS Dark/Light, Darcula, System) that adapt dynamically to your OS theme.
+  </AccordionPanel>
 
-- Multiple resolution presets (128×160 to 480×800)
-- Integer and smooth scaling
-- Fullscreen mode with auto-hide UI
-- VSync support
-- Custom frame rate limiting
-- Screenshot capture
+  <AccordionPanel title="4. Input & Control Customization" value="input">
+    Configure keyboard key mapping and connect external controller inputs to play and automate inputs.
 
-## Audio System
+    - **Keyboard Key Mapping** — Remap keyboard keys to emulate standard 12-key telephone keypads, direction pads, and Soft Keys.
+    - **Gamepad / Controller Support** — Connect external game controllers to play J2ME action titles using native analog sticks and face buttons.
+    - **Touch & Mouse Coordinates** — Fully simulates stylus touch inputs via mouse click-and-drag. An option to display live X/Y coordinates directly overlays the game canvas.
+    - **Tap Automator** — Configurable touch clicker with interval timers and customized coordinate coordinates to automate repetitive tapping patterns.
+  </AccordionPanel>
 
-- PCM audio playback (WAV, AU)
-- MIDI playback
-- Tone generation
-- Volume control
-- Multiple simultaneous audio streams
+  <AccordionPanel title="5. Audio Subsystem" value="audio">
+    Neutron reproduces original mobile soundscapes with high fidelity using modern audio backends.
 
-## Input System
+    - **PCM Audio Playback** — Support for `.wav` and `.au` audio samples.
+    - **MIDI Engine** — Seamless playback of classic MIDI audio tracks.
+    - **Tone Generation** — Supports J2ME frequency-based tone commands and sequences.
+    - **Multi-Stream Mixing** — Mixes and renders multiple simultaneous audio channels with volume controls.
+  </AccordionPanel>
 
-- Full keyboard mapping for J2ME keys
-- Customizable key bindings
-- Gamepad / controller support
-- Touch simulation via mouse
-- Multi-key input (key chording)
+  <AccordionPanel title="6. Advanced Networking & Security" value="networking">
+    Run online mobile applications safely while maintaining full visibility over outbound internet connections.
 
-## Networking
+    - **Global Network Switch** — A master toggle ("Allow Network") to cut off or grant internet access to executing MIDlets.
+    - **SOCKS5 & HTTP Proxy Support** — Route all GCF connection traffic through proxy tunnels, including support for username/password authentication.
+    - **Network Capture Debugger** — A diagnostic panel that intercepts, formats, and displays HTTP, TCP socket, and UDP datagram traffic headers and payloads in real-time.
+    - **Network Status Overlay** — HUD element displaying active connections, socket channels, and server response ping/latency metrics.
+  </AccordionPanel>
 
-- HTTP and HTTPS connections
-- TCP socket connections
-- UDP datagram support
-- Proxy configuration (HTTP, SOCKS4, SOCKS5)
-- Network activity monitoring
-- Global network toggle
+  <AccordionPanel title="7. Diagnostics & Developer Tools" value="tools">
+    Neutron includes instrumentation panels built directly into the UI to analyze MIDlet execution.
 
-## Developer Tools
-
-- Built-in MIDlet inspector
-- Memory usage monitoring
-- FPS counter
-- Logging with configurable levels
-- Plugin architecture for extensions
+    - **HUD Performance Overlay** — Float a status box over the canvas to display live frames per second (FPS) and memory heap consumption.
+    - **Developer Log Console** — Inspect debug output, warning messages, and JVM exception tracebacks in a dedicated, floatable logger frame.
+    - **Record Store Manager (RMS)** — Inspect the key-value database files stored by each MIDlet (saved game data, highscores) and manually modify or delete them.
+    - **Media & Frame Recorders** — Take high-resolution screenshots (`Ctrl+S`) or export animations of your gameplay into lightweight `.gif` files.
+    - **MIDlet Inspector** — View manifest descriptors, jar signatures, and classes without unzipping.
+  </AccordionPanel>
+</AccordionGroup>
 
 <Callout type="info">
-For detailed information about each feature, explore the individual pages in this section.
+Many of these advanced diagnostics and features can also be triggered directly from the command line. See the [CLI Reference](/docs/advanced/cli) page for details on automated run arguments.
 </Callout>
