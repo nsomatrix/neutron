@@ -39,7 +39,6 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
 import javax.swing.UIManager;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
@@ -98,13 +97,8 @@ public class SwingAboutDialog extends SwingDialogPanel {
 
 		add(headerPanel, BorderLayout.NORTH);
 
-		// 2. Tabbed pane for Overview and Credits
-		JTabbedPane tabbedPane = new JTabbedPane();
-
-		tabbedPane.addTab("Overview", createScrollPane(getOverviewHtml()));
-		tabbedPane.addTab("Credits", createScrollPane(getCreditsHtml()));
-
-		add(tabbedPane, BorderLayout.CENTER);
+		// 2. Overview content
+		add(createScrollPane(getOverviewHtml()), BorderLayout.CENTER);
 	}
 
 	private JScrollPane createScrollPane(String htmlBody) {
@@ -205,20 +199,13 @@ public class SwingAboutDialog extends SwingDialogPanel {
 				+ "<p>Equipped with graphics scaling, advanced network options, proxy controls, dynamic look-and-feel support, and screen recording capabilities.</p>"
 				+ "<p><b>Project Links:</b></p>"
 				+ "<ul>"
-				+ "  <li>Website & Repo: <a href=\"https://github.com/nsomatrix/neutron\">https://github.com/nsomatrix/neutron</a></li>"
-				+ "  <li>Report an Issue: <a href=\"https://github.com/nsomatrix/neutron/issues\">https://github.com/nsomatrix/neutron/issues</a></li>"
+				+ "  <li><b>Lead Developer :</b> Manish K</li>"
+				+ "  <li><b>Vendor :</b> NSOMatrix</li>"
+				+ "  <li><b>Website :</b> <a href=\"https://neutron-emu.vercel.app\">https://neutron-emu.vercel.app</a></li>"
+				+ "  <li><b>Git :</b> <a href=\"https://github.com/nsomatrix/neutron\">https://github.com/nsomatrix/neutron</a></li>"
+				+ "  <li><b>Report an Issue:</b> <a href=\"https://github.com/nsomatrix/neutron/issues\">https://github.com/nsomatrix/neutron/issues</a></li>"
 				+ "</ul>";
 	}
 
-	private String getCreditsHtml() {
-		return "<h3>Credits & Attributions</h3>"
-				+ "<p>Neutron is built on the foundations of the open-source <b>MicroEmulator</b> project and extends it with modern features, user experience improvements, and platform isolation.</p>"
-				+ "<p>Special thanks to the open-source libraries that make this possible:</p>"
-				+ "<ul>"
-				+ "  <li><b>FlatLaf</b> - Flat Look and Feel theme engine.</li>"
-				+ "  <li><b>ProGuard</b> - Shrinker and code optimizer.</li>"
-				+ "</ul>"
-				+ "<p>Licensed dual-alternatively under the <b>GNU Lesser General Public License (LGPL) v2.1</b> (or newer) and the <b>Apache License v2.0</b>.</p>";
-	}
 }
 
