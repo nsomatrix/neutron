@@ -102,7 +102,6 @@ import org.neutron.app.ui.swing.SwingDialogWindow;
 import org.neutron.app.ui.swing.SwingDisplayComponent;
 import org.neutron.app.ui.swing.SwingErrorMessageDialogPanel;
 import org.neutron.app.ui.swing.SwingLogConsoleDialog;
-import org.neutron.app.ui.swing.SwingSelectDevicePanel;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkCapturePanel;
@@ -142,8 +141,6 @@ public class Main extends JFrame {
 
 	protected Common common;
 
-	protected SwingSelectDevicePanel selectDevicePanel = null;
-
 	private MIDletUrlPanel midletUrlPanel = null;
 
 	private JFileChooser saveForWebChooser;
@@ -157,8 +154,6 @@ public class Main extends JFrame {
 	private JMenuItem menuOpenMIDletFile;
 
 	private JMenuItem menuOpenMIDletURL;
-
-	private JMenuItem menuSelectDevice;
 
 
 
@@ -617,41 +612,6 @@ public class Main extends JFrame {
 		}
 	};
 
-	private ActionListener menuSelectDeviceListener = new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			if (SwingDialogWindow.show(Main.this, "Native Device", selectDevicePanel, true)) {
-				if (selectDevicePanel.getSelectedDeviceEntry().equals(deviceEntry)) {
-					return;
-				}
-				int restartMidlet = 1;
-				if (MIDletBridge.getCurrentMIDlet() != common.getLauncher()) {
-					restartMidlet = JOptionPane.showConfirmDialog(Main.this,
-							"Changing device may trigger MIDlet to the unpredictable state and restart of MIDlet is recommended. \n"
-									+ "Do you want to restart the MIDlet? All MIDlet data will be lost.", "Question?",
-							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-				}
-				if (!setDevice(selectDevicePanel.getSelectedDeviceEntry())) {
-					return;
-				}
-				Common.setStatusBar("Device changed to: " + selectDevicePanel.getSelectedDeviceEntry().getName());
-				if (restartMidlet == 0) {
-					try {
-						common.initMIDlet(true);
-					} catch (Exception ex) {
-						System.err.println(ex);
-					}
-				} else {
-					DeviceDisplay deviceDisplay = DeviceFactory.getDevice().getDeviceDisplay();
-					DisplayAccess da = MIDletBridge.getMIDletAccess().getDisplayAccess();
-					if (da != null) {
-						da.sizeChanged();
-						deviceDisplay.repaint(0, 0, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
-					}
-				}
-			}
-		}
-	};
-
 	private ActionListener menuScaledDisplayListener = new ActionListener() {
 		private DisplayRepaintListener updateScaledImageListener;
 
@@ -822,7 +782,6 @@ public class Main extends JFrame {
 				public void run() {
 					menuOpenMIDletFile.setEnabled(state);
 					menuOpenMIDletURL.setEnabled(state);
-					menuSelectDevice.setEnabled(state);
 				}
 			});
 		}
@@ -1102,10 +1061,6 @@ public class Main extends JFrame {
 		menuFile.add(menuItem);
 
 		JMenu menuOptions = new JMenu("Config");
-
-		menuSelectDevice = new JMenuItem("Native Device");
-		menuSelectDevice.addActionListener(menuSelectDeviceListener);
-		menuOptions.add(menuSelectDevice);
 
 		JMenu menuScaleLCD = new JMenu("Scaled Display");
 		menuOptions.add(menuScaleLCD);
@@ -1399,8 +1354,6 @@ public class Main extends JFrame {
 		this.setLocation(window.x, window.y);
 
 		getContentPane().add(createContents(getContentPane()), "Center");
-
-		selectDevicePanel = new SwingSelectDevicePanel(emulatorContext);
 
 		this.common = new Common(emulatorContext);
 		this.common.setStatusBarListener(statusBarListener);
@@ -1844,8 +1797,9 @@ public class Main extends JFrame {
 			Logger.debug("arguments", debugArgs.toString());
 		}
 		
-		if (app.common.initParams(params, app.selectDevicePanel.getSelectedDeviceEntry(), J2SEDevice.class)) {
-			app.deviceEntry = app.selectDevicePanel.getSelectedDeviceEntry();
+		DeviceEntry devEntry = Config.getDefaultDeviceEntry();
+		app.deviceEntry = devEntry;
+		if (app.common.initParams(params, devEntry, J2SEDevice.class)) {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
 				Rectangle size = Config.getDeviceEntryDisplaySize(app.deviceEntry);

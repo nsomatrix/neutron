@@ -56,7 +56,6 @@ import org.neutron.app.ui.swt.SwtDialog;
 import org.neutron.app.ui.swt.SwtErrorMessageDialogPanel;
 import org.neutron.app.ui.swt.SwtInputDialog;
 import org.neutron.app.ui.swt.SwtMessageDialog;
-import org.neutron.app.ui.swt.SwtSelectDeviceDialog;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.device.Device;
@@ -80,11 +79,7 @@ public class Swt extends Common {
 
 	protected MenuItem menuOpenJADURL;
 
-	private SwtSelectDeviceDialog selectDeviceDialog;
-
 	private FileDialog fileDialog = null;
-
-	private MenuItem menuSelectDevice;
 
 	private DeviceEntry deviceEntry;
 
@@ -152,34 +147,6 @@ public class Swt extends Common {
 		}
 	};
 
-	private Listener menuSelectDeviceListener = new Listener() {
-		public void handleEvent(Event e) {
-			if (selectDeviceDialog.open() == SwtDialog.OK) {
-				if (selectDeviceDialog.getSelectedDeviceEntry().equals(getDevice())) {
-					return;
-				}
-				if (MIDletBridge.getCurrentMIDlet() != getLauncher()) {
-					if (!SwtMessageDialog
-							.openQuestion(shell, "Question?",
-									"Changing device needs MIDlet to be restarted. All MIDlet data will be lost. Are you sure?")) {
-						return;
-					}
-				}
-				setDevice(selectDeviceDialog.getSelectedDeviceEntry());
-
-				if (MIDletBridge.getCurrentMIDlet() != getLauncher()) {
-					try {
-						initMIDlet(true);
-					} catch (Exception ex) {
-						System.err.println(ex);
-					}
-				} else {
-					startLauncher(MIDletBridge.getMIDletContext());
-				}
-			}
-		}
-	};
-
 	private StatusBarListener statusBarListener = new StatusBarListener() {
 		public void statusBarChanged(final String text) {
 			shell.getDisplay().asyncExec(new Runnable() {
@@ -196,7 +163,6 @@ public class Swt extends Common {
 				public void run() {
 					menuOpenJADFile.setEnabled(state);
 					menuOpenJADURL.setEnabled(state);
-					menuSelectDevice.setEnabled(state);
 				}
 			});
 		}
@@ -303,8 +269,6 @@ public class Swt extends Common {
 
 		shell.addKeyListener(keyListener);
 
-		selectDeviceDialog = new SwtSelectDeviceDialog(shell, emulatorContext);
-
 		setStatusBarListener(statusBarListener);
 		setResponseInterfaceListener(responseInterfaceListener);
 
@@ -345,9 +309,6 @@ public class Swt extends Common {
 		Menu optionsSubmenu = new Menu(shell, SWT.DROP_DOWN);
 		menuOptions.setMenu(optionsSubmenu);
 
-		menuSelectDevice = new MenuItem(optionsSubmenu, SWT.PUSH);
-		menuSelectDevice.setText("Native Device");
-		menuSelectDevice.addListener(SWT.Selection, menuSelectDeviceListener);
 
 		shell.setText("Neutron");
 
@@ -402,7 +363,9 @@ public class Swt extends Common {
 		}
 
 		Swt app = new Swt(shell);
-		app.initParams(params, app.selectDeviceDialog.getSelectedDeviceEntry(), SwtDevice.class);
+		DeviceEntry devEntry = Config.getDefaultDeviceEntry();
+		app.deviceEntry = devEntry;
+		app.initParams(params, devEntry, SwtDevice.class);
 		app.updateDevice();
 
 		shell.pack();

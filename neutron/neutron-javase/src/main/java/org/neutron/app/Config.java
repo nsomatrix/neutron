@@ -255,146 +255,30 @@ public class Config {
 		return meHome;
 	}
 
-	public static Vector getDeviceEntries() {
-		Vector result = new Vector();
-
+	public static DeviceEntry getDefaultDeviceEntry() {
 		if (defaultDevice == null) {
 			defaultDevice = new DeviceEntry("Resizable device", null, DeviceImpl.DEFAULT_LOCATION, true, false);
 		}
 		defaultDevice.setDefaultDevice(true);
-		result.add(defaultDevice);
+		return defaultDevice;
+	}
 
-		XMLElement devicesXml = configXml.getChild("devices");
-		if (devicesXml == null) {
-			return result;
-		}
-
-		for (Enumeration e_device = devicesXml.enumerateChildren(); e_device.hasMoreElements();) {
-			XMLElement tmp_device = (XMLElement) e_device.nextElement();
-			if (tmp_device.getName().equals("device")) {
-				String defaultAttr = tmp_device.getStringAttribute("default");
-				if (defaultAttr == null) {
-					defaultAttr = tmp_device.getStringAttribute("DEFAULT");
-				}
-				boolean devDefault = (defaultAttr != null && defaultAttr.equalsIgnoreCase("true"));
-
-				String devName = tmp_device.getChildString("name", null);
-				String devFile = tmp_device.getChildString("filename", null);
-				String devClass = tmp_device.getChildString("class", null);
-				String devDescriptor = tmp_device.getChildString("descriptor", null);
-				if (devDescriptor != null && (devDescriptor.equals("org/neutron/device/default/device.xml")
-						|| devDescriptor.equals(DeviceImpl.RESIZABLE_LOCATION))) {
-					devDescriptor = DeviceImpl.DEFAULT_LOCATION;
-				}
-				if (devDescriptor == null) {
-					if (devDefault) {
-						defaultDevice.setDefaultDevice(false);
-						for (int i = 0; i < result.size(); i++) {
-							((DeviceEntry) result.elementAt(i)).setDefaultDevice(false);
-						}
-					}
-					result.add(new DeviceEntry(devName, devFile, devDefault, devClass, emulatorContext));
-				} else {
-					boolean duplicate = false;
-					for (Enumeration en = result.elements(); en.hasMoreElements();) {
-						DeviceEntry test = (DeviceEntry) en.nextElement();
-						if (devDescriptor.equals(test.getDescriptorLocation())) {
-							if (devDefault) {
-								for (int i = 0; i < result.size(); i++) {
-									((DeviceEntry) result.elementAt(i)).setDefaultDevice(false);
-								}
-								test.setDefaultDevice(true);
-							}
-							duplicate = true;
-							break;
-						}
-					}
-					if (!duplicate) {
-						if (devDefault) {
-							defaultDevice.setDefaultDevice(false);
-							for (int i = 0; i < result.size(); i++) {
-								((DeviceEntry) result.elementAt(i)).setDefaultDevice(false);
-							}
-						}
-						result.add(new DeviceEntry(devName, devFile, devDescriptor, devDefault));
-					}
-				}
-			}
-		}
-
+	public static Vector getDeviceEntries() {
+		Vector result = new Vector();
+		result.add(getDefaultDeviceEntry());
 		return result;
 	}
 
 	public static void addDeviceEntry(DeviceEntry entry) {
-		for (Enumeration en = getDeviceEntries().elements(); en.hasMoreElements();) {
-			DeviceEntry test = (DeviceEntry) en.nextElement();
-			if (test.getDescriptorLocation().equals(entry.getDescriptorLocation())) {
-				return;
-			}
-		}
-
-		XMLElement devicesXml = configXml.getChildOrNew("devices");
-
-		XMLElement deviceXml = devicesXml.addChild("device");
-		if (entry.isDefaultDevice()) {
-			deviceXml.setAttribute("default", "true");
-		}
-		deviceXml.addChild("name", entry.getName());
-		deviceXml.addChild("filename", entry.getFileName());
-		deviceXml.addChild("descriptor", entry.getDescriptorLocation());
-
-		saveConfig();
+		// Addition of new device profiles is disabled
 	}
 
 	public static void removeDeviceEntry(DeviceEntry entry) {
-		XMLElement devicesXml = configXml.getChild("devices");
-		if (devicesXml == null) {
-			return;
-		}
-
-		for (Enumeration e_device = devicesXml.enumerateChildren(); e_device.hasMoreElements();) {
-			XMLElement tmp_device = (XMLElement) e_device.nextElement();
-			if (tmp_device.getName().equals("device")) {
-				String testDescriptor = tmp_device.getChildString("descriptor", null);
-				// this is needed by migration config.xml -> config2.xml
-				if (testDescriptor == null) {
-					devicesXml.removeChild(tmp_device);
-
-					saveConfig();
-					continue;
-				}
-				if (testDescriptor.equals(entry.getDescriptorLocation())) {
-					devicesXml.removeChild(tmp_device);
-
-					saveConfig();
-					break;
-				}
-			}
-		}
+		// Removal of device profiles is disabled
 	}
 
 	public static void changeDeviceEntry(DeviceEntry entry) {
-		XMLElement devicesXml = configXml.getChild("devices");
-		if (devicesXml == null) {
-			return;
-		}
-
-		for (Enumeration e_device = devicesXml.enumerateChildren(); e_device.hasMoreElements();) {
-			XMLElement tmp_device = (XMLElement) e_device.nextElement();
-			if (tmp_device.getName().equals("device")) {
-				String testDescriptor = tmp_device.getChildString("descriptor", null);
-				if (testDescriptor.equals(entry.getDescriptorLocation())) {
-					if (entry.isDefaultDevice()) {
-						tmp_device.setAttribute("default", "true");
-					} else {
-						tmp_device.removeAttribute("default");
-					}
-
-					saveConfig();
-					break;
-				}
-			}
-		}
+		// Modifying device profile properties is disabled
 	}
 
 	public static Rectangle getDeviceEntryDisplaySize(DeviceEntry entry) {
