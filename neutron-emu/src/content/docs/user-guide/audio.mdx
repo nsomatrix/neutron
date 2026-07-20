@@ -1,0 +1,76 @@
+---
+title: Audio
+description: Audio playback, MIDI support, and sound configuration in Neutron.
+order: 7
+---
+
+## Audio System Overview
+
+Neutron provides comprehensive audio support through the Mobile Media API (MMAPI), supporting PCM audio, MIDI, and tone generation.
+
+## Supported Formats
+
+| Format | Extension | Notes |
+|--------|-----------|-------|
+| WAV | `.wav` | 8/16-bit PCM, mono/stereo |
+| AU | `.au` | Sun Audio format |
+| MIDI | `.mid`, `.midi` | Standard MIDI files |
+| Tone | N/A | Programmatic tone sequences |
+
+## Playing Audio
+
+### Using the Player API
+
+```java
+import javax.microedition.media.*;
+
+// Create a player from a resource
+InputStream is = getClass().getResourceAsStream("/sound.wav");
+Player player = Manager.createPlayer(is, "audio/wav");
+player.realize();
+player.prefetch();
+player.start();
+```
+
+### Volume Control
+
+```java
+VolumeControl vc = (VolumeControl) player.getControl("VolumeControl");
+vc.setLevel(75); // 0-100
+```
+
+### Tone Generation
+
+```java
+// Play a single tone (note, duration, volume)
+Manager.playTone(69, 500, 100); // A4 for 500ms at full volume
+```
+
+## Configuration
+
+```toml title="config.toml"
+[audio]
+enabled = true
+volume = 80
+sample_rate = 44100
+buffer_size = 1024
+```
+
+<Callout type="info">
+Lower buffer sizes reduce audio latency but may cause crackle on slower systems. Start with 1024 and decrease if needed.
+</Callout>
+
+## Troubleshooting
+
+### No audio output
+
+1. Check that audio is enabled in the configuration
+2. Verify your system's audio output device
+3. On Linux, ensure `libasound2` is installed
+4. Try increasing the buffer size
+
+### Audio crackling
+
+- Increase `buffer_size` to 2048 or 4096
+- Close other audio-intensive applications
+- Check CPU usage during playback

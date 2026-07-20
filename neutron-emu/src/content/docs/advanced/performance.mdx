@@ -1,0 +1,84 @@
+---
+title: Performance
+description: Optimizing Neutron for maximum performance and minimal resource usage.
+order: 11
+---
+
+## Performance Overview
+
+Neutron is designed for efficiency, but there are several settings you can tune for optimal performance on your hardware.
+
+## Performance Settings
+
+```toml title="config.toml"
+[performance]
+jit_enabled = true        # Enable JIT compilation
+thread_priority = "normal" # "low", "normal", "high"
+gc_strategy = "balanced"   # "conservative", "balanced", "aggressive"
+```
+
+## Display Optimization
+
+### VSync
+
+VSync prevents screen tearing but caps frame rate to your monitor's refresh rate:
+
+```toml
+[display]
+vsync = true
+```
+
+### Frame Rate Limiting
+
+Set a custom FPS limit for consistent performance:
+
+```toml
+[display]
+fps_limit = 60  # 0 = unlimited
+```
+
+<Callout type="tip">
+Most Java ME games were designed for 30 FPS. Setting the limit to 30 can reduce CPU usage significantly.
+</Callout>
+
+## Memory Management
+
+Monitor and control memory usage:
+
+```bash
+# Run with increased heap size
+neutron run game.jar --heap 128m
+
+# Enable memory profiling
+neutron run game.jar --profile-memory
+```
+
+### Memory Limits
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Heap size | 64 MB | MIDlet heap memory |
+| Stack size | 512 KB | Thread stack size |
+| RMS limit | 1 MB | Per-store limit |
+
+## Benchmarking
+
+Run the built-in benchmark suite:
+
+```bash
+neutron benchmark --iterations 1000
+
+# Output:
+# Graphics: 245 fps
+# Audio: 44100 Hz stable
+# GCF: 12ms avg latency
+# RMS: 850 ops/sec
+```
+
+## Performance Tips
+
+1. **Use integer scaling** — Faster than bilinear filtering
+2. **Disable VSync** — For maximum frame rate during development
+3. **Close unused features** — Disable audio if not needed
+4. **Use latest Java** — JDK 17+ includes performance improvements
+5. **Increase heap** — If MIDlets run out of memory

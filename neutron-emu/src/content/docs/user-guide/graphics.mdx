@@ -1,0 +1,95 @@
+---
+title: Graphics
+description: Display rendering, resolution management, and graphics API support in Neutron.
+order: 6
+---
+
+## Display System
+
+Neutron implements a complete LCDUI and Game API rendering pipeline that accurately emulates the display behavior of real Java ME devices.
+
+## Canvas Rendering
+
+The `Canvas` class provides a low-level drawing surface for custom graphics:
+
+```java
+public class MyCanvas extends Canvas {
+    protected void paint(Graphics g) {
+        // Clear background
+        g.setColor(0x000000);
+        g.fillRect(0, 0, getWidth(), getHeight());
+
+        // Draw a circle
+        g.setColor(0xFF0000);
+        g.fillArc(50, 50, 40, 40, 0, 360);
+    }
+}
+```
+
+## Game API
+
+Neutron fully supports the MIDP 2.0 Game API:
+
+### GameCanvas
+
+```java
+public class MyGame extends GameCanvas implements Runnable {
+    private boolean running = true;
+
+    public void run() {
+        Graphics g = getGraphics();
+        while (running) {
+            // Game logic
+            int keyStates = getKeyStates();
+            update(keyStates);
+
+            // Render
+            render(g);
+            flushGraphics();
+
+            // Frame timing
+            try { Thread.sleep(16); }
+            catch (InterruptedException e) {}
+        }
+    }
+}
+```
+
+### Sprites and Layers
+
+Full `Sprite`, `TiledLayer`, and `LayerManager` support:
+
+```java
+Sprite player = new Sprite(playerImage, 32, 32);
+player.setPosition(100, 100);
+player.setFrame(0);
+
+LayerManager layers = new LayerManager();
+layers.append(player);
+layers.append(background);
+layers.paint(g, 0, 0);
+```
+
+## Display Configuration
+
+Configure the display via the configuration file or CLI:
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `width` | 240 | Virtual screen width |
+| `height` | 320 | Virtual screen height |
+| `scale` | 2 | Display scale factor |
+| `vsync` | true | Vertical sync |
+| `fps_limit` | 60 | Maximum frame rate |
+
+<Callout type="tip">
+For pixel-art games, use integer scaling (1x, 2x, 3x) with nearest-neighbor filtering to maintain sharp pixels.
+</Callout>
+
+## Fullscreen Mode
+
+Toggle fullscreen with `F11` or via the menu. In fullscreen mode:
+
+- The status bar auto-hides after 3 seconds
+- Move the mouse to the top edge to reveal controls
+- Press `Escape` to exit fullscreen

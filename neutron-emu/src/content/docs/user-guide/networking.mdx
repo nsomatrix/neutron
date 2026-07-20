@@ -1,0 +1,69 @@
+---
+title: Networking
+description: HTTP, socket, and datagram networking support in Neutron.
+order: 9
+---
+
+## Network Overview
+
+Neutron supports the full Generic Connection Framework (GCF) networking stack, including HTTP/HTTPS, TCP sockets, and UDP datagrams.
+
+## HTTP Connections
+
+```java
+HttpConnection conn = (HttpConnection) Connector.open(
+    "http://example.com/api/data"
+);
+conn.setRequestMethod(HttpConnection.GET);
+
+int rc = conn.getResponseCode();
+if (rc == HttpConnection.HTTP_OK) {
+    InputStream is = conn.openInputStream();
+    // Read response...
+    is.close();
+}
+conn.close();
+```
+
+## Socket Connections
+
+```java
+SocketConnection conn = (SocketConnection) Connector.open(
+    "socket://example.com:8080"
+);
+
+OutputStream os = conn.openOutputStream();
+os.write("Hello".getBytes());
+os.flush();
+
+InputStream is = conn.openInputStream();
+// Read response...
+
+conn.close();
+```
+
+## Proxy Configuration
+
+Configure network proxy for all connections:
+
+```toml title="config.toml"
+[network]
+proxy_enabled = true
+proxy_type = "socks5"    # "http", "socks4", "socks5"
+proxy_host = "127.0.0.1"
+proxy_port = 1080
+proxy_username = ""      # For authenticated proxies
+proxy_password = ""
+```
+
+## Security
+
+<Callout type="warning">
+Enable the `allow_network` toggle with caution. Untrusted MIDlets may attempt to connect to external servers or exfiltrate data.
+</Callout>
+
+### Network Controls
+
+- **Global Toggle** — Enable/disable all network access via `allow_network`
+- **Connection Tracking** — Monitor active connections in real-time
+- **Automatic Cleanup** — All connections are terminated when a MIDlet exits

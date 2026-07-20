@@ -1,0 +1,82 @@
+---
+title: FAQ
+description: Frequently asked questions about Neutron.
+order: 18
+---
+
+## General
+
+### What is Neutron?
+
+Neutron is a modern, open-source Java ME (Micro Edition) emulator that allows you to run MIDP 2.0 and CLDC 1.1 applications on desktop computers. It's designed for both developers testing legacy applications and enthusiasts revisiting classic mobile games.
+
+### Is Neutron free?
+
+Yes. Neutron is free and open-source software released under the LGPL license. You can use it for any purpose, including commercial use.
+
+### What platforms does Neutron support?
+
+Neutron runs on Windows, macOS, and Linux — any platform with Java 11 or later.
+
+## Compatibility
+
+### What Java ME APIs are supported?
+
+Neutron supports MIDP 2.0 and CLDC 1.1, including:
+
+- Full LCDUI and Game API
+- Record Management System (RMS)
+- Generic Connection Framework (HTTP, sockets, datagrams)
+- Mobile Media API (MMAPI) for audio
+
+### Will my MIDlet work with Neutron?
+
+Most standard MIDP 2.0 MIDlets work out of the box. Some vendor-specific extensions (Nokia UI API, Samsung API, etc.) may have limited support. Check the compatibility list on GitHub.
+
+### Does Neutron support J2ME games?
+
+Yes! Neutron is particularly well-suited for running classic J2ME games with full graphics, audio, and input support.
+
+## Troubleshooting
+
+### The emulator won't start
+
+1. Verify Java is installed: `java -version`
+2. Ensure you have JDK 11 or later
+3. Check the log file for errors
+4. Try running from the command line to see error output
+
+### No sound
+
+1. Check that audio is enabled in the configuration
+2. Verify your system audio output
+3. On Linux, install `libasound2-dev`
+4. Try increasing the audio buffer size
+
+### Performance is slow
+
+1. Ensure you're using JDK 17 or later for best performance
+2. Try disabling VSync
+3. Reduce the display scale factor
+4. Close unnecessary background applications
+
+### MIDlet crashes on launch
+
+1. Check that the JAR file is a valid Java ME application
+2. Ensure the MIDlet descriptor (JAD) matches the JAR
+3. Try with increased heap size: `--heap 128m`
+4. Check the log for exception details
+
+## Development
+
+### How can I contribute?
+
+See the [Contributing guide](/docs/development/contributing) for details on how to get involved.
+
+### How do I report a bug?
+
+Open an issue on the [GitHub repository](https://github.com/nicokosi/neutron/issues) with steps to reproduce, your system info, and any relevant logs.
+
+### Can I create plugins?
+
+Yes! Neutron has a plugin system that allows you to extend its functionality. See the [Plugins documentation](/docs/advanced/plugins).

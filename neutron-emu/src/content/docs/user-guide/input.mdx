@@ -1,0 +1,81 @@
+---
+title: Input
+description: Keyboard mapping, gamepad support, and input configuration.
+order: 8
+---
+
+## Input System
+
+Neutron maps desktop input devices to the Java ME key model, supporting keyboard, gamepad, and mouse input.
+
+## Default Key Mapping
+
+### Navigation Keys
+
+| Desktop Key | J2ME Key | Key Code |
+|-------------|----------|----------|
+| ↑ Arrow | UP | -1 |
+| ↓ Arrow | DOWN | -2 |
+| ← Arrow | LEFT | -3 |
+| → Arrow | RIGHT | -4 |
+| Enter | FIRE | -5 |
+
+### Soft Keys
+
+| Desktop Key | J2ME Key | Key Code |
+|-------------|----------|----------|
+| Q | Left Soft Key | -6 |
+| W | Right Soft Key | -7 |
+
+### Numeric Keypad
+
+| Desktop Key | J2ME Key |
+|-------------|----------|
+| 0-9 | KEY_NUM0-KEY_NUM9 |
+| * | KEY_STAR |
+| # | KEY_POUND |
+
+## Custom Key Mapping
+
+Modify key bindings in the configuration:
+
+```toml title="config.toml"
+[input.keyboard]
+up = "ArrowUp"
+down = "ArrowDown"
+left = "ArrowLeft"
+right = "ArrowRight"
+fire = "Enter"
+soft_left = "Q"
+soft_right = "W"
+```
+
+## Gamepad Support
+
+Neutron supports gamepads and controllers:
+
+```toml title="config.toml"
+[input.gamepad]
+enabled = true
+dpad_to_keys = true
+analog_deadzone = 0.2
+```
+
+| Gamepad Button | J2ME Key |
+|---------------|----------|
+| D-Pad | Direction keys |
+| A / Cross | FIRE |
+| B / Circle | Right Soft Key |
+| X / Square | Left Soft Key |
+
+<Callout type="tip">
+You can customize the gamepad mapping through **Config → Controls** in the GUI.
+</Callout>
+
+## Touch Input
+
+Mouse clicks are translated to pointer events for MIDlets that support touch:
+
+- **Left Click** → Pointer pressed/released
+- **Click + Drag** → Pointer dragged
+- Mouse position maps directly to the virtual display coordinates

@@ -1,0 +1,60 @@
+---
+title: Filesystem
+description: Record Management System (RMS) and file storage in Neutron.
+order: 10
+---
+
+## Storage Overview
+
+Neutron emulates the Java ME storage system using the host filesystem, providing persistent storage through the Record Management System (RMS) and FileConnection API.
+
+## Record Management System (RMS)
+
+RMS provides persistent storage for MIDlet data:
+
+```java
+RecordStore rs = RecordStore.openRecordStore("scores", true);
+
+// Add a record
+byte[] data = "100".getBytes();
+int id = rs.addRecord(data, 0, data.length);
+
+// Read a record
+byte[] result = rs.getRecord(id);
+String score = new String(result);
+
+// Close
+rs.closeRecordStore();
+```
+
+## Storage Location
+
+RMS data is stored on disk at:
+
+| Platform | Path |
+|----------|------|
+| Windows | `%APPDATA%\Neutron\data\{midlet-name}\` |
+| macOS | `~/Library/Application Support/Neutron/data/` |
+| Linux | `~/.local/share/neutron/data/` |
+
+## Storage Limits
+
+By default, Neutron applies generous storage limits:
+
+| Limit | Default | Configurable |
+|-------|---------|-------------|
+| Max record size | 64 KB | Yes |
+| Max records per store | 10,000 | Yes |
+| Max store size | 1 MB | Yes |
+| Max stores per MIDlet | 32 | Yes |
+
+```toml title="config.toml"
+[storage]
+max_record_size = 65536
+max_records = 10000
+max_store_size = 1048576
+```
+
+<Callout type="info">
+Unlike real devices, Neutron can be configured with effectively unlimited storage for development and testing purposes.
+</Callout>

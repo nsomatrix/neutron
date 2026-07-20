@@ -1,0 +1,96 @@
+---
+title: Architecture
+description: Technical overview of Neutron's internal architecture and design.
+order: 14
+---
+
+## System Architecture
+
+Neutron is built with a modular architecture that separates the emulation core from the platform-specific UI and I/O layers.
+
+## Module Overview
+
+```
+┌──────────────────────────────────────────┐
+│                  UI Layer                 │
+│           (Swing / JavaFX / CLI)          │
+├──────────────────────────────────────────┤
+│              Platform Bridge              │
+│        (Display, Audio, Input, FS)        │
+├──────────────────────────────────────────┤
+│             Emulation Core               │
+│    (CLDC Runtime, MIDP Implementation)    │
+├──────────────────────────────────────────┤
+│              Class Loader                │
+│      (MIDlet Loading & Verification)      │
+└──────────────────────────────────────────┘
+```
+
+## Core Components
+
+### Class Loader
+
+The class loader handles JAR parsing, class verification, and bytecode preparation:
+
+- JAR/JAD manifest parsing
+- Class file verification
+- Resource management
+- Bytecode preprocessing
+
+### CLDC Runtime
+
+The CLDC runtime provides the foundational Java ME APIs:
+
+- `java.lang` — Core language classes
+- `java.util` — Collections and utilities
+- `java.io` — I/O streams
+- `javax.microedition.io` — Generic Connection Framework
+
+### MIDP Implementation
+
+The MIDP layer implements the Mobile Information Device Profile:
+
+- **LCDUI** — User interface components
+- **Game API** — Game-specific rendering
+- **RMS** — Persistent storage
+- **Push Registry** — Background activation
+
+### Platform Bridge
+
+The platform bridge abstracts OS-specific functionality:
+
+| Component | Responsibility |
+|-----------|---------------|
+| DisplayBridge | Screen rendering, scaling |
+| AudioBridge | Sound playback, MIDI |
+| InputBridge | Keyboard, mouse, gamepad |
+| StorageBridge | File I/O, RMS persistence |
+| NetworkBridge | HTTP, sockets, datagrams |
+
+## Threading Model
+
+Neutron uses a multi-threaded architecture:
+
+- **EDT** (Event Dispatch Thread) — UI updates
+- **Emulation Thread** — MIDlet execution
+- **Audio Thread** — Sound processing
+- **Network Threads** — Async I/O operations
+
+<Callout type="info">
+All UI updates are dispatched to the EDT to prevent threading issues, following Java Swing best practices.
+</Callout>
+
+## Build System
+
+Neutron uses Gradle for build management:
+
+```bash
+# Build the project
+./gradlew build
+
+# Run tests
+./gradlew test
+
+# Create distribution
+./gradlew distZip
+```

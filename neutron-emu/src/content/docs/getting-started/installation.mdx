@@ -1,0 +1,75 @@
+---
+title: Installation
+description: Download and install Neutron on Windows, macOS, or Linux.
+order: 1
+---
+
+## Download
+
+Download the latest release of Neutron from the [GitHub Releases](https://github.com/nicokosi/neutron/releases) page.
+
+### Available Packages
+
+| Platform | Format | Size |
+|----------|--------|------|
+| Windows | `.exe` installer | ~25 MB |
+| macOS | `.dmg` disk image | ~30 MB |
+| Linux | `.tar.gz` archive | ~20 MB |
+| Universal | `.jar` (requires Java) | ~15 MB |
+
+## Installation Methods
+
+### Windows
+
+1. Download the `.exe` installer from the releases page
+2. Run the installer and follow the on-screen prompts
+3. Neutron will be added to your Start Menu
+
+```bash
+# Or install via the universal JAR
+java -jar neutron.jar
+```
+
+### macOS
+
+1. Download the `.dmg` file
+2. Open the disk image
+3. Drag Neutron to your Applications folder
+4. On first launch, right-click and select "Open" to bypass Gatekeeper
+
+### Linux
+
+```bash
+# Extract the archive
+tar -xzf neutron-linux-x64.tar.gz
+
+# Run Neutron
+cd neutron
+./neutron
+```
+
+Or use the universal JAR:
+
+```bash
+java -jar neutron.jar
+```
+
+## Verifying Your Installation
+
+After installation, verify that Neutron is working correctly:
+
+```bash
+neutron --version
+# Neutron v2.0.0
+```
+
+<Callout type="tip">
+If you're using the universal JAR, you can create an alias for convenience:
+`alias neutron='java -jar /path/to/neutron.jar'`
+</Callout>
+
+## Next Steps
+
+- [Check the requirements](/docs/getting-started/requirements) for your platform
+- [Follow the Quick Start guide](/docs/getting-started/quick-start) to run your first MIDlet
+- [Configure Neutron](/docs/getting-started/configuration) to match your preferences

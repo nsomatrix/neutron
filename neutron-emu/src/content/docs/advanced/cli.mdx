@@ -1,0 +1,122 @@
+---
+title: CLI Reference
+description: Complete command-line interface reference for Neutron.
+order: 13
+---
+
+## Usage
+
+```bash
+neutron [command] [options]
+```
+
+## Commands
+
+### `run`
+
+Run a MIDlet from a JAR or JAD file:
+
+```bash
+neutron run <file> [options]
+```
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--width` | Display width | 240 |
+| `--height` | Display height | 320 |
+| `--scale` | Scale factor | 2 |
+| `--fullscreen` | Start in fullscreen | false |
+| `--fps` | Frame rate limit | 60 |
+| `--no-audio` | Disable audio | false |
+| `--no-network` | Disable networking | false |
+| `--heap` | Heap size (e.g., 128m) | 64m |
+| `--profile` | Enable profiling | false |
+
+```bash
+# Examples
+neutron run game.jar
+neutron run game.jar --width 320 --height 480 --scale 2
+neutron run game.jar --fullscreen --fps 30
+neutron run game.jad --no-network
+```
+
+### `list`
+
+List MIDlets in a JAR file:
+
+```bash
+neutron list game.jar
+# MIDlet-1: Snake 3D, /icon.png, com.example.Snake
+# MIDlet-2: Settings, /settings.png, com.example.Settings
+```
+
+### `info`
+
+Show detailed information about a JAR:
+
+```bash
+neutron info game.jar
+# Name: Snake 3D
+# Vendor: Example Corp
+# Version: 1.2.0
+# Profile: MIDP-2.0
+# Configuration: CLDC-1.1
+# MIDlets: 2
+# Size: 245 KB
+```
+
+### `benchmark`
+
+Run performance benchmarks:
+
+```bash
+neutron benchmark [--iterations N]
+```
+
+### `config`
+
+View or modify configuration:
+
+```bash
+# Show current config
+neutron config show
+
+# Set a value
+neutron config set display.scale 3
+
+# Reset to defaults
+neutron config reset
+```
+
+### `version`
+
+Show version information:
+
+```bash
+neutron version
+# Neutron v2.0.0 (build 2024-01-15)
+# Java: OpenJDK 17.0.8
+# OS: Linux x86_64
+```
+
+## Global Options
+
+| Option | Description |
+|--------|-------------|
+| `--help`, `-h` | Show help |
+| `--version`, `-v` | Show version |
+| `--verbose` | Verbose output |
+| `--quiet` | Suppress output |
+| `--config` | Custom config path |
+| `--no-gui` | Headless mode |
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Invalid arguments |
+| 3 | File not found |
+| 4 | Invalid MIDlet |
+| 5 | Runtime error |

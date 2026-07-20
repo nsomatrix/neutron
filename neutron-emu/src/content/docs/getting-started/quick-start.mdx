@@ -1,0 +1,97 @@
+---
+title: Quick Start
+description: Get Neutron up and running in under 5 minutes.
+order: 3
+---
+
+## Overview
+
+This guide will get you from zero to running your first Java ME application in just a few steps.
+
+## Step 1: Install Neutron
+
+Download the latest release for your platform from the [releases page](https://github.com/nicokosi/neutron/releases), or use the universal JAR:
+
+```bash
+# Download the latest release
+curl -LO https://github.com/nicokosi/neutron/releases/latest/download/neutron.jar
+```
+
+## Step 2: Launch Neutron
+
+### GUI Mode
+
+Double-click the application or run:
+
+```bash
+java -jar neutron.jar
+```
+
+### CLI Mode
+
+Run a MIDlet directly from the command line:
+
+```bash
+neutron run path/to/your-app.jar
+```
+
+## Step 3: Load a MIDlet
+
+1. Open Neutron
+2. Click **File → Open** or drag a `.jar` file onto the window
+3. Select the MIDlet from the list (if the JAR contains multiple)
+4. Click **Run**
+
+<Callout type="tip">
+Neutron supports both `.jar` and `.jad` files. When loading a `.jad` file, the associated `.jar` will be located automatically.
+</Callout>
+
+## Step 4: Configure the Display
+
+Adjust the display settings for optimal experience:
+
+```bash
+# Set display resolution
+neutron run game.jar --width 240 --height 320
+
+# Enable fullscreen mode
+neutron run game.jar --fullscreen
+
+# Set scale factor
+neutron run game.jar --scale 2
+```
+
+## Step 5: Map Controls
+
+Default keyboard mapping:
+
+| Key | J2ME Button |
+|-----|-------------|
+| Arrow Keys | Direction pad |
+| Enter | Select / Fire |
+| Q / W | Left / Right soft key |
+| 0-9 | Numeric keypad |
+| * / # | Star / Pound |
+
+You can customize these in **Config → Controls**.
+
+## Example: Running a Game
+
+```bash
+# Run with optimized settings
+neutron run snake.jar \
+  --width 240 \
+  --height 320 \
+  --scale 3 \
+  --fps 60
+```
+
+<Callout type="info">
+For the best experience with games, enable VSync in the configuration and set the frame rate to match the game's intended rate (usually 30 or 60 FPS).
+</Callout>
+
+## What's Next?
+
+- [Configure Neutron](/docs/getting-started/configuration) for your preferences
+- [Explore features](/docs/user-guide/features) like audio, networking, and more
+- [Learn the CLI](/docs/advanced/cli) for scripting and automation

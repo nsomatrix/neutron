@@ -1,0 +1,121 @@
+---
+title: Configuration
+description: Configure Neutron to match your workflow and preferences.
+order: 4
+---
+
+## Configuration File
+
+Neutron stores its configuration in a TOML file located at:
+
+| Platform | Path |
+|----------|------|
+| Windows | `%APPDATA%\Neutron\config.toml` |
+| macOS | `~/Library/Application Support/Neutron/config.toml` |
+| Linux | `~/.config/neutron/config.toml` |
+
+## Default Configuration
+
+```toml title="config.toml"
+[display]
+width = 240
+height = 320
+scale = 2
+fullscreen = false
+vsync = true
+fps_limit = 60
+
+[audio]
+enabled = true
+volume = 80
+sample_rate = 44100
+
+[input]
+keyboard_enabled = true
+gamepad_enabled = false
+
+[network]
+allow_network = true
+proxy_enabled = false
+proxy_host = ""
+proxy_port = 0
+
+[emulation]
+speed = 1.0
+skip_splash = false
+auto_detect_encoding = true
+
+[ui]
+theme = "dark"
+language = "en"
+show_fps = false
+show_status_bar = true
+```
+
+## Display Settings
+
+### Resolution
+
+Set the virtual display resolution to match the target device:
+
+```toml
+[display]
+width = 240   # Common: 128, 176, 240, 320
+height = 320  # Common: 160, 220, 320, 480
+```
+
+### Scaling
+
+Control how the display is scaled:
+
+```toml
+[display]
+scale = 2           # Integer scaling (1-5)
+scaling_mode = "nearest"  # "nearest" or "bilinear"
+```
+
+<Callout type="tip">
+Use `nearest` scaling for pixel-art games and `bilinear` for applications with smooth graphics.
+</Callout>
+
+## Audio Settings
+
+```toml
+[audio]
+enabled = true
+volume = 80          # 0-100
+sample_rate = 44100  # 22050, 44100, or 48000
+buffer_size = 1024   # Lower = less latency, higher = more stable
+```
+
+## Network Settings
+
+Control network access for MIDlets:
+
+```toml
+[network]
+allow_network = true    # Global network toggle
+proxy_enabled = false
+proxy_host = "proxy.example.com"
+proxy_port = 8080
+proxy_type = "http"     # "http", "socks4", or "socks5"
+```
+
+<Callout type="warning">
+Be cautious when enabling network access for untrusted MIDlets. They may attempt to make external connections.
+</Callout>
+
+## Environment Variables
+
+You can also configure Neutron using environment variables:
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NEUTRON_HOME` | Data directory path | Platform default |
+| `NEUTRON_JAVA_HOME` | Custom Java path | System Java |
+| `NEUTRON_LOG_LEVEL` | Logging verbosity | `info` |
+| `NEUTRON_NO_GUI` | Headless mode | `false` |
+
+```bash
+NEUTRON_LOG_LEVEL=debug neutron run app.jar
+```

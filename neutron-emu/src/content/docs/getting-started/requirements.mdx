@@ -1,0 +1,68 @@
+---
+title: Requirements
+description: System requirements and prerequisites for running Neutron.
+order: 2
+---
+
+## System Requirements
+
+### Minimum Requirements
+
+| Component | Requirement |
+|-----------|------------|
+| Operating System | Windows 10, macOS 11, Ubuntu 20.04 |
+| Processor | Any x86_64 or ARM64 CPU |
+| Memory | 256 MB RAM |
+| Disk Space | 50 MB |
+| Java | JDK 11+ |
+
+### Recommended
+
+| Component | Recommendation |
+|-----------|---------------|
+| Operating System | Latest stable release |
+| Processor | Multi-core CPU |
+| Memory | 512 MB RAM |
+| Disk Space | 100 MB (including ROMs) |
+| Java | JDK 17 or later |
+
+## Java Installation
+
+Neutron requires a Java Development Kit (JDK) version 11 or later. We recommend using one of these distributions:
+
+- [Eclipse Temurin](https://adoptium.net/) (recommended)
+- [Oracle JDK](https://www.oracle.com/java/)
+- [Amazon Corretto](https://aws.amazon.com/corretto/)
+
+### Verify Java Installation
+
+```bash
+java -version
+# openjdk version "17.0.8" 2023-07-18
+```
+
+<Callout type="warning">
+Neutron requires the full JDK, not just the JRE. Make sure you have `javac` available:
+`javac -version`
+</Callout>
+
+## Platform-Specific Notes
+
+### Windows
+
+- Windows Defender may flag the first launch — this is a false positive
+- For best performance, disable Windows Game Mode when using the emulator
+
+### macOS
+
+- On Apple Silicon (M1/M2/M3), Neutron runs natively via Rosetta 2 or the ARM build
+- Grant accessibility permissions if prompted for input handling
+
+### Linux
+
+- X11 and Wayland are both supported
+- Install `libasound2` for audio support on Debian-based systems:
+
+```bash
+sudo apt install libasound2-dev
+```

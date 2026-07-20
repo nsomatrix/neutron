@@ -1,0 +1,87 @@
+---
+title: Building From Source
+description: How to build Neutron from source code.
+order: 15
+---
+
+## Prerequisites
+
+- **JDK 17** or later
+- **Gradle 8.0** or later (wrapper included)
+- **Git**
+
+## Clone the Repository
+
+```bash
+git clone https://github.com/nicokosi/neutron.git
+cd neutron
+```
+
+## Build
+
+```bash
+# Build the project
+./gradlew build
+
+# Build without tests
+./gradlew build -x test
+```
+
+## Run
+
+```bash
+# Run from source
+./gradlew run
+
+# Run with arguments
+./gradlew run --args="run game.jar"
+```
+
+## Project Structure
+
+```
+neutron/
+├── neutron/          # Core emulator module
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/    # Source code
+│   │   │   └── resources/
+│   │   └── test/
+│   └── build.gradle
+├── build.gradle       # Root build script
+├── settings.gradle    # Module configuration
+└── gradlew           # Gradle wrapper
+```
+
+## Distribution
+
+Create a distributable package:
+
+```bash
+# Create a ZIP distribution
+./gradlew distZip
+
+# Create a TAR distribution
+./gradlew distTar
+
+# Output: build/distributions/
+```
+
+## IDE Setup
+
+### IntelliJ IDEA
+
+1. Open the project root directory
+2. IntelliJ will detect the Gradle project automatically
+3. Wait for the Gradle sync to complete
+4. Run configurations will be created automatically
+
+### VS Code
+
+1. Install the "Java Extension Pack"
+2. Open the project root directory
+3. The Java language server will detect the Gradle project
+
+<Callout type="tip">
+Use `./gradlew --continuous build` during development for automatic rebuilds on file changes.
+</Callout>
