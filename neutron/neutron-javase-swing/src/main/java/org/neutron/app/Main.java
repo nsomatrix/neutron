@@ -1124,7 +1124,7 @@ public class Main extends JFrame {
 		ButtonGroup themeGroup = new ButtonGroup();
 		String[] themes = {
 			"FlatLaf Dark", "FlatLaf Light", "FlatLaf IntelliJ", 
-			"FlatLaf Darcula", "FlatLaf macOS Dark", "FlatLaf macOS Light", 
+			"FlatLaf Dracula", "FlatLaf macOS Dark", "FlatLaf macOS Light", 
 			"System Look and Feel"
 		};
 		String currentTheme = Config.getTheme();
@@ -1774,7 +1774,7 @@ public class Main extends JFrame {
 				com.formdev.flatlaf.FlatDarkLaf.setup();
 			} else if ("FlatLaf IntelliJ".equals(theme)) {
 				com.formdev.flatlaf.FlatIntelliJLaf.setup();
-			} else if ("FlatLaf Darcula".equals(theme)) {
+			} else if ("FlatLaf Dracula".equals(theme)) {
 				com.formdev.flatlaf.FlatDarculaLaf.setup();
 			} else if ("FlatLaf macOS Light".equals(theme)) {
 				com.formdev.flatlaf.themes.FlatMacLightLaf.setup();

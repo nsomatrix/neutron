@@ -479,7 +479,11 @@ public class Config {
 		if (optionsXml == null) {
 			return "FlatLaf macOS Light";
 		}
-		return optionsXml.getChildString("theme", "FlatLaf macOS Light");
+		String theme = optionsXml.getChildString("theme", "FlatLaf macOS Light");
+		if ("FlatLaf Darcula".equals(theme)) {
+			return "FlatLaf Dracula";
+		}
+		return theme;
 	}
 
 	public static void setTheme(String theme) {
@@ -1053,7 +1057,11 @@ public class Config {
 				xmlRoot.parseString(xml);
 				XMLElement optionsXml = xmlRoot.getChild("options");
 				if (optionsXml != null) {
-					return optionsXml.getChildString("theme", "FlatLaf macOS Light");
+					String theme = optionsXml.getChildString("theme", "FlatLaf macOS Light");
+					if ("FlatLaf Darcula".equals(theme)) {
+						return "FlatLaf Dracula";
+					}
+					return theme;
 				}
 			} finally {
 				is.close();
