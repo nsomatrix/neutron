@@ -40,10 +40,6 @@ export const siteConfig = {
     community: [
       { title: "GitHub", href: "https://github.com/nsomatrix/neutron" },
       {
-        title: "Contributing",
-        href: "/docs/development/contributing",
-      },
-      {
         title: "Bug Reports",
         href: "https://github.com/nsomatrix/neutron/issues",
       },

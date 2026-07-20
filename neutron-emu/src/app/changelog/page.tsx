@@ -18,57 +18,19 @@ interface Release {
 
 const releases: Release[] = [
   {
-    version: "2.0.0",
-    date: "2024-01-15",
+    version: "1.0.0",
+    date: "2026-07-20",
     tag: "latest",
     changes: [
-      { type: "added", description: "Complete UI redesign with dark mode support" },
-      { type: "added", description: "Plugin system for extensibility" },
-      { type: "added", description: "CLI interface with full command support" },
-      { type: "added", description: "Gamepad and controller support" },
-      { type: "added", description: "SOCKS5 proxy authentication" },
-      { type: "changed", description: "Upgraded to Java 17 baseline" },
-      { type: "changed", description: "Improved audio latency by 40%" },
-      { type: "changed", description: "Rewritten network stack with connection tracking" },
-      { type: "fixed", description: "Memory leak in Sprite rendering pipeline" },
-      { type: "fixed", description: "Fullscreen toggle causing UI freeze" },
-      { type: "fixed", description: "RMS data corruption on concurrent access" },
-    ],
-  },
-  {
-    version: "1.5.0",
-    date: "2023-09-20",
-    tag: null,
-    changes: [
-      { type: "added", description: "Fullscreen mode with auto-hiding status bar" },
-      { type: "added", description: "Network activity monitoring" },
-      { type: "added", description: "Screenshot capture functionality" },
-      { type: "changed", description: "Improved MIDP 2.0 compliance" },
-      { type: "fixed", description: "Audio playback glitches on macOS" },
-      { type: "fixed", description: "Key mapping not persisting across sessions" },
-    ],
-  },
-  {
-    version: "1.4.0",
-    date: "2023-06-10",
-    tag: null,
-    changes: [
-      { type: "added", description: "HTTPS connection support" },
-      { type: "added", description: "Custom key binding configuration" },
-      { type: "changed", description: "Performance improvements for Game API rendering" },
-      { type: "fixed", description: "TiledLayer rendering artifacts at edges" },
-      { type: "removed", description: "Deprecated J2SE compatibility layer" },
-    ],
-  },
-  {
-    version: "1.3.0",
-    date: "2023-03-01",
-    tag: null,
-    changes: [
-      { type: "added", description: "MIDI playback support" },
-      { type: "added", description: "Configuration file (TOML format)" },
-      { type: "changed", description: "Improved Sprite collision detection accuracy" },
-      { type: "fixed", description: "Thread synchronization issues in Canvas paint" },
+      { type: "added", description: "Initial release of the modern Java ME (J2ME) Emulator" },
+      { type: "added", description: "CLDC 1.1 and MIDP 2.0 compliant core runtime execution engine" },
+      { type: "added", description: "Swing-based high-performance desktop interface with dynamic FlatLaf theme support" },
+      { type: "added", description: "Advanced display options featuring Integer scaling, Bilinear/Bicubic filters, CRT Scanlines, and LCD grid modes" },
+      { type: "added", description: "Dynamic resolution presets from retro 128x160 up to 480x800, plus borderless fullscreen mode (F11)" },
+      { type: "added", description: "Custom input key remapping and native controller/gamepad support" },
+      { type: "added", description: "Audio engine supporting PCM audio playback, MIDI synthesis, and frequency tone sequences" },
+      { type: "added", description: "Advanced GCF network control with global toggle, HTTP/SOCKS5 proxy, and authentication" },
+      { type: "added", description: "Diagnostics suite including Performance HUD, real-time Logging Console, RMS record store inspector, and media/GIF recorders" }
     ],
   },
 ];
