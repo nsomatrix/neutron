@@ -2,6 +2,7 @@ import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { Logo } from "@/components/logo";
 import { GitHubIcon } from "@/components/icons";
+import { Heart } from "lucide-react";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -102,6 +103,9 @@ export function Footer() {
         <div className="mt-12 border-t border-border pt-6 flex flex-col items-center justify-between gap-4 md:flex-row">
           <p className="text-xs text-muted-foreground">
             © {currentYear} {siteConfig.name}.
+          </p>
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            Made with <Heart className="h-3.5 w-3.5 fill-red-500 text-red-500 inline-block align-middle" /> by NSOMatrix™
           </p>
         </div>
       </div>

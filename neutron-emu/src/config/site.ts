@@ -87,7 +87,7 @@ export const siteConfig = {
     {
       title: "Open Source",
       description:
-        "Free and open source under the LGPL 2.1 / Apache 2.0 dual license.",
+        "Free and open source under the Apache license.",
       icon: "GitHubIcon",
     },
   ],
@@ -96,7 +96,7 @@ export const siteConfig = {
     { label: "Profile Support", value: "MIDP 2.0" },
     { label: "Configuration", value: "CLDC 1.1" },
     { label: "Java Requirement", value: "JDK 11+" },
-    { label: "Open Source License", value: "LGPL/Apache" },
+    { label: "Open Source License", value: "Apache" },
   ],
 } as const;
 
