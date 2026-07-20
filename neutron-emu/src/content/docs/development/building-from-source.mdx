@@ -1,87 +1,163 @@
 ---
 title: Building From Source
-description: How to build Neutron from source code.
+description: Comprehensive guide on how to build the Neutron emulator with all dependencies and requirements.
 order: 15
 ---
 
-## Prerequisites
+This guide provides step-by-step instructions on how to build and run the Neutron emulator from the source code.
 
-- **JDK 17** or later
-- **Gradle 8.0** or later (wrapper included)
-- **Git**
+## Requirements & Prerequisites
+
+To successfully compile and run the Neutron emulator, your development environment must meet the following requirements.
+
+### 1. Java Development Kit (JDK)
+Neutron requires the **JDK 17** or higher. Note that you must install the full **JDK** (which includes the compiler `javac` and toolchains) and not just a **JRE** (Java Runtime Environment).
+- **Recommended Distribution:** [Eclipse Temurin](https://adoptium.net/) (OpenJDK 17+)
+- **Verification:**
+  ```bash
+  # Verify the runtime
+  java -version
+  
+  # Verify the compiler (essential for preverification tasks)
+  javac -version
+  ```
+
+### 2. Native System Dependencies (Linux Audio)
+If you are building and running Neutron on a Linux system, you need to install the development headers for the **ALSA (Advanced Linux Sound Architecture)** package. This is required for proper audio device mapping and audio emulation.
+- **Ubuntu/Debian:**
+  ```bash
+  sudo apt update
+  sudo apt install libasound2-dev
+  ```
+- **Fedora/RHEL:**
+  ```bash
+  sudo dnf install alsa-lib-devel
+  ```
+- **Arch Linux:**
+  ```bash
+  sudo pacman -S alsa-lib
+  ```
+*Note: macOS and Windows do not require separate audio libraries, as Java's native audio drivers are bundled with the JDK on those operating systems.*
+
+### 3. Build Tooling
+- **Gradle:** The repository includes a Gradle Wrapper (`gradlew` / `gradlew.bat`), which will automatically download and use the correct version of Gradle (8.0+). You do not need to install Gradle globally.
+- **Git:** Required to clone and version control the source code.
+
+---
 
 ## Clone the Repository
 
+Clone the official repository using Git:
+
 ```bash
-git clone https://github.com/nicokosi/neutron.git
+git clone https://github.com/nsomatrix/neutron.git
 cd neutron
 ```
 
-## Build
+---
 
+## Build Commands
+
+Neutron uses a modular Gradle build setup. You can run all commands from the root directory of the cloned repository.
+
+### Full Build (Compile & Test)
+To compile all modules, run unit tests, and build the distribution binaries:
 ```bash
-# Build the project
 ./gradlew build
+```
 
-# Build without tests
+### Fast Build (Skip Tests)
+To build the emulator quickly by skipping all unit tests during code development:
+```bash
 ./gradlew build -x test
 ```
 
-## Run
-
+### Cleaning Build Artifacts
+If you change build configurations or run into dependency cache issues, clean the project build cache:
 ```bash
-# Run from source
+./gradlew clean
+```
+
+---
+
+## Running the Emulator
+
+You can execute the emulator directly from your source directory or run the compiled output jar.
+
+### Run Directly via Gradle
+To start the Swing-based desktop application interface directly using Gradle:
+```bash
 ./gradlew run
-
-# Run with arguments
-./gradlew run --args="run game.jar"
 ```
 
-## Project Structure
-
-```
-neutron/
-├── neutron/          # Core emulator module
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/    # Source code
-│   │   │   └── resources/
-│   │   └── test/
-│   └── build.gradle
-├── build.gradle       # Root build script
-├── settings.gradle    # Module configuration
-└── gradlew           # Gradle wrapper
+To run and pass arguments (e.g., launching a specific J2ME game jar directly):
+```bash
+./gradlew run --args="run path/to/game.jar"
 ```
 
-## Distribution
+### Run via Compiled JAR
+Once `./gradlew build` completes, the runnable desktop application JAR is generated. 
 
-Create a distributable package:
+- **JAR Location:** `neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.0.jar`
+- **Launch Command:**
+  ```bash
+  java -jar neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.0.jar
+  ```
 
+---
+
+## Platform and Module Configurations
+
+### Optional Modules
+The project includes additional sub-projects that are not built as part of the standard release unless requested:
+
+1. **SWT Desktop Client (`neutron-javase-swt`):**
+   Requires the environment variable `SWT_HOME` to point to a local SWT installation.
+2. **Applet Wrapper (`neutron-javase-applet`):**
+   Requires `plugin.jar` from your JDK installation. On some 64-bit Linux JDKs, this jar may be missing by default and can be copied from a 32-bit Java installation.
+
+### Packaging Distributions
+To build standalone distribution ZIP or TAR packages containing all dependencies and launch scripts:
 ```bash
 # Create a ZIP distribution
 ./gradlew distZip
 
 # Create a TAR distribution
 ./gradlew distTar
-
-# Output: build/distributions/
 ```
+Output files will be located in the `build/distributions/` directory.
+
+---
 
 ## IDE Setup
 
-### IntelliJ IDEA
+We recommend using one of the following IDEs for working with the Neutron codebase.
 
-1. Open the project root directory
-2. IntelliJ will detect the Gradle project automatically
-3. Wait for the Gradle sync to complete
-4. Run configurations will be created automatically
-
-### VS Code
-
-1. Install the "Java Extension Pack"
-2. Open the project root directory
-3. The Java language server will detect the Gradle project
+<TabGroup>
+  <TabList>
+    <Tab>IntelliJ IDEA</Tab>
+    <Tab>VS Code</Tab>
+    <Tab>Eclipse</Tab>
+  </TabList>
+  <TabPanel>
+    1. Open IntelliJ IDEA and choose **Open**.
+    2. Select the root folder of the cloned `neutron` repository.
+    3. IntelliJ will automatically detect the `build.gradle` configuration and start the Gradle sync.
+    4. Wait for the sync to complete, which will configure all classpath modules.
+    5. Run/Debug configurations for the main application will be created automatically.
+  </TabPanel>
+  <TabPanel>
+    1. Install the **Extension Pack for Java** in VS Code.
+    2. Open the root folder of the cloned `neutron` repository.
+    3. The Java Language Server will automatically detect the Gradle project and initialize.
+    4. You can use the Run/Debug lens directly above the main classes.
+  </TabPanel>
+  <TabPanel>
+    1. Import the root directory as an existing Gradle project.
+    2. If you experience order conflicts (such as `Wrong Injected class detected`), go to project settings for `neutron-javase-swing` and adjust the build order, moving `neutron-injected` down below `neutron-javase`.
+  </TabPanel>
+</TabGroup>
 
 <Callout type="tip">
-Use `./gradlew --continuous build` during development for automatic rebuilds on file changes.
+Use `./gradlew --continuous build` (or `./gradlew -t build`) during development. Gradle will watch files for changes and automatically rebuild modified modules.
 </Callout>

@@ -8,7 +8,15 @@ import { cn } from "@/lib/utils";
 import { docsConfig, type DocsSidebarItem } from "@/config/docs";
 import { motion, AnimatePresence } from "framer-motion";
 
-function SidebarCategory({ item, depth = 0 }: { item: DocsSidebarItem; depth?: number }) {
+function SidebarCategory({
+  item,
+  depth = 0,
+  onItemClick,
+}: {
+  item: DocsSidebarItem;
+  depth?: number;
+  onItemClick?: () => void;
+}) {
   const pathname = usePathname();
   const hasChildren = item.items && item.items.length > 0;
 
@@ -26,6 +34,7 @@ function SidebarCategory({ item, depth = 0 }: { item: DocsSidebarItem; depth?: n
     return (
       <Link
         href={item.href}
+        onClick={onItemClick}
         className={cn(
           "flex items-center rounded-md px-3 py-1.5 text-sm transition-colors",
           isActive
@@ -82,6 +91,7 @@ function SidebarCategory({ item, depth = 0 }: { item: DocsSidebarItem; depth?: n
                   key={child.title}
                   item={child}
                   depth={depth + 1}
+                  onItemClick={onItemClick}
                 />
               ))}
             </div>
@@ -92,14 +102,14 @@ function SidebarCategory({ item, depth = 0 }: { item: DocsSidebarItem; depth?: n
   );
 }
 
-export function DocsSidebar({ className }: { className?: string }) {
+export function DocsSidebar({ className, onItemClick }: { className?: string; onItemClick?: () => void }) {
   return (
     <aside
       className={cn("flex flex-col gap-1", className)}
       aria-label="Documentation sidebar"
     >
       {docsConfig.map((item) => (
-        <SidebarCategory key={item.title} item={item} />
+        <SidebarCategory key={item.title} item={item} onItemClick={onItemClick} />
       ))}
     </aside>
   );

@@ -36,6 +36,7 @@ export const siteConfig = {
     resources: [
       { title: "Documentation", href: "/docs" },
       { title: "Quick Start", href: "/docs/getting-started/quick-start" },
+      { title: "Build", href: "/docs/development/building-from-source" },
     ],
     community: [
       { title: "GitHub", href: "https://github.com/nicokosi/neutron" },
@@ -47,9 +48,6 @@ export const siteConfig = {
         title: "Bug Reports",
         href: "https://github.com/nicokosi/neutron/issues",
       },
-    ],
-    legal: [
-      { title: "License", href: "/license" },
     ],
   },
 

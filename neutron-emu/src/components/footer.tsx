@@ -9,7 +9,7 @@ export function Footer() {
   return (
     <footer className="border-t border-border bg-background" aria-label="Footer">
       <div className="mx-auto max-w-screen-2xl px-4 py-12 lg:px-8">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4 lg:grid-cols-4">
           {/* Brand */}
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
             <Logo className="mb-4" />
@@ -93,25 +93,6 @@ export function Footer() {
                       {item.title}
                     </Link>
                   )}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Legal */}
-          <div className="col-span-2 md:col-span-1">
-            <h3 className="mb-3 text-sm font-semibold text-foreground">
-              Legal
-            </h3>
-            <ul className="space-y-2">
-              {siteConfig.footer.legal.map((item) => (
-                <li key={item.title}>
-                  <Link
-                    href={item.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {item.title}
-                  </Link>
                 </li>
               ))}
             </ul>
