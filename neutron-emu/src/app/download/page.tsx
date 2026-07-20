@@ -46,7 +46,7 @@ export default function DownloadPage() {
         <p className="mt-4 text-lg text-muted-foreground">
           Choose your platform and get started in seconds.
         </p>
-        <Badge className="mt-4">v2.0.0 — Latest Release</Badge>
+        <Badge className="mt-4">v1.0.0 — Latest Release</Badge>
       </div>
 
       <div className="grid gap-6 md:grid-cols-3">

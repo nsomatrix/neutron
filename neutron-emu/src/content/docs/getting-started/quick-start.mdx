@@ -32,7 +32,7 @@ java -jar neutron.jar
 Run a MIDlet directly from the command line:
 
 ```bash
-neutron run path/to/your-app.jar
+java -jar neutron.jar path/to/your-app.jar
 ```
 
 ## Step 3: Load a MIDlet
@@ -48,18 +48,16 @@ Neutron supports both `.jar` and `.jad` files. When loading a `.jad` file, the a
 
 ## Step 4: Configure the Display
 
-Adjust the display settings for optimal experience:
+Adjust the display resolution dynamically from the command line:
 
 ```bash
-# Set display resolution
-neutron run game.jar --width 240 --height 320
-
-# Enable fullscreen mode
-neutron run game.jar --fullscreen
-
-# Set scale factor
-neutron run game.jar --scale 2
+# Run with a resizable device at 240x320 resolution
+java -jar neutron.jar --resizableDevice 240 320 game.jar
 ```
+
+<Callout type="info">
+Scale factors, themes, frame rate limits, and fullscreen settings can be toggled directly in the GUI under the **Options** and **Controls** menus. These preferences are automatically persisted.
+</Callout>
 
 ## Step 5: Map Controls
 
@@ -78,17 +76,9 @@ You can customize these in **Config → Controls**.
 ## Example: Running a Game
 
 ```bash
-# Run with optimized settings
-neutron run snake.jar \
-  --width 240 \
-  --height 320 \
-  --scale 3 \
-  --fps 60
+# Launch with custom screen size of 240x320 pixels
+java -jar neutron.jar --resizableDevice 240 320 snake.jar
 ```
-
-<Callout type="info">
-For the best experience with games, enable VSync in the configuration and set the frame rate to match the game's intended rate (usually 30 or 60 FPS).
-</Callout>
 
 ## What's Next?
 

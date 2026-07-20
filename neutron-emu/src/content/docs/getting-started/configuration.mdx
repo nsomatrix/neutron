@@ -6,113 +6,97 @@ order: 4
 
 ## Configuration File
 
-Neutron stores its configuration in a TOML file located at:
+Neutron stores its user configuration in an XML file named `config2.xml` located in the user's home directory.
 
 | Platform | Path |
 |----------|------|
-| Windows | `%APPDATA%\Neutron\config.toml` |
-| macOS | `~/Library/Application Support/Neutron/config.toml` |
-| Linux | `~/.config/neutron/config.toml` |
+| Windows | `%USERPROFILE%\.neutron\config2.xml` |
+| macOS | `~/.neutron/config2.xml` |
+| Linux | `~/.neutron/config2.xml` |
 
-## Default Configuration
+If you specify an instance ID using the `--id [ID]` command-line option, Neutron will store its configuration under `~/.neutron/[ID]/config2.xml`.
 
-```toml title="config.toml"
-[display]
-width = 240
-height = 320
-scale = 2
-fullscreen = false
-vsync = true
-fps_limit = 60
+## Example Configuration
 
-[audio]
-enabled = true
-volume = 80
-sample_rate = 44100
+Here is an example structure of a `config2.xml` file representing user preferences:
 
-[input]
-keyboard_enabled = true
-gamepad_enabled = false
-
-[network]
-allow_network = true
-proxy_enabled = false
-proxy_host = ""
-proxy_port = 0
-
-[emulation]
-speed = 1.0
-skip_splash = false
-auto_detect_encoding = true
-
-[ui]
-theme = "dark"
-language = "en"
-show_fps = false
-show_status_bar = true
+```xml title="config2.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+  <options>
+    <theme>FlatLaf macOS Light</theme>
+    <graphicsFilter>Nearest Neighbor</graphicsFilter>
+    <fullscreen>false</fullscreen>
+    <sleepMode>false</sleepMode>
+    <memoryLimit>64</memoryLimit>
+    <maxFps>-1</maxFps>
+    <speedMultiplier>1.0</speedMultiplier>
+    <perfHudEnabled>false</perfHudEnabled>
+    <networkAccess>true</networkAccess>
+    <networkOverlayEnabled>false</networkOverlayEnabled>
+    <showMouseCoordinates>false</showMouseCoordinates>
+    <scaledDisplayZoom>-1</scaledDisplayZoom>
+    
+    <!-- Proxy Settings -->
+    <proxyEnabled>false</proxyEnabled>
+    <proxyType>HTTP</proxyType> <!-- HTTP or SOCKS -->
+    <proxyHost></proxyHost>
+    <proxyPort>8080</proxyPort>
+    <proxyAuthEnabled>false</proxyAuthEnabled>
+    <proxyUsername></proxyUsername>
+    <proxyPassword></proxyPassword>
+    
+    <!-- Video Processing Settings -->
+    <brightness>0</brightness>
+    <contrast>100</contrast>
+    <gamma>1.0</gamma>
+    <saturation>100</saturation>
+    <sharpness>0</sharpness>
+    <ghosting>0</ghosting>
+    <invert>false</invert>
+  </options>
+  <system-properties>
+    <system-property name="avetana.forceNativeLibrary" value="true" />
+  </system-properties>
+</config>
 ```
 
-## Display Settings
+## Settings Reference
 
-### Resolution
+All settings under the `&lt;options&gt;` tag can be updated through the emulator's GUI menus or edited manually in the XML file while the emulator is closed.
 
-Set the virtual display resolution to match the target device:
+### Interface & Graphics
 
-```toml
-[display]
-width = 240   # Common: 128, 176, 240, 320
-height = 320  # Common: 160, 220, 320, 480
-```
+| Property | Values | Default | Description |
+|----------|--------|---------|-------------|
+| `&lt;theme&gt;` | `FlatLaf Dark`, `FlatLaf Light`, `FlatLaf IntelliJ`, `FlatLaf Darcula`, `FlatLaf macOS Dark`, `FlatLaf macOS Light`, `System Look and Feel` | `FlatLaf macOS Light` | The Swing look-and-feel stylesheet theme. |
+| `&lt;graphicsFilter&gt;` | `Nearest Neighbor`, `Bilinear`, `Bicubic`, `Scale2x`, `CRT Scanlines`, `LCD Grid` | `Nearest Neighbor` | The scaling filter and shader effect used on the Canvas. |
+| `&lt;fullscreen&gt;` | `true`, `false` | `false` | Start the emulator in fullscreen mode. |
+| `&lt;showMouseCoordinates&gt;` | `true`, `false` | `false` | Show pointer coordinates overlay on the display. |
+| `&lt;scaledDisplayZoom&gt;` | `2`, `3`, `4`, `-1` | `-1` | Set integer zoom scaling factor (`-1` to disable). |
 
-### Scaling
+### Performance & Limits
 
-Control how the display is scaled:
+| Property | Values | Default | Description |
+|----------|--------|---------|-------------|
+| `&lt;memoryLimit&gt;` | `0`, `32`, `64`, `128`, `256`, `512` | `64` | Memory allocation limit in MB (0 = Unlimited). |
+| `&lt;maxFps&gt;` | `-1`, `60`, `30`, `20`, `15` | `-1` | Frame rate limiter (-1 = Unlimited). |
+| `&lt;speedMultiplier&gt;` | `1.0`, `1.5`, `2.0`, `4.0`, `8.0`, `0.5` | `1.0` | Simulation speed scaling factor. |
+| `&lt;sleepMode&gt;` | `true`, `false` | `false` | Enable thread sleeping to reduce CPU usage. |
+| `&lt;perfHudEnabled&gt;` | `true`, `false` | `false` | Display performance diagnostic HUD overlay. |
 
-```toml
-[display]
-scale = 2           # Integer scaling (1-5)
-scaling_mode = "nearest"  # "nearest" or "bilinear"
-```
+### Network & Proxy
 
-<Callout type="tip">
-Use `nearest` scaling for pixel-art games and `bilinear` for applications with smooth graphics.
+| Property | Values | Default | Description |
+|----------|--------|---------|-------------|
+| `&lt;networkAccess&gt;` | `true`, `false` | `true` | Globally toggle MIDlet Internet access. |
+| `&lt;networkOverlayEnabled&gt;` | `true`, `false` | `false` | Display network latency and activity overlay. |
+| `&lt;proxyEnabled&gt;` | `true`, `false` | `false` | Enable proxy forwarding for outbound connections. |
+| `&lt;proxyType&gt;` | `HTTP`, `SOCKS` | `HTTP` | Protocol of the proxy server. |
+| `&lt;proxyHost&gt;` | String | (empty) | Host address of the proxy server. |
+| `&lt;proxyPort&gt;` | Integer | `8080` | Port of the proxy server. |
+| `&lt;proxyAuthEnabled&gt;` | `true`, `false` | `false` | Enable authentication credentials for the proxy. |
+
+<Callout type="warning">
+Do not modify the configuration file while the emulator is running, as it will overwrite changes upon saving on exit.
 </Callout>
-
-## Audio Settings
-
-```toml
-[audio]
-enabled = true
-volume = 80          # 0-100
-sample_rate = 44100  # 22050, 44100, or 48000
-buffer_size = 1024   # Lower = less latency, higher = more stable
-```
-
-## Network Settings
-
-Control network access for MIDlets:
-
-```toml
-[network]
-allow_network = true    # Global network toggle
-proxy_enabled = false
-proxy_host = "proxy.example.com"
-proxy_port = 8080
-proxy_type = "http"     # "http", "socks4", or "socks5"
-```
-
-
-## Environment Variables
-
-You can also configure Neutron using environment variables:
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NEUTRON_HOME` | Data directory path | Platform default |
-| `NEUTRON_JAVA_HOME` | Custom Java path | System Java |
-| `NEUTRON_LOG_LEVEL` | Logging verbosity | `info` |
-| `NEUTRON_NO_GUI` | Headless mode | `false` |
-
-```bash
-NEUTRON_LOG_LEVEL=debug neutron run app.jar
-```

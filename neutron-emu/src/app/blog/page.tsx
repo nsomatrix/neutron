@@ -11,35 +11,27 @@ export const metadata: Metadata = {
 
 const posts = [
   {
-    title: "Introducing Neutron v2.0",
+    title: "Introducing Neutron v1.0.0",
     description:
-      "A complete rewrite with a modern UI, plugin system, and dramatically improved performance.",
-    date: "2024-01-15",
+      "The official initial release of Neutron, a modern open-source J2ME emulator for modern platforms.",
+    date: "2026-07-21",
     tag: "Release",
+    readTime: "3 min read",
+  },
+  {
+    title: "A Clean Swing Interface with FlatLaf",
+    description:
+      "A deep dive into our custom Java Swing UI redesign, integrating FlatLaf Light, Dark, macOS, and system themes.",
+    date: "2026-07-15",
+    tag: "Design",
     readTime: "5 min read",
   },
   {
-    title: "How We Achieved 60fps Java ME Emulation",
+    title: "Implementing Network Access Controls",
     description:
-      "A deep dive into the rendering optimizations that make Neutron the fastest Java ME emulator.",
-    date: "2023-12-01",
+      "How we added security to Java ME networking with proxy authentication (SOCKS5/HTTP) and global network toggles.",
+    date: "2026-07-10",
     tag: "Engineering",
-    readTime: "8 min read",
-  },
-  {
-    title: "Building a Plugin System for Java Emulators",
-    description:
-      "The architecture decisions behind Neutron's extensible plugin framework.",
-    date: "2023-10-15",
-    tag: "Engineering",
-    readTime: "6 min read",
-  },
-  {
-    title: "The State of Java ME in 2024",
-    description:
-      "Why Java ME still matters and how Neutron is preserving mobile gaming history.",
-    date: "2023-09-01",
-    tag: "Community",
     readTime: "4 min read",
   },
 ];

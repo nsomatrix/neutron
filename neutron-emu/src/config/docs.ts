@@ -31,7 +31,6 @@ export const docsConfig: DocsSidebarItem[] = [
     title: "Advanced",
     items: [
       { title: "Performance", href: "/docs/advanced/performance" },
-      { title: "Plugins", href: "/docs/advanced/plugins" },
       { title: "CLI", href: "/docs/advanced/cli" },
     ],
   },

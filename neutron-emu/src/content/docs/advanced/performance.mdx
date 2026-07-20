@@ -6,79 +6,61 @@ order: 11
 
 ## Performance Overview
 
-Neutron is designed for efficiency, but there are several settings you can tune for optimal performance on your hardware.
+Neutron runs Java ME applications directly on top of modern Java SE Virtual Machines (JVM). Consequently, execution performance is native and benefits from the host JVM's highly optimized JIT compilers and garbage collection strategies.
 
-## Performance Settings
+However, you can configure several display and emulator parameters to optimize rendering speed and resource consumption.
 
-```toml title="config.toml"
-[performance]
-jit_enabled = true        # Enable JIT compilation
-thread_priority = "normal" # "low", "normal", "high"
-gc_strategy = "balanced"   # "conservative", "balanced", "aggressive"
-```
+## Emulator Options
 
-## Display Optimization
-
-### VSync
-
-VSync prevents screen tearing but caps frame rate to your monitor's refresh rate:
-
-```toml
-[display]
-vsync = true
-```
+These options are stored in the `config2.xml` under `<options>` and can be modified in the GUI settings:
 
 ### Frame Rate Limiting
 
-Set a custom FPS limit for consistent performance:
+Set a custom FPS limit to match a game's target speed and reduce CPU consumption:
 
-```toml
-[display]
-fps_limit = 60  # 0 = unlimited
+```xml
+<maxFps>60</maxFps> <!-- Options: -1 (unlimited), 60, 30, 20, 15 -->
 ```
 
 <Callout type="tip">
-Most Java ME games were designed for 30 FPS. Setting the limit to 30 can reduce CPU usage significantly.
+Most classic J2ME games were designed for 30 FPS. Setting the limit to 30 can significantly reduce CPU and GPU usage on laptops.
 </Callout>
+
+### Thread Sleep Mode
+
+Enable sleep mode to allow the emulation thread to sleep between loops, yielding CPU cycles back to the operating system:
+
+```xml
+<sleepMode>true</sleepMode>
+```
+
+---
 
 ## Memory Management
 
-Monitor and control memory usage:
+MIDlet applications run within the host JVM heap memory space. By default, the emulator limits internal J2ME heap allocation to **64 MB** to simulate original device constraints, but you can configure this to prevent out-of-memory errors in complex games.
 
-```bash
-# Run with increased heap size
-neutron run game.jar --heap 128m
+### Setting Internal Memory Limits
 
-# Enable memory profiling
-neutron run game.jar --profile-memory
+Configure the virtual heap limit in `config2.xml`:
+
+```xml
+<memoryLimit>128</memoryLimit> <!-- Values: 32, 64, 128, 256, 512, 0 (unlimited) -->
 ```
 
-### Memory Limits
+### Configuring JRE Heap Size
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Heap size | 64 MB | MIDlet heap memory |
-| Stack size | 512 KB | Thread stack size |
-| RMS limit | 1 MB | Per-store limit |
-
-## Benchmarking
-
-Run the built-in benchmark suite:
+For larger games or packages, increase the maximum memory pool allocated by the Java Virtual Machine using standard `-Xmx` JRE parameters:
 
 ```bash
-neutron benchmark --iterations 1000
-
-# Output:
-# Graphics: 245 fps
-# Audio: 44100 Hz stable
-# GCF: 12ms avg latency
-# RMS: 850 ops/sec
+# Run with 256MB of maximum JVM heap size
+java -Xmx256m -jar neutron.jar game.jar
 ```
+
+---
 
 ## Performance Tips
 
-1. **Use integer scaling** — Faster than bilinear filtering
-2. **Disable VSync** — For maximum frame rate during development
-3. **Close unused features** — Disable audio if not needed
-4. **Use latest Java** — JDK 17+ includes performance improvements
-5. **Increase heap** — If MIDlets run out of memory
+1. **Use Nearest Neighbor Filter** — This is the fastest scaling mode. Complex filters like CRT Scanlines or LCD Grid require additional CPU rendering cycles.
+2. **Use the Latest JRE** — Running Neutron on newer runtimes (such as OpenJDK 17 or 21) provides updated garbage collection performance and execution optimization.
+3. **Disable HUD Overlays** — Performance diagnostics (`<perfHudEnabled>`) and Network latency counters (`<networkOverlayEnabled>`) cause additional text rendering passes. Disable them if you require maximum frames-per-second.

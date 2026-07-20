@@ -48,7 +48,7 @@ export const siteConfig = {
 
   announcement: {
     enabled: false,
-    message: "Neutron v2.0 is here — rebuilt from the ground up.",
+    message: "Neutron v1.0.0 is now available — the modern Java ME emulator.",
     link: "/changelog",
     linkText: "Read more →",
   },
@@ -57,7 +57,7 @@ export const siteConfig = {
     {
       title: "Blazing Fast",
       description:
-        "Optimized JIT compilation delivers near-native performance for Java ME applications.",
+        "Direct execution on modern Java VMs delivers native performance for Java ME applications.",
       icon: "Zap",
     },
     {
@@ -75,7 +75,7 @@ export const siteConfig = {
     {
       title: "Developer Friendly",
       description:
-        "Built-in debugging tools, CLI support, and plugin architecture for extensibility.",
+        "Built-in logging, CLI support, and easy-to-use configuration settings.",
       icon: "Code",
     },
     {
@@ -87,16 +87,16 @@ export const siteConfig = {
     {
       title: "Open Source",
       description:
-        "Free and open source under the LGPL license. Community-driven development.",
+        "Free and open source under the LGPL 2.1 / Apache 2.0 dual license.",
       icon: "GitHubIcon",
     },
   ],
 
   stats: [
-    { label: "GitHub Stars", value: "2.4K+" },
-    { label: "Downloads", value: "50K+" },
-    { label: "MIDlets Tested", value: "1,200+" },
-    { label: "Contributors", value: "40+" },
+    { label: "Profile Support", value: "MIDP 2.0" },
+    { label: "Configuration", value: "CLDC 1.1" },
+    { label: "Java Requirement", value: "JDK 11+" },
+    { label: "Open Source License", value: "LGPL/Apache" },
   ],
 } as const;
 

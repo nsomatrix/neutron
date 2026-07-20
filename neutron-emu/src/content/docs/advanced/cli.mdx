@@ -1,122 +1,74 @@
 ---
 title: CLI Reference
-description: Complete command-line interface reference for Neutron.
+description: Complete command-line interface reference for the Neutron Java ME Emulator.
 order: 13
 ---
 
 ## Usage
 
-```bash
-neutron [command] [options]
-```
-
-## Commands
-
-### `run`
-
-Run a MIDlet from a JAR or JAD file:
+Neutron is launched as a packaged Java Archive (JAR) executable. Run the emulator by executing the JAR file with the Java Runtime Environment (JRE):
 
 ```bash
-neutron run <file> [options]
+java -jar neutron.jar [options] [midlet-class | jar-path | jad-path]
 ```
 
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--width` | Display width | 240 |
-| `--height` | Display height | 320 |
-| `--scale` | Scale factor | 2 |
-| `--fullscreen` | Start in fullscreen | false |
-| `--fps` | Frame rate limit | 60 |
-| `--no-audio` | Disable audio | false |
-| `--no-network` | Disable networking | false |
-| `--heap` | Heap size (e.g., 128m) | 64m |
-| `--profile` | Enable profiling | false |
+You can target a specific MIDlet class, a compiled game `.jar` file, or a `.jad` descriptor file.
 
+## Options Reference
+
+The following parameters are supported by the CLI launcher:
+
+### Basic Options
+
+| Option | Parameters | Description |
+|--------|------------|-------------|
+| `--help`, `-help` | None | Prints the command-line usage manual and exits. |
+| `--id` | `[EmulatorID]` | Redefines the emulator environment workspace/home path to `~/.neutron/[EmulatorID]/`. Use this to run multiple independent profiles concurrently. |
+| `--quit` | None | Automatically shuts down and exits the JVM when the active MIDlet is destroyed. |
+| `--headless` | None | Runs the emulator in headless mode (no GUI displays). |
+| `--quiet` | None | Suppresses standard terminal output logging messages. |
+
+### Device & Display Configuration
+
+| Option | Parameters | Description |
+|--------|------------|-------------|
+| `-d`, `--device` | `[descriptor | class]` | Selects a specific device profile descriptor XML or custom device implementation class. |
+| `--resizableDevice` | `[width] [height]` | Starts the emulator using a resizable device interface set to the specified virtual screen dimensions (e.g. `240 320`). |
+
+### Storage & Resources
+
+| Option | Parameters | Description |
+|--------|------------|-------------|
+| `--rms` | `file` or `memory` | Configures the Record Store Management system backend. Stores data to disk (`file`) or volatile RAM (`memory`). |
+| `--propertiesjad` | `[jad path]` | Supplies an external `.jad` configuration file when launching a raw MIDlet class. |
+| `-cp`, `--classpath` | `[classpath]` | Adds custom paths or JAR files to the JSR extension classloader path. |
+| `--appcp`, `--appclasspath` | `[classpath]` | Adds paths to search for user-defined MIDlet classes. |
+
+### Diagnostics & Testing
+
+| Option | Parameters | Description |
+|--------|------------|-------------|
+| `-Xautotest:` | `[jad-url]` | Initiates automated headless test suite execution for the specified JAD. |
+| `--logCallLocation` | `true` or `false` | Includes Java class call locations inside the console log outputs. |
+| `--traceClassLoading` | None | Enables tracing of MIDlet classloading in the console. |
+| `--traceSystemClassLoading` | None | Enables tracing of system classloader requests. |
+| `--enhanceCatchBlock` | None | Enables diagnostic bytecode verification processing on catch blocks. |
+
+---
+
+## Examples
+
+### Running a game with a custom screen resolution:
 ```bash
-# Examples
-neutron run game.jar
-neutron run game.jar --width 320 --height 480 --scale 2
-neutron run game.jar --fullscreen --fps 30
-neutron run game.jad --no-network
+java -jar neutron.jar --resizableDevice 240 320 mygame.jar
 ```
 
-### `list`
-
-List MIDlets in a JAR file:
-
+### Running with a custom profile ID (e.g. for split-screen testing):
 ```bash
-neutron list game.jar
-# MIDlet-1: Snake 3D, /icon.png, com.example.Snake
-# MIDlet-2: Settings, /settings.png, com.example.Settings
+java -jar neutron.jar --id Profile2 player2.jar
 ```
 
-### `info`
-
-Show detailed information about a JAR:
-
+### Headless execution with memory-based RMS:
 ```bash
-neutron info game.jar
-# Name: Snake 3D
-# Vendor: Example Corp
-# Version: 1.2.0
-# Profile: MIDP-2.0
-# Configuration: CLDC-1.1
-# MIDlets: 2
-# Size: 245 KB
+java -jar neutron.jar --headless --rms memory --quit testsuite.jar
 ```
-
-### `benchmark`
-
-Run performance benchmarks:
-
-```bash
-neutron benchmark [--iterations N]
-```
-
-### `config`
-
-View or modify configuration:
-
-```bash
-# Show current config
-neutron config show
-
-# Set a value
-neutron config set display.scale 3
-
-# Reset to defaults
-neutron config reset
-```
-
-### `version`
-
-Show version information:
-
-```bash
-neutron version
-# Neutron v2.0.0 (build 2024-01-15)
-# Java: OpenJDK 17.0.8
-# OS: Linux x86_64
-```
-
-## Global Options
-
-| Option | Description |
-|--------|-------------|
-| `--help`, `-h` | Show help |
-| `--version`, `-v` | Show version |
-| `--verbose` | Verbose output |
-| `--quiet` | Suppress output |
-| `--config` | Custom config path |
-| `--no-gui` | Headless mode |
-
-## Exit Codes
-
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | General error |
-| 2 | Invalid arguments |
-| 3 | File not found |
-| 4 | Invalid MIDlet |
-| 5 | Runtime error |
