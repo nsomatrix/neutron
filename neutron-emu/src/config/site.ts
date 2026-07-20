@@ -6,8 +6,8 @@ export const siteConfig = {
   url: "https://neutron-emu.vercel.app",
   ogImage: "/og-image.png",
   creator: "Neutron Team",
-  github: "https://github.com/nicokosi/neutron",
-  download: "https://github.com/nicokosi/neutron/releases",
+  github: "https://github.com/nsomatrix/neutron",
+  download: "https://github.com/nsomatrix/neutron/releases",
   twitter: "@neutron_emu",
 
   nav: {
@@ -39,14 +39,14 @@ export const siteConfig = {
       { title: "Build", href: "/docs/development/building-from-source" },
     ],
     community: [
-      { title: "GitHub", href: "https://github.com/nicokosi/neutron" },
+      { title: "GitHub", href: "https://github.com/nsomatrix/neutron" },
       {
         title: "Contributing",
         href: "/docs/development/contributing",
       },
       {
         title: "Bug Reports",
-        href: "https://github.com/nicokosi/neutron/issues",
+        href: "https://github.com/nsomatrix/neutron/issues",
       },
     ],
   },
