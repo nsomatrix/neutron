@@ -72,9 +72,11 @@ export default function HomePage() {
                 href="/changelog"
                 className="group inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:border-primary/30 hover:text-foreground"
               >
-                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                Neutron v2.0 is now available
-                <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span>
+                  Neutron <span className="md:hidden">v2.0</span><span className="hidden md:inline">v1.0</span> is now available
+                </span>
+                <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 shrink-0" />
               </Link>
             </motion.div>
 

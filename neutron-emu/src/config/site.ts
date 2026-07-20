@@ -57,7 +57,7 @@ export const siteConfig = {
   },
 
   announcement: {
-    enabled: true,
+    enabled: false,
     message: "Neutron v2.0 is here — rebuilt from the ground up.",
     link: "/changelog",
     linkText: "Read more →",

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { Navbar } from "@/components/navbar";
-import { AnnouncementBanner } from "@/components/announcement-banner";
 import { Footer } from "@/components/footer";
 import { siteConfig } from "@/config/site";
 
@@ -80,7 +79,6 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans antialiased">
         <ThemeProvider>
           <div className="relative flex min-h-screen flex-col">
-            <AnnouncementBanner />
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
