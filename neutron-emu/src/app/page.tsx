@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/config/site";
 import { GitHubIcon } from "@/components/icons";
+import { CinematicTerminal } from "@/components/cinematic-terminal";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Zap,
@@ -162,53 +163,17 @@ export default function HomePage() {
                 </a>
               </Button>
             </motion.div>
+          </motion.div>
 
-            {/* Code preview */}
-            <motion.div
-              className="mt-16 mx-auto max-w-lg"
-              variants={fadeUp}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <div className="rounded-xl border border-border bg-card/80 backdrop-blur-sm overflow-hidden shadow-2xl shadow-primary/5">
-                <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-                  <div className="flex gap-1.5">
-                    <div className="h-3 w-3 rounded-full bg-red-500/60" />
-                    <div className="h-3 w-3 rounded-full bg-yellow-500/60" />
-                    <div className="h-3 w-3 rounded-full bg-green-500/60" />
-                  </div>
-                  <span className="ml-2 text-xs text-muted-foreground font-mono">
-                    Terminal
-                  </span>
-                </div>
-                <div className="p-4 font-mono text-sm">
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Terminal className="h-4 w-4 text-primary" />
-                    <span className="text-emerald-400">$</span>
-                    <span className="text-foreground">
-                      neutron run game.jar
-                    </span>
-                  </div>
-                  <div className="mt-2 text-muted-foreground/80 text-xs space-y-0.5">
-                    <p>
-                      <span className="text-cyan-accent">▸</span> Loading
-                      MIDlet...
-                    </p>
-                    <p>
-                      <span className="text-cyan-accent">▸</span> Display:
-                      240×320 @ 60fps
-                    </p>
-                    <p>
-                      <span className="text-cyan-accent">▸</span> Audio: PCM
-                      44.1kHz stereo
-                    </p>
-                    <p>
-                      <span className="text-emerald-400">✓</span> Running
-                      &quot;Snake 3D&quot; successfully
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+          {/* Cinematic Terminal Experience */}
+          <motion.div
+            className="mt-16 mx-auto w-full flex justify-center"
+            initial="initial"
+            animate="animate"
+            variants={fadeUp}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <CinematicTerminal />
           </motion.div>
         </div>
       </section>
