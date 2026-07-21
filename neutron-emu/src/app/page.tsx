@@ -141,10 +141,10 @@ export default function HomePage() {
                 size="lg"
                 className="w-full sm:w-auto"
               >
-                <a href={siteConfig.download}>
+                <Link href="/download">
                   <Download className="h-4 w-4" />
                   Download
-                </a>
+                </Link>
               </Button>
               <Button
                 asChild
@@ -424,10 +424,10 @@ export default function HomePage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <a href={siteConfig.download}>
+                <Link href="/download">
                   <Download className="h-4 w-4" />
                   Download Neutron
-                </a>
+                </Link>
               </Button>
             </motion.div>
           </motion.div>
