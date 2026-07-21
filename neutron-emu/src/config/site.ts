@@ -13,14 +13,12 @@ export const siteConfig = {
     main: [
       { title: "Documentation", href: "/docs" },
       { title: "Download", href: "/download" },
-      { title: "Blog", href: "/blog" },
       { title: "Changelog", href: "/changelog" },
     ],
     mobile: [
       { title: "Home", href: "/" },
       { title: "Documentation", href: "/docs" },
       { title: "Download", href: "/download" },
-      { title: "Blog", href: "/blog" },
       { title: "Changelog", href: "/changelog" },
     ],
   },
