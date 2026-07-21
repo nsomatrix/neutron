@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import logoImg from "@/assets/ntn.png";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 import {
   ArrowRight,
   Download,
@@ -50,8 +51,8 @@ export default function HomePage() {
         {/* Background gradient */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute inset-0 bg-gradient-to-b from-blue-accent/5 via-transparent to-transparent" />
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 h-[600px] w-[800px] rounded-full bg-gradient-to-br from-blue-accent/10 via-purple-accent/5 to-transparent blur-3xl" />
-          <div className="absolute right-0 top-1/4 h-[400px] w-[400px] rounded-full bg-cyan-accent/5 blur-3xl" />
+          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] rounded-full bg-gradient-to-br from-blue-accent/10 via-purple-accent/5 to-transparent blur-3xl animate-float-left" />
+          <div className="absolute right-0 top-1/4 h-[400px] w-[400px] rounded-full bg-cyan-accent/5 blur-3xl animate-float-right" />
           {/* Grid pattern */}
           <div
             className="absolute inset-0 opacity-[0.02]"
@@ -167,13 +168,19 @@ export default function HomePage() {
 
           {/* Cinematic Terminal Experience */}
           <motion.div
-            className="mt-16 mx-auto w-full flex justify-center"
+            className="mt-16 mx-auto w-full max-w-[322px] relative"
             initial="initial"
             animate="animate"
             variants={fadeUp}
             transition={{ duration: 0.5, delay: 0.4 }}
           >
-            <CinematicTerminal />
+            {/* Workstation Frame Border Glow */}
+            <div className="absolute -inset-1.5 rounded-2xl bg-gradient-to-r from-blue-accent/30 via-cyan-accent/25 to-purple-accent/30 opacity-75 blur-md" />
+            <div className="absolute -inset-px rounded-xl bg-gradient-to-r from-blue-accent/20 to-purple-accent/20" />
+            
+            <div className="relative">
+              <CinematicTerminal />
+            </div>
           </motion.div>
         </div>
       </section>
@@ -249,19 +256,20 @@ export default function HomePage() {
               return (
                 <motion.div
                   key={feature.title}
-                  className="group rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
                   variants={fadeUp}
                   transition={{ duration: 0.5 }}
                 >
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    {feature.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                    {feature.description}
-                  </p>
+                  <SpotlightCard className="h-full">
+                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground">
+                      {feature.title}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </SpotlightCard>
                 </motion.div>
               );
             })}
@@ -330,21 +338,22 @@ export default function HomePage() {
               },
             ].map((item) => (
               <motion.div key={item.title} variants={fadeUp} transition={{ duration: 0.5 }}>
-                <Link
-                  href={item.href}
-                  className="group flex flex-col rounded-xl border border-border bg-card p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5"
-                >
-                  <item.icon className="h-5 w-5 text-primary mb-4" />
-                  <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {item.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed flex-1">
-                    {item.description}
-                  </p>
-                  <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary">
-                    Learn more
-                    <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-                  </div>
+                <Link href={item.href} className="block h-full group">
+                  <SpotlightCard className="h-full flex flex-col justify-between">
+                    <div>
+                      <item.icon className="h-5 w-5 text-primary mb-4" />
+                      <h3 className="text-base font-semibold text-foreground group-hover:text-primary transition-colors">
+                        {item.title}
+                      </h3>
+                      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center gap-1 text-sm font-medium text-primary">
+                      Learn more
+                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </div>
+                  </SpotlightCard>
                 </Link>
               </motion.div>
             ))}

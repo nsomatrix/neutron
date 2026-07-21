@@ -650,7 +650,7 @@ export function CinematicTerminal() {
   return (
     <div className="w-full flex flex-col items-center">
       {/* Interactive Controls Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 w-full max-w-[324px] mb-4 px-3 py-1.5 border border-border bg-card/60 backdrop-blur-sm rounded-xl">
+      <div className="flex flex-wrap items-center justify-between gap-4 w-full max-w-[322px] mb-4 px-3 py-1.5 border border-border bg-card/60 backdrop-blur-sm rounded-xl">
         <div className="flex items-center gap-1.5">
           <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-[10px] font-mono text-muted-foreground">
@@ -677,7 +677,7 @@ export function CinematicTerminal() {
       </div>
 
       {/* Identical Twin In-Place Window Transitions */}
-      <div className="relative w-[324px] h-[320px] flex items-center justify-center">
+      <div className="relative w-[322px] h-[320px] flex items-center justify-center">
         <AnimatePresence mode="wait">
           
           {/* 1. Terminal Window (Typing / Booting Phase) */}
@@ -688,7 +688,7 @@ export function CinematicTerminal() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.25 }}
-              className={`w-full h-full rounded-xl border font-mono flex flex-col justify-between transition-all duration-300 ${
+              className={`w-full h-full rounded-xl border overflow-hidden font-mono flex flex-col justify-between transition-all duration-300 ${
                 isLight 
                   ? "border-slate-300 bg-slate-50 text-slate-800 shadow-md" 
                   : "border-neutral-900 bg-black/95 text-neutral-300 shadow-xl"

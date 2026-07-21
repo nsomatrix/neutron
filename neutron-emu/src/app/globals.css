@@ -441,3 +441,33 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ===== GPU-Accelerated Floating Background Glows ===== */
+@keyframes float-slow-left {
+  0%, 100% {
+    transform: translate3d(-50%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-46%, 30px, 0) scale(1.08);
+  }
+}
+
+@keyframes float-slow-right {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-20px, 20px, 0) scale(0.92);
+  }
+}
+
+.animate-float-left {
+  animation: float-slow-left 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-float-right {
+  animation: float-slow-right 22s ease-in-out infinite;
+  will-change: transform;
+}
+
