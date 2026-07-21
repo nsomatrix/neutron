@@ -341,6 +341,20 @@ body {
   background-color: #fafafa !important;
 }
 
+[data-rehype-pretty-code-figure] pre code span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+.light [data-rehype-pretty-code-figure] pre code span {
+  color: var(--shiki-light) !important;
+  font-style: var(--shiki-light-font-style) !important;
+  font-weight: var(--shiki-light-font-weight) !important;
+  text-decoration: var(--shiki-light-text-decoration) !important;
+}
+
 [data-rehype-pretty-code-figure] code {
   display: grid;
   font-family: var(--font-mono);

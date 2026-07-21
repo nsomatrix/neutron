@@ -4,14 +4,13 @@ import { useState, useRef } from "react";
 import { Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface CodeBlockProps {
+interface CodeBlockProps extends React.ComponentPropsWithoutRef<"pre"> {
   children: React.ReactNode;
-  className?: string;
   filename?: string;
   showLineNumbers?: boolean;
 }
 
-export function CodeBlock({ children, className, filename }: CodeBlockProps) {
+export function CodeBlock({ children, className, filename, ...props }: CodeBlockProps) {
   const [copied, setCopied] = useState(false);
   const preRef = useRef<HTMLPreElement>(null);
 
@@ -33,9 +32,11 @@ export function CodeBlock({ children, className, filename }: CodeBlockProps) {
         <pre
           ref={preRef}
           className={cn(
-            "overflow-x-auto rounded-lg border border-border bg-[#0a0a0c] p-4 text-sm",
-            filename && "rounded-tl-none"
+            "overflow-x-auto rounded-lg border border-border bg-[#fafafa] dark:bg-[#0a0a0c] p-4 text-sm",
+            filename && "rounded-tl-none",
+            className
           )}
+          {...props}
         >
           {children}
         </pre>
