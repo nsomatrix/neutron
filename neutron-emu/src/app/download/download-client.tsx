@@ -25,7 +25,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import logoImg from "@/assets/ntn.png";
 
-const JAR_SHA256 = "a5508da893700fc3bcc737990668aff0de06436033531ab1ffc588c0bfa249e8";
+const JAR_SHA256 = "e6be9934225f9753f05029cf546b16c0853e98a282cb06cbe523c399a13bd513";
 const DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron.jar";
 
 const platforms = [
