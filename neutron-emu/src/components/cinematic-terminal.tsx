@@ -30,10 +30,10 @@ const gameNames: Record<string, string> = {
 };
 
 const gameDurations: Record<string, number> = {
-  ninja_offline: 4840,
-  ninja_world: 6440,
-  nsomatrix: 6440,
-  neutron: 4040,
+  ninja_offline: 4310, // 4910ms total - 600ms transition
+  ninja_world: 5980,   // 6580ms total - 600ms transition
+  nsomatrix: 5920,     // 6520ms total - 600ms transition
+  neutron: 3490,       // 4090ms total - 600ms transition
 };
 
 // Types
