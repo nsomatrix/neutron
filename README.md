@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="neutron-emu/public/logo.png" alt="Neutron Logo" width="160" />
+</p>
+
 # Neutron
 
 **Neutron** is a J2ME (Java 2 Micro Edition) device emulator framework written in Java, paired with a modern web interface. It enables running MIDP/CLDC applications across Java SE environments, browser applets, desktop applications, and web interfaces.
