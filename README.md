@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="neutron-emu/public/logo.png" alt="Neutron Logo" width="160" />
+  <img src="neutron-emu/src/assets/ntn.png" alt="Neutron Logo" width="160" />
 </p>
 
 # Neutron
