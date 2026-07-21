@@ -14,7 +14,7 @@ order: 2
 | Processor | Any x86_64 or ARM64 CPU |
 | Memory | 256 MB RAM |
 | Disk Space | 50 MB |
-| Java | JDK 11+ |
+| Java | JRE / JDK 8+ |
 
 ### Recommended
 
@@ -24,11 +24,11 @@ order: 2
 | Processor | Multi-core CPU |
 | Memory | 512 MB RAM |
 | Disk Space | 100 MB (including ROMs) |
-| Java | JDK 17 or later |
+| Java | JRE / JDK 8 or later (JDK 17+ recommended) |
 
 ## Java Installation
 
-Neutron requires a Java Development Kit (JDK) version 11 or later. We recommend using one of these distributions:
+Neutron requires a Java Runtime Environment (JRE) or Java Development Kit (JDK) version 8 or later. We recommend using one of these distributions:
 
 - [Eclipse Temurin](https://adoptium.net/) (recommended)
 - [Oracle JDK](https://www.oracle.com/java/)
@@ -38,12 +38,11 @@ Neutron requires a Java Development Kit (JDK) version 11 or later. We recommend 
 
 ```bash
 java -version
-# openjdk version "17.0.8" 2023-07-18
+# openjdk version "1.8.0_492"
 ```
 
-<Callout type="warning">
-Neutron requires the full JDK, not just the JRE. Make sure you have `javac` available:
-`javac -version`
+<Callout type="info">
+A standard Java Runtime Environment (JRE) is sufficient to run Neutron. You do not need to install the full Java Development Kit (JDK).
 </Callout>
 
 ## Platform-Specific Notes

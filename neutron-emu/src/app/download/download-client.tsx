@@ -40,7 +40,7 @@ const platforms = [
       }
     ],
     instructions: [
-      "Ensure you have Java 11 or later installed on your system.",
+      "Ensure you have Java 8 or later installed on your system.",
       "Double-click neutron.jar to start the graphical emulator immediately.",
       "Alternatively, open Command Prompt or PowerShell, navigate to the folder, and run the command below to launch it via terminal."
     ]
@@ -60,7 +60,7 @@ const platforms = [
       }
     ],
     instructions: [
-      "Ensure Java 11 or later is installed (Temurin OpenJDK is recommended).",
+      "Ensure Java 8 or later is installed (Temurin OpenJDK is recommended).",
       "Open Terminal, navigate to the download folder, and launch using the command below.",
       "If macOS Gatekeeper blocks execution, right-click neutron.jar, select Open, and approve the security prompt, or go to System Settings > Privacy & Security."
     ]
@@ -80,7 +80,7 @@ const platforms = [
       }
     ],
     instructions: [
-      "Ensure your package manager has default-jre or openjdk-11-jre installed.",
+      "Ensure your package manager has default-jre or openjdk-8-jre installed.",
       "Open Terminal and run the chmod command to ensure the file is executable.",
       "Run the jar file directly using the command-line to start the emulator."
     ]
@@ -90,7 +90,7 @@ const platforms = [
 const faqs = [
   {
     question: "Which version of Java do I need to run Neutron?",
-    answer: "Neutron requires Java Runtime Environment (JRE) or Java Development Kit (JDK) 11 or higher. We highly recommend using the latest LTS release, such as Eclipse Temurin (OpenJDK) 17 or 21, for optimal performance and security. Older Java 8 environments are not supported."
+    answer: "Neutron requires Java Runtime Environment (JRE) or Java Development Kit (JDK) 8 or higher. We highly recommend using a modern LTS release, such as Eclipse Temurin (OpenJDK) 17 or 21, for optimal performance and security."
   },
   {
     question: "How do I download and install Java?",
@@ -135,10 +135,39 @@ export default function DownloadPageClient() {
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  const fallbackCopy = (text: string, id: string) => {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+      document.execCommand("copy");
+      setCopiedText(id);
+      setTimeout(() => setCopiedText(null), 2000);
+    } catch (err) {
+      console.error("Fallback copy failed", err);
+    }
+    document.body.removeChild(textArea);
+  };
+
   const handleCopy = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedText(id);
-    setTimeout(() => setCopiedText(null), 2000);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => {
+          setCopiedText(id);
+          setTimeout(() => setCopiedText(null), 2000);
+        })
+        .catch(() => {
+          fallbackCopy(text, id);
+        });
+    } else {
+      fallbackCopy(text, id);
+    }
   };
 
   const currentPlatform = platforms.find((p) => p.id === activeTab) || platforms[0];
@@ -221,7 +250,7 @@ export default function DownloadPageClient() {
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Requirement</div>
-                    <div className="text-sm font-semibold mt-1">Java 11+</div>
+                    <div className="text-sm font-semibold mt-1">Java 8+</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Format</div>
@@ -410,7 +439,7 @@ export default function DownloadPageClient() {
             <div className="space-y-4 text-sm flex-1">
               <div className="grid grid-cols-2 gap-2 border-b border-border/50 pb-3">
                 <span className="text-muted-foreground">Java runtime</span>
-                <span className="font-semibold text-right">Java 11 or higher</span>
+                <span className="font-semibold text-right">Java 8 or higher</span>
               </div>
               <div className="grid grid-cols-2 gap-2 border-b border-border/50 pb-3">
                 <span className="text-muted-foreground">Architecture</span>
@@ -437,28 +466,82 @@ export default function DownloadPageClient() {
           <Card className="flex flex-col border border-border bg-card/30 p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-purple-accent/10">
-                <ExternalLink className="h-5 w-5 text-purple-accent" />
+                <Terminal className="h-5 w-5 text-purple-accent" />
               </div>
               <h2 className="text-xl font-bold tracking-tight">Need Java?</h2>
             </div>
-            <p className="text-sm text-muted-foreground leading-relaxed flex-1">
-              To run the universal jar, you must have a Java Virtual Machine (JVM) installed on your system. We recommend downloading the free Eclipse Temurin (OpenJDK) build maintained by the Adoptium community.
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              To run the universal JAR, you must have a Java Runtime Environment (JRE) installed. Use the quick commands below to install the default runtime for your operating system:
             </p>
-            <div className="space-y-3">
-              <Button asChild variant="outline" className="w-full justify-between h-11 border-purple-accent/30 hover:border-purple-accent/60 bg-purple-accent/5">
-                <a href="https://adoptium.net/temurin/releases/?version=17" target="_blank" rel="noopener noreferrer">
-                  <span className="flex items-center gap-2 text-foreground font-semibold">
-                    Get Java 17 (Recommended)
-                  </span>
-                  <ExternalLink className="h-4 w-4 text-purple-accent" />
-                </a>
-              </Button>
-              <Button asChild variant="ghost" className="w-full justify-between h-11 text-muted-foreground hover:text-foreground">
-                <a href="https://adoptium.net/" target="_blank" rel="noopener noreferrer">
-                  <span>Visit Adoptium Homepage</span>
-                  <ArrowRight className="h-4 w-4" />
-                </a>
-              </Button>
+            <div className="space-y-4 flex-1">
+              {/* Windows */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <Monitor className="h-3.5 w-3.5 text-primary" />
+                  Windows (Winget)
+                </div>
+                <div className="relative group rounded-md border border-border bg-black/40 px-3 py-2 font-mono text-[11px] flex items-center justify-between gap-2">
+                  <code className="text-purple-accent">winget install Microsoft.OpenJDK.17</code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100"
+                    onClick={() => handleCopy("winget install Microsoft.OpenJDK.17", "install-win")}
+                  >
+                    {copiedText === "install-win" ? (
+                      <Check className="h-3 w-3 text-emerald-400" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* macOS */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <Apple className="h-3.5 w-3.5 text-primary" />
+                  macOS (Homebrew)
+                </div>
+                <div className="relative group rounded-md border border-border bg-black/40 px-3 py-2 font-mono text-[11px] flex items-center justify-between gap-2">
+                  <code className="text-purple-accent">brew install openjdk@17</code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100"
+                    onClick={() => handleCopy("brew install openjdk@17", "install-mac")}
+                  >
+                    {copiedText === "install-mac" ? (
+                      <Check className="h-3 w-3 text-emerald-400" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Linux */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                  <Terminal className="h-3.5 w-3.5 text-primary" />
+                  Linux (Ubuntu / Debian / Mint)
+                </div>
+                <div className="relative group rounded-md border border-border bg-black/40 px-3 py-2 font-mono text-[11px] flex items-center justify-between gap-2">
+                  <code className="text-purple-accent">sudo apt install default-jre</code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100"
+                    onClick={() => handleCopy("sudo apt install default-jre", "install-linux")}
+                  >
+                    {copiedText === "install-linux" ? (
+                      <Check className="h-3 w-3 text-emerald-400" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
           </Card>
         </motion.div>

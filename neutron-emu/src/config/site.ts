@@ -95,7 +95,7 @@ export const siteConfig = {
   stats: [
     { label: "Profile Support", value: "MIDP 2.0" },
     { label: "Configuration", value: "CLDC 1.1" },
-    { label: "Java Requirement", value: "JDK 11+" },
+    { label: "Java Requirement", value: "JDK 8+" },
     { label: "Open Source License", value: "Apache" },
   ],
 } as const;
