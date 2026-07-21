@@ -485,7 +485,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setNumColors(int)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setNumColors(int)
 	 */
 	public void setNumColors(int i) {
 		numColors = i;
@@ -494,7 +494,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setIsColor(boolean)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setIsColor(boolean)
 	 */
 	public void setIsColor(boolean b) {
 		isColor = b;
@@ -503,7 +503,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setBackgroundColor(java.awt.Color)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setBackgroundColor(java.awt.Color)
 	 */
 	public void setBackgroundColor(Color color) {
 		backgroundColor = new java.awt.Color(color.getRGB());
@@ -512,7 +512,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setForegroundColor(java.awt.Color)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setForegroundColor(java.awt.Color)
 	 */
 	public void setForegroundColor(Color color) {
 		foregroundColor = new java.awt.Color(color.getRGB());
@@ -521,7 +521,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setDisplayRectangle(java.awt.Rectangle)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setDisplayRectangle(java.awt.Rectangle)
 	 */
 	public void setDisplayRectangle(Rectangle rectangle) {
 		displayRectangle = rectangle;
@@ -530,7 +530,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setDisplayPaintable(java.awt.Rectangle)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setDisplayPaintable(java.awt.Rectangle)
 	 */
 	public void setDisplayPaintable(Rectangle rectangle) {
 		displayPaintable = rectangle;
@@ -539,7 +539,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setMode123Image(com.barteo.emulator.device.impl.PositionedImage)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setMode123Image(org.neutron.device.impl.PositionedImage)
 	 */
 	public void setMode123Image(PositionedImage object) {
 		mode123Image = object;
@@ -548,7 +548,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setModeAbcLowerImage(com.barteo.emulator.device.impl.PositionedImage)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setModeAbcLowerImage(org.neutron.device.impl.PositionedImage)
 	 */
 	public void setModeAbcLowerImage(PositionedImage object) {
 		modeAbcLowerImage = object;
@@ -557,7 +557,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.barteo.emulator.device.impl.DeviceDisplayImpl#setModeAbcUpperImage(com.barteo.emulator.device.impl.PositionedImage)
+	 * @see org.neutron.device.impl.DeviceDisplayImpl#setModeAbcUpperImage(org.neutron.device.impl.PositionedImage)
 	 */
 	public void setModeAbcUpperImage(PositionedImage object) {
 		modeAbcUpperImage = object;
