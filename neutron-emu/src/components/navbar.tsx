@@ -12,13 +12,19 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { SearchDialog } from "@/components/search-dialog";
 import { useReadingProgress } from "@/hooks/use-reading-progress";
 import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from "react-dom";
 
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const progress = useReadingProgress();
   const isDocsPage = pathname.startsWith("/docs");
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function handleScroll() {
@@ -33,17 +39,97 @@ export function Navbar() {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Prevent scroll when mobile menu is open
+  // Bulletproof body scroll lock for mobile and desktop browsers
   useEffect(() => {
     if (mobileOpen) {
       document.body.style.overflow = "hidden";
+      document.body.style.height = "100%";
+      document.documentElement.style.overflow = "hidden";
+      document.documentElement.style.height = "100%";
     } else {
       document.body.style.overflow = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
     }
     return () => {
       document.body.style.overflow = "";
+      document.body.style.height = "";
+      document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
     };
   }, [mobileOpen]);
+
+  const mobileMenuPortalContent = (
+    <AnimatePresence>
+      {mobileOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] md:hidden"
+        >
+          <div
+            className="absolute inset-0 bg-background/80 backdrop-blur-sm cursor-pointer"
+            onClick={() => setMobileOpen(false)}
+          />
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+            style={{ overscrollBehavior: "contain" }}
+            className="absolute right-0 top-0 h-full w-72 border-l border-border bg-background p-6 shadow-2xl overflow-y-auto"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <Logo showText={false} />
+              <button
+                onClick={() => setMobileOpen(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Close menu"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              {siteConfig.nav.mobile.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                    pathname === item.href ||
+                      pathname.startsWith(item.href + "/")
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  {item.title}
+                </Link>
+              ))}
+            </div>
+
+            <div className="mt-6 border-t border-border pt-6">
+              <div className="flex items-center gap-3">
+                <a
+                  href={siteConfig.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  aria-label="GitHub repository"
+                >
+                  <GitHubIcon className="h-4 w-4" />
+                </a>
+                <ThemeSwitcher />
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 
   return (
     <>
@@ -126,74 +212,9 @@ export function Navbar() {
         )}
       </header>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 md:hidden"
-          >
-            <div
-              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
-              onClick={() => setMobileOpen(false)}
-            />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="absolute right-0 top-0 h-full w-72 border-l border-border bg-background p-6 shadow-2xl"
-            >
-              <div className="flex items-center justify-between mb-8">
-                <Logo showText={false} />
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground hover:text-foreground"
-                  aria-label="Close menu"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-1">
-                {siteConfig.nav.mobile.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                      pathname === item.href ||
-                        pathname.startsWith(item.href + "/")
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                    )}
-                  >
-                    {item.title}
-                  </Link>
-                ))}
-              </div>
-
-              <div className="mt-6 border-t border-border pt-6">
-                <div className="flex items-center gap-3">
-                  <a
-                    href={siteConfig.github}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                    aria-label="GitHub repository"
-                  >
-                    <GitHubIcon className="h-4 w-4" />
-                  </a>
-                  <ThemeSwitcher />
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {mounted && typeof document !== "undefined"
+        ? createPortal(mobileMenuPortalContent, document.body)
+        : null}
     </>
   );
 }
