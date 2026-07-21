@@ -4,11 +4,37 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import logoImg from "@/assets/ntn.png";
+import render1 from "@/assets/render1.gif";
+import render2 from "@/assets/render2.gif";
+import render3 from "@/assets/render3.gif";
+import render4 from "@/assets/render4.gif";
 import { useTheme } from "next-themes";
 import { 
   Terminal as TerminalIcon, RefreshCw, Play, Pause, Circle, 
   Cpu, X, Minimize2, Square, Info
 } from "lucide-react";
+
+// Game GIFs and Names mapping
+const gameGifs: Record<string, any> = {
+  ninja_offline: render1,
+  ninja_world: render2,
+  nsomatrix: render3,
+  neutron: render4,
+};
+
+const gameNames: Record<string, string> = {
+  ninja_offline: "Ninja School Offline",
+  ninja_world: "Ninja School World",
+  nsomatrix: "NSOMatrix",
+  neutron: "Neutron",
+};
+
+const gameDurations: Record<string, number> = {
+  ninja_offline: 4840,
+  ninja_world: 6440,
+  nsomatrix: 6440,
+  neutron: 4040,
+};
 
 // Types
 type AppState = "typing" | "booting" | "launcher" | "gameplay";
@@ -35,12 +61,10 @@ export function CinematicTerminal() {
   const [appState, setAppState] = useState<AppState>("typing");
   const [terminalText, setTerminalText] = useState("");
   const [bootLogs, setBootLogs] = useState<string[]>([]);
-  const [selectedAppId, setSelectedAppId] = useState("gof2");
-  const [score, setScore] = useState(0);
-  const [shield, setShield] = useState(100);
+  const [selectedAppId, setSelectedAppId] = useState("ninja_offline");
   
   // Custom interactive settings linked to actual JMenuBar options
-  const [graphicsFilter, setGraphicsFilter] = useState<GraphicsFilter>("scanlines");
+  const [graphicsFilter, setGraphicsFilter] = useState<GraphicsFilter>("nearest");
   const [emulationSpeed, setEmulationSpeed] = useState<number>(1.0);
   const [uiTheme, setUiTheme] = useState<EmulatorTheme>("dracula");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -51,34 +75,15 @@ export function CinematicTerminal() {
   const [isSystemInfoOpen, setIsSystemInfoOpen] = useState(false);
   const [isFileChooserOpen, setIsFileChooserOpen] = useState(false);
 
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
-  const lastTimeRef = useRef<number>(0);
-  const lastShotRef = useRef<number>(0);
   const logTimerRef = useRef<NodeJS.Timeout | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  
-  // Game states for our landscape canvas shooter (320x240 grid)
-  const playerRef = useRef({
-    x: 160,
-    y: 200,
-    width: 20,
-    height: 16,
-    speed: 160, // pixels per second
-    targetX: 160,
-  });
-
-  const lasersRef = useRef<{ x: number; y: number; speed: number }[]>([]);
-  const enemiesRef = useRef<{ x: number; y: number; width: number; height: number; speed: number; type: "enemy" | "asteroid" }[]>([]);
-  const particlesRef = useRef<{ x: number; y: number; vx: number; vy: number; color: string; life: number; maxLife: number; size: number }[]>([]);
-  const starsRef = useRef<{ x: number; y: number; speed: number; size: number }[]>([]);
 
   // J2ME Game Apps List
   const apps: GameApp[] = [
     {
-      id: "gof2",
-      name: "Galaxy on Fire 2",
-      developer: "Fishlabs",
+      id: "ninja_offline",
+      name: "Ninja School Offline",
+      developer: "Teamobi",
       iconBg: "from-blue-900 to-indigo-950",
       iconSvg: (
         <svg className="w-10 h-10 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -88,9 +93,9 @@ export function CinematicTerminal() {
       ),
     },
     {
-      id: "bounce",
-      name: "Bounce Tales",
-      developer: "Rovio Mobile",
+      id: "ninja_world",
+      name: "Ninja School World",
+      developer: "Teamobi",
       iconBg: "from-orange-600 to-red-950",
       iconSvg: (
         <svg className="w-10 h-10 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -100,9 +105,9 @@ export function CinematicTerminal() {
       ),
     },
     {
-      id: "snake",
-      name: "Snake II",
-      developer: "Nokia",
+      id: "nsomatrix",
+      name: "NSOMatrix",
+      developer: "nsomatrix",
       iconBg: "from-emerald-900 to-emerald-950",
       iconSvg: (
         <svg className="w-10 h-10 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -112,38 +117,13 @@ export function CinematicTerminal() {
       ),
     },
     {
-      id: "diamond",
-      name: "Diamond Rush",
-      developer: "Gameloft",
+      id: "neutron",
+      name: "Neutron",
+      developer: "nsomatrix",
       iconBg: "from-cyan-900 to-teal-950",
       iconSvg: (
         <svg className="w-10 h-10 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polygon points="12,2 22,9 12,22 2,9" fill="currentColor" fillOpacity="0.2" />
-        </svg>
-      ),
-    },
-    {
-      id: "asphalt",
-      name: "Asphalt 3: 3D",
-      developer: "Gameloft",
-      iconBg: "from-rose-900 to-rose-950",
-      iconSvg: (
-        <svg className="w-10 h-10 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4,18 L7,10 L17,10 L20,18" />
-          <circle cx="8" cy="15" r="2.5" />
-          <circle cx="16" cy="15" r="2.5" />
-        </svg>
-      ),
-    },
-    {
-      id: "doom",
-      name: "Doom RPG",
-      developer: "id Software",
-      iconBg: "from-red-950 to-neutral-950",
-      iconSvg: (
-        <svg className="w-10 h-10 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12,4 L19,10 L19,20 L12,17 L5,20 L5,10 Z" fill="currentColor" fillOpacity="0.2" />
-          <line x1="9" y1="10" x2="15" y2="10" />
         </svg>
       ),
     },
@@ -278,7 +258,7 @@ export function CinematicTerminal() {
   useEffect(() => {
     if (appState !== "launcher") return;
 
-    setSelectedAppId("gof2");
+    setSelectedAppId("ninja_offline");
 
     // 1. Open the Run Menu
     const timer1 = setTimeout(() => {
@@ -304,344 +284,24 @@ export function CinematicTerminal() {
     };
   }, [appState]);
 
-  // Initialize Canvas Particles & Stars for landscape grid (320x240)
+
+  // Attract Mode: Automatically cycle through all 4 games infinitely, playing each GIF exactly once per cycle
   useEffect(() => {
     if (appState !== "gameplay") return;
 
-    const stars = [];
-    for (let i = 0; i < 40; i++) {
-      stars.push({
-        x: Math.random() * 320,
-        y: Math.random() * 240,
-        speed: Math.random() * 80 + 20, 
-        size: Math.random() * 1.5 + 0.5,
-      });
-    }
-    starsRef.current = stars;
-    lasersRef.current = [];
-    enemiesRef.current = [];
-    particlesRef.current = [];
-    setScore(0);
-    setShield(100);
-    playerRef.current.x = 160;
-    playerRef.current.y = 200;
-    playerRef.current.targetX = 160;
-  }, [appState]);
+    const gameSequence = ["ninja_offline", "ninja_world", "nsomatrix", "neutron"];
+    const currentDuration = gameDurations[selectedAppId] || 5000;
 
-  // Game loop & canvas rendering (320x240 landscape grid)
-  useEffect(() => {
-    if (appState !== "gameplay") return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    let isDestroyed = false;
-
-    // Main update & render loop
-    const updateAndRender = (timestamp: number) => {
-      if (isDestroyed) return;
-      if (lastTimeRef.current === 0) lastTimeRef.current = timestamp;
-      const dt = (timestamp - lastTimeRef.current) / 1000; // seconds
-      lastTimeRef.current = timestamp;
-
-      // Apply emulation speed multiplier
-      const clampedDt = Math.min(dt, 0.1) * emulationSpeed;
-
-      // --- PHYSICS & LOGIC UPDATE ---
+    const timer = setTimeout(() => {
+      const currentIndex = gameSequence.indexOf(selectedAppId);
+      const nextIndex = (currentIndex + 1) % gameSequence.length;
+      const nextId = gameSequence[nextIndex];
       
-      // 1. Update stars (background parallax)
-      starsRef.current.forEach((star) => {
-        star.y += star.speed * clampedDt;
-        if (star.y > 240) {
-          star.y = 0;
-          star.x = Math.random() * 320;
-        }
-      });
+      setSelectedAppId(nextId);
+    }, currentDuration);
 
-      // 2. Control player (Autopilot AI controls player)
-      const player = playerRef.current;
-      let targetX = 160;
-      let closestObj = null;
-      let minDistY = 9999;
-
-      enemiesRef.current.forEach((obj) => {
-        const distY = player.y - obj.y;
-        if (distY > 0 && distY < minDistY) {
-          minDistY = distY;
-          closestObj = obj;
-        }
-      });
-
-      if (closestObj) {
-        targetX = (closestObj as any).x;
-      }
-
-      const diffX = targetX - player.x;
-      const moveStep = player.speed * clampedDt;
-
-      if (Math.abs(diffX) > 4) {
-        if (diffX < 0) {
-          player.x = Math.max(player.width / 2, player.x - moveStep);
-        } else {
-          player.x = Math.min(320 - player.width / 2, player.x + moveStep);
-        }
-      }
-
-      // Auto Fire
-      const now = Date.now();
-      if (now - lastShotRef.current > 350) {
-        lasersRef.current.push({ x: player.x, y: player.y - 10, speed: 250 });
-        lastShotRef.current = now;
-        createExplosion(player.x, player.y - 12, "#22d3ee", 2, 0.5);
-      }
-
-      // 3. Update lasers
-      lasersRef.current.forEach((laser, idx) => {
-        laser.y -= laser.speed * clampedDt;
-      });
-      lasersRef.current = lasersRef.current.filter((l) => l.y > -10);
-
-      // Spawn Enemies/Asteroids
-      if (enemiesRef.current.length < 4 && Math.random() < 0.03) {
-        const type = Math.random() > 0.4 ? "enemy" : "asteroid";
-        enemiesRef.current.push({
-          x: Math.random() * 280 + 20,
-          y: -20,
-          width: type === "enemy" ? 18 : 22,
-          height: type === "enemy" ? 18 : 22,
-          speed: Math.random() * 40 + 55,
-          type,
-        });
-      }
-
-      // 4. Update Enemies
-      enemiesRef.current.forEach((enemy) => {
-        enemy.y += enemy.speed * clampedDt;
-        if (enemy.type === "enemy") {
-          enemy.x += Math.sin(timestamp / 300 + enemy.y) * 20 * clampedDt;
-          enemy.x = Math.max(15, Math.min(305, enemy.x));
-        }
-      });
-      enemiesRef.current = enemiesRef.current.filter((e) => e.y < 260);
-
-      // 5. Update particles
-      particlesRef.current.forEach((p) => {
-        p.x += p.vx * clampedDt;
-        p.y += p.vy * clampedDt;
-        p.life -= clampedDt;
-      });
-      particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
-
-      // --- COLLISIONS ---
-      lasersRef.current.forEach((laser, lIdx) => {
-        enemiesRef.current.forEach((enemy, eIdx) => {
-          const dx = laser.x - enemy.x;
-          const dy = laser.y - enemy.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          const collisionDist = (enemy.width + 4) / 2;
-
-          if (dist < collisionDist) {
-            lasersRef.current.splice(lIdx, 1);
-            enemiesRef.current.splice(eIdx, 1);
-            setScore((prev) => prev + (enemy.type === "enemy" ? 100 : 50));
-            const color = enemy.type === "enemy" ? "#ef4444" : "#a1a1aa";
-            createExplosion(enemy.x, enemy.y, color, 12, 1.2);
-          }
-        });
-      });
-
-      enemiesRef.current.forEach((enemy, eIdx) => {
-        const dx = player.x - enemy.x;
-        const dy = player.y - enemy.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const collisionDist = (player.width + enemy.width) / 2 - 2;
-
-        if (dist < collisionDist) {
-          enemiesRef.current.splice(eIdx, 1);
-          setShield((prev) => {
-            const next = Math.max(0, prev - (enemy.type === "enemy" ? 25 : 15));
-            if (next === 0) {
-              setTimeout(() => setShield(100), 1500);
-            }
-            return next;
-          });
-          createExplosion(enemy.x, enemy.y, "#f59e0b", 15, 1.5);
-          createExplosion(player.x, player.y, "#ef4444", 8, 1.0);
-        }
-      });
-
-      function createExplosion(x: number, y: number, color: string, count: number, speedMultiplier: number) {
-        for (let i = 0; i < count; i++) {
-          const angle = Math.random() * Math.PI * 2;
-          const speed = (Math.random() * 80 + 30) * speedMultiplier;
-          particlesRef.current.push({
-            x,
-            y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            color,
-            life: Math.random() * 0.4 + 0.2,
-            maxLife: 0.6,
-            size: Math.random() * 2.5 + 1,
-          });
-        }
-      }
-
-      // --- RENDERING ---
-      ctx.fillStyle = "#0c0a09"; 
-      ctx.fillRect(0, 0, 320, 240);
-
-      // Render stars
-      starsRef.current.forEach((star) => {
-        ctx.fillStyle = `rgba(255, 255, 255, ${star.speed / 100})`;
-        ctx.fillRect(star.x, star.y, star.size, star.size);
-      });
-
-      // Render enemies
-      enemiesRef.current.forEach((enemy) => {
-        ctx.save();
-        ctx.translate(enemy.x, enemy.y);
-
-        if (enemy.type === "enemy") {
-          ctx.shadowBlur = graphicsFilter === "nearest" ? 0 : 8;
-          ctx.shadowColor = "#f43f5e";
-          ctx.fillStyle = "#ef4444";
-          ctx.beginPath();
-          ctx.moveTo(0, 10);      
-          ctx.lineTo(-8, -4);     
-          ctx.lineTo(-4, -8);     
-          ctx.lineTo(4, -8);      
-          ctx.lineTo(8, -4);      
-          ctx.closePath();
-          ctx.fill();
-
-          ctx.fillStyle = "#fb7185";
-          ctx.fillRect(-2, -10, 4, 2);
-        } else {
-          ctx.fillStyle = "#78716c";
-          ctx.strokeStyle = "#44403c";
-          ctx.lineWidth = 1.5;
-          ctx.beginPath();
-          ctx.moveTo(-10, -5);
-          ctx.lineTo(-5, -10);
-          ctx.lineTo(5, -10);
-          ctx.lineTo(10, -4);
-          ctx.lineTo(8, 6);
-          ctx.lineTo(0, 10);
-          ctx.lineTo(-8, 6);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-        ctx.restore();
-      });
-
-      // Render lasers
-      lasersRef.current.forEach((laser) => {
-        ctx.save();
-        ctx.shadowBlur = graphicsFilter === "nearest" ? 0 : 6;
-        ctx.shadowColor = "#06b6d4";
-        ctx.fillStyle = "#22d3ee";
-        ctx.fillRect(laser.x - 1, laser.y - 6, 2, 8);
-        ctx.restore();
-      });
-
-      // Render particles
-      particlesRef.current.forEach((p) => {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.life / p.maxLife;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-      });
-      ctx.globalAlpha = 1.0;
-
-      // Render Player Ship
-      if (shield > 0) {
-        ctx.save();
-        ctx.translate(player.x, player.y);
-
-        const flameHeight = Math.random() * 8 + 4;
-        ctx.fillStyle = "#f97316";
-        ctx.beginPath();
-        ctx.moveTo(-4, 8);
-        ctx.lineTo(0, 8 + flameHeight);
-        ctx.lineTo(4, 8);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#facc15";
-        ctx.fillRect(-2, 8, 4, 4);
-
-        ctx.shadowBlur = graphicsFilter === "nearest" ? 0 : 10;
-        ctx.shadowColor = "#3b82f6";
-        ctx.fillStyle = "#3b82f6";
-        ctx.beginPath();
-        ctx.moveTo(0, -10);     
-        ctx.lineTo(-10, 8);     
-        ctx.lineTo(-4, 4);      
-        ctx.lineTo(4, 4);       
-        ctx.lineTo(10, 8);      
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#67e8f9";
-        ctx.beginPath();
-        ctx.moveTo(0, -6);
-        ctx.lineTo(-3, 0);
-        ctx.lineTo(3, 0);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
-      }
-
-      // Draw Scanlines overlay
-      if (graphicsFilter === "scanlines") {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.15)";
-        for (let y = 0; y < 240; y += 2) {
-          ctx.fillRect(0, y, 320, 0.8);
-        }
-      }
-
-      // Draw LCD grid overlay
-      if (graphicsFilter === "lcd") {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.08)";
-        for (let x = 0; x < 320; x += 3) {
-          ctx.fillRect(x, 0, 0.8, 240);
-        }
-        for (let y = 0; y < 240; y += 3) {
-          ctx.fillRect(0, y, 320, 0.8);
-        }
-      }
-
-      // Display Stats HUD (scaled for 320px width)
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
-      ctx.font = "8px monospace";
-      ctx.fillText(`SCORE: ${score}`, 8, 14);
-      
-      ctx.fillText("GPRS", 245, 14);
-      ctx.fillRect(280, 7, 2, 7);
-      ctx.fillRect(284, 9, 2, 5);
-      ctx.fillRect(288, 11, 2, 3);
-      ctx.strokeRect(295, 7, 12, 6);
-      ctx.fillRect(297, 9, 8, 2);
-
-      ctx.fillStyle = "#444";
-      ctx.fillRect(8, 20, 60, 4);
-      ctx.fillStyle = shield > 30 ? "#10b981" : "#ef4444";
-      ctx.fillRect(8, 20, (shield / 100) * 60, 4);
-
-      animationFrameRef.current = requestAnimationFrame(updateAndRender);
-    };
-
-    animationFrameRef.current = requestAnimationFrame(updateAndRender);
-
-    return () => {
-      isDestroyed = true;
-      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    };
-  }, [appState, graphicsFilter, emulationSpeed]);
+    return () => clearTimeout(timer);
+  }, [appState, selectedAppId]);
 
 
 
@@ -977,17 +637,41 @@ export function CinematicTerminal() {
                       exit={{ opacity: 0 }}
                       className="w-full h-full flex flex-col justify-between relative"
                     >
-                      <div className="relative w-[320px] h-[240px] overflow-hidden">
-                        <canvas
-                          ref={canvasRef}
-                          width={320}
-                          height={240}
-                          className={`w-full h-full block bg-black transition-all ${
-                            graphicsFilter === "bilinear" ? "image-render-auto" : "image-render-pixelated"
-                          }`}
-                          style={{ imageRendering: graphicsFilter === "nearest" ? "pixelated" : "auto" }}
-                        />
+                      <div className="relative w-[320px] h-[240px] overflow-hidden bg-black flex items-center justify-center">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={selectedAppId}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.6, ease: "easeInOut" }}
+                            className="w-full h-full absolute inset-0"
+                          >
+                            <Image
+                              src={gameGifs[selectedAppId] || render1}
+                              alt={gameNames[selectedAppId] || "Ninja School Offline"}
+                              unoptimized
+                              priority
+                              className="w-full h-full object-cover"
+                              style={{
+                                imageRendering: (graphicsFilter === "nearest" || graphicsFilter === "scanlines" || graphicsFilter === "lcd") ? "pixelated" : "auto"
+                              }}
+                            />
+                          </motion.div>
+                        </AnimatePresence>
 
+                        {/* Scanlines Filter Overlay */}
+                        {graphicsFilter === "scanlines" && (
+                          <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-60 bg-[linear-gradient(to_bottom,rgba(0,0,0,0.35)_50%,transparent_50%)] bg-[length:100%_2px] z-10" />
+                        )}
+
+                        {/* LCD Grid Filter Overlay */}
+                        {graphicsFilter === "lcd" && (
+                          <div className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-40 bg-[linear-gradient(to_right,rgba(0,0,0,0.25)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.25)_1px,transparent_1px)] bg-[length:3px_3px] z-10" />
+                        )}
+
+                        {/* CRT Glass Reflection / Glare */}
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-transparent via-white/[0.02] to-white/[0.06] mix-blend-screen z-15" />
                       </div>
                     </motion.div>
                   )}
@@ -1106,10 +790,10 @@ export function CinematicTerminal() {
                             : "bg-neutral-950/80 border-neutral-800/80"
                         }`}>
                           {[
-                            { id: "gof2", filename: "galaxy_on_fire_2.jar", size: "942 KB" },
-                            { id: "bounce", filename: "bounce_tales.jar", size: "384 KB" },
-                            { id: "snake", filename: "snake_2.jar", size: "128 KB" },
-                            { id: "diamond", filename: "diamond_rush.jar", size: "512 KB" }
+                            { id: "ninja_offline", filename: "ninja_school_offline.jar", size: "354 KB" },
+                            { id: "ninja_world", filename: "ninja_school_world.jar", size: "482 KB" },
+                            { id: "nsomatrix", filename: "nsomatrix.jar", size: "298 KB" },
+                            { id: "neutron", filename: "neutron.jar", size: "512 KB" }
                           ].map((file) => {
                             const isSelected = selectedAppId === file.id;
                             return (
@@ -1177,7 +861,7 @@ export function CinematicTerminal() {
                   <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="truncate">
                     {appState === "gameplay" 
-                      ? `Running: Galaxy on Fire 2 (${emulationSpeed.toFixed(1)}x)` 
+                      ? `Running: ${gameNames[selectedAppId] || "Ninja School Offline"} (${emulationSpeed.toFixed(1)}x)` 
                       : "Launcher active."}
                   </span>
                 </div>
