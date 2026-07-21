@@ -149,7 +149,7 @@ public class SwingDocsDialog extends SwingDialogPanel {
 	private String getControlsMenuHtml() {
 		return "<h3>Controls, Proxies & Diagnostic Tools</h3>"
 				+ "<ul>"
-				+ "  <li><b>Fullscreen</b> (<code>F11</code>): Borderless fullscreen mode with auto-hiding top/bottom bars.</li>"
+				+ "  <li><b>Fullscreen</b>: Borderless fullscreen mode with auto-hiding top/bottom bars.</li>"
 				+ "  <li><b>X-Proxy</b>: Configure SOCKS5/HTTP proxies with optional username and password auth.</li>"
 				+ "  <li><b>Network Access</b>: Global safety switch to instantly cut off or allow J2ME internet requests.</li>"
 				+ "  <li><b>Frame Rate</b>: Set game refresh rate limit (Unlimited, 60, 30, 20, 15 FPS) to save power.</li>"

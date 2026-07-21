@@ -1212,7 +1212,6 @@ public class Main extends JFrame {
 
 		JMenu menuControls = new JMenu("Controls");
 		menuFullscreen = new JCheckBoxMenuItem("Fullscreen");
-		menuFullscreen.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0));
 		menuFullscreen.setState(Config.isFullscreen());
 		menuFullscreen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
