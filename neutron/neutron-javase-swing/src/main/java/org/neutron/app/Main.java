@@ -1352,6 +1352,7 @@ public class Main extends JFrame {
 		setJMenuBar(menuBar);
 
 		setTitle("Neutron");
+		getRootPane().putClientProperty("flatlaf.menuBarEmbedded", Boolean.FALSE);
 
 		this.setIconImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/org/neutron/icon.png")));
 
@@ -1767,6 +1768,7 @@ public class Main extends JFrame {
 		try {
 			System.setProperty("flatlaf.useWindowDecorations", "true");
 			System.setProperty("flatlaf.useSystemFileChooser", "false");
+			UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
 			if ("FlatLaf Light".equals(theme)) {
 				com.formdev.flatlaf.FlatLightLaf.setup();
 			} else if ("FlatLaf Dark".equals(theme)) {
@@ -1804,6 +1806,12 @@ public class Main extends JFrame {
 	}
 
 	public static void main(String args[]) {
+		System.setProperty("apple.laf.useScreenMenuBar", "true");
+		System.setProperty("apple.awt.application.name", "Neutron");
+		System.setProperty("apple.awt.application.appearance", "system");
+		System.setProperty("flatlaf.useWindowDecorations", "true");
+		System.setProperty("flatlaf.useSystemFileChooser", "false");
+		UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
 		List params = new ArrayList();
 		StringBuffer debugArgs = new StringBuffer();
 		for (int i = 0; i < args.length; i++) {

@@ -161,6 +161,7 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 		}
 
 		setJMenuBar(menuBar);
+		getRootPane().putClientProperty("flatlaf.menuBarEmbedded", Boolean.FALSE);
 
 		this.logArea = new LogTextArea(20, 40, 1000);
 		Font logFont = new Font("Monospaced", Font.PLAIN, 12);
