@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Neutron",
   title: "Neutron — The Modern Java ME Emulator",
   description:
-    "Fast, accurate, and lightweight Java ME emulator. Open source and cross-platform.",
+    "Fast, isolated, and lightweight Java ME emulator. Open source and cross-platform.",
   url: "https://neutron-emu.vercel.app",
   ogImage: "/og-image.png",
   creator: "Manish K",

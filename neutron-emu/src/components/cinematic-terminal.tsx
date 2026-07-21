@@ -380,7 +380,7 @@ export function CinematicTerminal() {
                 <div className="flex items-center gap-1 mb-1.5">
                   <span className={`font-bold transition-colors duration-300 ${
                     isLight ? "text-emerald-600" : "text-emerald-400"
-                  }`}>mackruize@neutron:~$</span>
+                  }`}>nsomatrix@neutron:~$</span>
                   <span className={`font-medium transition-colors duration-300 ${
                     isLight ? "text-slate-900" : "text-white"
                   }`}>{terminalText}</span>
@@ -702,8 +702,8 @@ export function CinematicTerminal() {
                         </div>
                         <div className="space-y-1 text-[11px] text-neutral-400">
                           <p className={`${activeTheme.textColor} font-bold text-xs`}>Neutron Emulator v1.0.0</p>
-                          <p>Lead Vendor: <span className="font-semibold text-neutral-300">nsomatrix</span></p>
-                          <p>Lead Developer: <span className="font-semibold text-neutral-300">mackruize</span></p>
+                          <p>Vendor: <span className="font-semibold text-neutral-300">nsomatrix</span></p>
+                          <p>Lead Developer: <span className="font-semibold text-neutral-300">Manish K</span></p>
                           <p>Platform: Java SE / Swing GUI</p>
                           <p>License: GNU LGPL v2.1</p>
                         </div>

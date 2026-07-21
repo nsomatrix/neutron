@@ -15,7 +15,7 @@ export function Footer() {
           <div className="col-span-2 md:col-span-4 lg:col-span-1">
             <Logo className="mb-4" />
             <p className="max-w-xs text-sm text-muted-foreground">
-              The modern Java ME emulator. Fast, accurate, lightweight, and open
+              The modern Java ME emulator. Fast, isolated, lightweight, and open
               source.
             </p>
             <div className="mt-4 flex items-center gap-3">
