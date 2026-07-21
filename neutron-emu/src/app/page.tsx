@@ -45,17 +45,53 @@ const stagger = {
 
 export default function HomePage() {
   return (
-    <div className="relative">
+    <div className="relative min-h-screen">
+      {/* Dynamic interactive/happening background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        {/* Performant static base ambient glow */}
+        <div className="absolute inset-0 ambient-glow-base" />
+
+        {/* Pulsing glow overlay (animates opacity, cheap) */}
+        <div className="absolute inset-0 ambient-glow-overlay animate-glow-pulse" />
+
+        {/* Floating subtle glowing orb layer (animates transform & opacity, cheap) */}
+        <div className="absolute left-[10%] top-[15%] w-72 h-72 rounded-full bg-blue-accent/15 blur-3xl animate-glow-pulse-alt" />
+        <div className="absolute right-[5%] top-[55%] w-80 h-80 rounded-full bg-purple-accent/12 blur-3xl animate-glow-pulse" />
+
+        {/* Performant GPU-Accelerated Animated scrolling grid */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div
+            className="absolute -top-16 -left-16 w-[calc(100%+128px)] h-[calc(100%+128px)] opacity-[0.035] animate-scroll-grid-gpu"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)`,
+              backgroundSize: "64px 64px",
+            }}
+          />
+        </div>
+
+        {/* Twinkling Star/Sparkle Particles (animates transform/scale/opacity, GPU accelerated) */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute left-[15%] top-[10%] w-1.5 h-1.5 rounded-full bg-cyan-accent/80 shadow-[0_0_8px_#06b6d4] animate-particle-1" />
+          <div className="absolute left-[80%] top-[20%] w-1 h-1 rounded-full bg-purple-accent/80 shadow-[0_0_8px_#8b5cf6] animate-particle-2" />
+          <div className="absolute left-[35%] top-[45%] w-1 h-1 rounded-full bg-blue-accent/75 shadow-[0_0_8px_#3b82f6] animate-particle-1" style={{ animationDelay: '2s' }} />
+          <div className="absolute left-[70%] top-[60%] w-1.5 h-1.5 rounded-full bg-cyan-accent/80 shadow-[0_0_8px_#06b6d4] animate-particle-2" style={{ animationDelay: '3s' }} />
+          <div className="absolute left-[20%] top-[80%] w-1 h-1 rounded-full bg-purple-accent/70 shadow-[0_0_8px_#8b5cf6] animate-particle-1" style={{ animationDelay: '4.5s' }} />
+          <div className="absolute left-[85%] top-[75%] w-1.5 h-1.5 rounded-full bg-blue-accent/80 shadow-[0_0_8px_#3b82f6] animate-particle-2" style={{ animationDelay: '1s' }} />
+        </div>
+
+        {/* Sweeping dynamic light beams */}
+        <div className="absolute inset-0 overflow-hidden opacity-30">
+          <div className="absolute w-[1.5px] h-[350px] bg-gradient-to-b from-transparent via-cyan-accent/80 to-transparent animate-beam-gpu-1" style={{ left: '25%' }} />
+          <div className="absolute w-[1.5px] h-[350px] bg-gradient-to-b from-transparent via-purple-accent/80 to-transparent animate-beam-gpu-2" style={{ left: '70%' }} />
+        </div>
+      </div>
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background gradient */}
+        {/* Grid pattern (secondary overlay for texture depth) */}
         <div className="absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-blue-accent/5 via-transparent to-transparent" />
-          <div className="absolute left-1/2 top-0 h-[600px] w-[800px] rounded-full bg-gradient-to-br from-blue-accent/10 via-purple-accent/5 to-transparent blur-3xl animate-float-left" />
-          <div className="absolute right-0 top-1/4 h-[400px] w-[400px] rounded-full bg-cyan-accent/5 blur-3xl animate-float-right" />
-          {/* Grid pattern */}
           <div
-            className="absolute inset-0 opacity-[0.02]"
+            className="absolute inset-0 opacity-[0.01]"
             style={{
               backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
               backgroundSize: "64px 64px",
