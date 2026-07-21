@@ -645,16 +645,21 @@ export function CinematicTerminal() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.6, ease: "easeInOut" }}
-                            className="w-full h-full absolute inset-0"
+                            className="w-full h-full absolute inset-0 select-none pointer-events-none"
+                            onContextMenu={(e) => e.preventDefault()}
                           >
                             <Image
                               src={gameGifs[selectedAppId] || render1}
                               alt={gameNames[selectedAppId] || "Ninja School Offline"}
                               unoptimized
                               priority
-                              className="w-full h-full object-cover"
+                              draggable={false}
+                              onContextMenu={(e) => e.preventDefault()}
+                              className="w-full h-full object-cover select-none pointer-events-none"
                               style={{
-                                imageRendering: (graphicsFilter === "nearest" || graphicsFilter === "scanlines" || graphicsFilter === "lcd") ? "pixelated" : "auto"
+                                imageRendering: (graphicsFilter === "nearest" || graphicsFilter === "scanlines" || graphicsFilter === "lcd") ? "pixelated" : "auto",
+                                WebkitTouchCallout: "none",
+                                WebkitUserSelect: "none",
                               }}
                             />
                           </motion.div>
