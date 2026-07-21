@@ -210,7 +210,7 @@ export default function DownloadPageClient() {
               Download Neutron
             </h1>
             <p className="mx-auto max-w-xl text-base sm:text-lg text-muted-foreground leading-relaxed">
-              Fast, accurate, and lightweight Java ME emulation. Experience your favorite classic J2ME applications and games on modern operating systems.
+              Fast, isolated, and lightweight Java ME emulation. Experience your favorite classic J2ME applications and games on modern operating systems.
             </p>
           </div>
 

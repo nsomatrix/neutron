@@ -131,7 +131,7 @@ export default function HomePage() {
               variants={fadeUp}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Button asChild size="lg" className="w-full sm:w-auto">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
                 <Link href="/docs/getting-started/quick-start">
                   Get Started
                   <ArrowRight className="h-4 w-4" />
@@ -139,7 +139,6 @@ export default function HomePage() {
               </Button>
               <Button
                 asChild
-                variant="outline"
                 size="lg"
                 className="w-full sm:w-auto"
               >
