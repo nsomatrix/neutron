@@ -120,8 +120,8 @@ export default function HomePage() {
               variants={fadeUp}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              Fast. Accurate. Lightweight. Open Source.
-              <br className="hidden sm:block" />
+              Fast. Isolated. Lightweight.
+              <br />
               Run your Java ME applications on any modern platform.
             </motion.p>
 
