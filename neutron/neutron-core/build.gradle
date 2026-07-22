@@ -106,3 +106,5 @@ jar {
     include 'payload.jar.xz'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+run.dependsOn compressPayload

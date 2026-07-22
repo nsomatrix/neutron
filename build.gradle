@@ -1,4 +1,3 @@
-
 subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
@@ -10,5 +9,25 @@ subprojects {
         mavenCentral()
     }
 
-    // Common dependencies or configurations can go here
+    plugins.withId('application') {
+        tasks.named('run').configure {
+            onlyIf { !gradle.taskGraph.hasTask(":run") }
+        }
+    }
+}
+
+task run {
+    group = 'application'
+    description = 'Builds and launches both full-fledged version and core version simultaneously.'
+    dependsOn ':neutron:neutron-javase-swing:jar', ':neutron:neutron-core:jar'
+    doLast {
+        def swingJar = project(':neutron:neutron-javase-swing').tasks.named('jar').get().archiveFile.get().asFile
+        def coreJar = project(':neutron:neutron-core').tasks.named('jar').get().archiveFile.get().asFile
+
+        println "Launching Full-Fledged Version: ${swingJar.name}"
+        new ProcessBuilder("java", "-jar", swingJar.absolutePath).start()
+
+        println "Launching Core Version: ${coreJar.name}"
+        new ProcessBuilder("java", "-jar", coreJar.absolutePath).start()
+    }
 }
