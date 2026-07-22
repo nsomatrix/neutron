@@ -20,7 +20,8 @@ import {
   ArrowRight,
   BookOpen,
   Cloud,
-  Server
+  Server,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -32,6 +33,94 @@ const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/down
 
 const CORE_JAR_SHA256 = "c9693b17ec79e54dc925340ef6f8aed4423f4855dafa3e77fc9c9bef7a60a17b";
 const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron-core.jar";
+
+interface DownloadButtonProps {
+  href: string;
+  downloadName: string;
+  className?: string;
+}
+
+function InteractiveDownloadButton({ href, downloadName, className = "" }: DownloadButtonProps) {
+  const [status, setStatus] = useState<"idle" | "downloading" | "completed">("idle");
+
+  const handleClick = () => {
+    if (status !== "idle") return;
+
+    setStatus("downloading");
+
+    setTimeout(() => {
+      setStatus("completed");
+    }, 1200);
+
+    setTimeout(() => {
+      setStatus("idle");
+    }, 3500);
+  };
+
+  return (
+    <motion.div
+      whileHover={{ scale: status === "idle" ? 1.02 : 1 }}
+      whileTap={{ scale: status === "idle" ? 0.98 : 1 }}
+      className="w-full sm:w-auto"
+    >
+      <Button
+        asChild
+        size="lg"
+        className={`relative overflow-hidden w-full sm:w-64 h-14 text-base font-semibold shadow-lg transition-all duration-300 ${className}`}
+      >
+        <a href={href} download={downloadName} onClick={handleClick}>
+          <AnimatePresence mode="wait">
+            {status === "idle" && (
+              <motion.span
+                key="idle"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center justify-center gap-2"
+              >
+                <Download className="h-5 w-5" />
+                <span>Download</span>
+              </motion.span>
+            )}
+
+            {status === "downloading" && (
+              <motion.span
+                key="downloading"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.15 }}
+                className="flex items-center justify-center"
+              >
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </motion.span>
+            )}
+
+            {status === "completed" && (
+              <motion.span
+                key="completed"
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, y: 6 }}
+                transition={{ type: "spring", stiffness: 450, damping: 25 }}
+                className="flex items-center justify-center"
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -45 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                >
+                  <Check className="h-6 w-6 stroke-[2.5]" />
+                </motion.div>
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </a>
+      </Button>
+    </motion.div>
+  );
+}
 
 const platforms = [
   {
@@ -278,18 +367,11 @@ export default function DownloadPageClient() {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-4 w-full lg:w-auto shrink-0">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto"
-                >
-                  <Button asChild size="lg" className="w-full sm:w-64 h-14 text-base font-semibold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/95 text-primary-foreground">
-                    <a href={EXPRESS_DOWNLOAD_URL} download="neutron.jar">
-                      <Download className="h-5 w-5 mr-1" />
-                      Download
-                    </a>
-                  </Button>
-                </motion.div>
+                <InteractiveDownloadButton
+                  href={EXPRESS_DOWNLOAD_URL}
+                  downloadName="neutron.jar"
+                  className="shadow-primary/20 bg-primary hover:bg-primary/95 text-primary-foreground"
+                />
 
                 <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
                   <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
@@ -387,18 +469,11 @@ export default function DownloadPageClient() {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-4 w-full lg:w-auto shrink-0">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full sm:w-auto"
-                >
-                  <Button asChild size="lg" className="w-full sm:w-64 h-14 text-base font-semibold shadow-lg shadow-cyan-accent/20 bg-gradient-to-r from-cyan-accent to-blue-accent hover:opacity-95 text-white">
-                    <a href={CORE_DOWNLOAD_URL} download="neutron-core.jar">
-                      <Download className="h-5 w-5 mr-1" />
-                      Download
-                    </a>
-                  </Button>
-                </motion.div>
+                <InteractiveDownloadButton
+                  href={CORE_DOWNLOAD_URL}
+                  downloadName="neutron-core.jar"
+                  className="border border-cyan-accent/50 bg-cyan-accent/5 hover:bg-cyan-accent/15 text-cyan-accent hover:border-cyan-accent hover:shadow-lg hover:shadow-cyan-accent/20 transition-all duration-300"
+                />
 
                 <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
                   <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
