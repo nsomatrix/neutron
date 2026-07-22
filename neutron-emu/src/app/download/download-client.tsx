@@ -309,8 +309,8 @@ export default function DownloadPageClient() {
           </div>
 
           <div className="flex justify-center gap-2">
-            <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/5 text-emerald-400 px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
               v1.0.0 Stable
             </Badge>
             <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary px-3 py-1 text-xs font-semibold rounded-full">
@@ -393,28 +393,27 @@ export default function DownloadPageClient() {
             {/* Checksum details */}
             <div className="border-t border-border bg-muted/20 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span className="font-medium text-foreground">SHA-256 Checksum:</span>
-                <code className="bg-muted px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono break-all max-w-[250px] sm:max-w-none">
+                <code className="bg-muted/80 text-foreground px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono break-all max-w-[250px] sm:max-w-none">
                   {EXPRESS_JAR_SHA256}
                 </code>
               </div>
               <Button
                 variant="outline"
-                size="sm"
-                className="h-8 text-[11px] gap-1.5 px-3 hover:bg-card w-full sm:w-auto text-muted-foreground hover:text-foreground shrink-0"
+                size="icon"
+                className={`h-8 w-8 border transition-all duration-200 shrink-0 ${
+                  copiedText === "express-checksum"
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "border-border/80 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
                 onClick={() => handleCopy(EXPRESS_JAR_SHA256, "express-checksum")}
+                title="Copy SHA-256 Checksum"
               >
                 {copiedText === "express-checksum" ? (
-                  <>
-                    <Check className="h-3 w-3 text-emerald-400 animate-in fade-in zoom-in duration-200" />
-                    Copied!
-                  </>
+                  <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in duration-200" />
                 ) : (
-                  <>
-                    <Copy className="h-3 w-3" />
-                    Copy SHA-256
-                  </>
+                  <Copy className="h-3.5 w-3.5" />
                 )}
               </Button>
             </div>
@@ -435,7 +434,7 @@ export default function DownloadPageClient() {
                   <span className="text-xs font-bold tracking-widest text-cyan-accent uppercase">Core Release File</span>
                   <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Cloud Edition JAR</h2>
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                    Specifically designed for cloud servers and VPS environments. Built completely with Java, it includes the core headless emulation engine, server configurations, and remote controls.
+                    Specifically designed for cloud servers and VPS environments. Built completely with Java, it includes the core headless emulation engine.
                   </p>
                 </div>
 
@@ -495,28 +494,27 @@ export default function DownloadPageClient() {
             {/* Checksum details */}
             <div className="border-t border-border bg-muted/20 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span className="font-medium text-foreground">SHA-256 Checksum:</span>
-                <code className="bg-muted px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono break-all max-w-[250px] sm:max-w-none">
+                <code className="bg-muted/80 text-foreground px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono break-all max-w-[250px] sm:max-w-none">
                   {CORE_JAR_SHA256}
                 </code>
               </div>
               <Button
                 variant="outline"
-                size="sm"
-                className="h-8 text-[11px] gap-1.5 px-3 hover:bg-card w-full sm:w-auto text-muted-foreground hover:text-foreground shrink-0"
+                size="icon"
+                className={`h-8 w-8 border transition-all duration-200 shrink-0 ${
+                  copiedText === "core-checksum"
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "border-border/80 bg-background hover:bg-muted text-muted-foreground hover:text-foreground"
+                }`}
                 onClick={() => handleCopy(CORE_JAR_SHA256, "core-checksum")}
+                title="Copy SHA-256 Checksum"
               >
                 {copiedText === "core-checksum" ? (
-                  <>
-                    <Check className="h-3 w-3 text-emerald-400 animate-in fade-in zoom-in duration-200" />
-                    Copied!
-                  </>
+                  <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in duration-200" />
                 ) : (
-                  <>
-                    <Copy className="h-3 w-3" />
-                    Copy SHA-256
-                  </>
+                  <Copy className="h-3.5 w-3.5" />
                 )}
               </Button>
             </div>
@@ -589,22 +587,26 @@ export default function DownloadPageClient() {
                     return (
                       <div key={idx} className="space-y-2">
                         <span className="text-xs font-medium text-muted-foreground">{cmd.label}</span>
-                        <div className="relative group rounded-lg border border-border bg-black/40 p-3 font-mono text-xs flex items-center justify-between gap-4">
-                          <code className="text-emerald-400 break-all select-all pr-8">
+                        <div className="relative group rounded-xl border border-border/80 bg-muted/30 dark:bg-zinc-950/60 p-3.5 font-mono text-xs flex items-center justify-between gap-4 transition-colors">
+                          <code className="text-emerald-700 dark:text-emerald-400 font-semibold dark:font-medium break-all select-all pr-10">
                             {cmd.code}
                           </code>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="absolute right-2 top-2 h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors opacity-80 group-hover:opacity-100"
+                          <button
+                            type="button"
+                            className={`absolute right-2.5 top-2.5 h-7 w-7 rounded-md border flex items-center justify-center transition-all duration-200 shadow-2xs ${
+                              copiedText === cmdId
+                                ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                                : "border-border/70 bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+                            }`}
                             onClick={() => handleCopy(cmd.code, cmdId)}
+                            title="Copy code snippet"
                           >
                             {copiedText === cmdId ? (
-                              <Check className="h-3.5 w-3.5 text-emerald-400 animate-in fade-in zoom-in duration-200" />
+                              <Check className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 animate-in fade-in zoom-in duration-200" />
                             ) : (
                               <Copy className="h-3.5 w-3.5" />
                             )}
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     );
@@ -643,10 +645,10 @@ export default function DownloadPageClient() {
                 <span className="font-semibold text-right">&lt; 50 MB standard active heap</span>
               </div>
             </div>
-            <div className="bg-muted/30 rounded-lg p-4 flex items-start gap-3">
+            <div className="bg-muted/40 rounded-lg p-4 flex items-start gap-3 border border-border/50">
               <Info className="h-5 w-5 text-blue-accent mt-0.5 shrink-0" />
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Java Runtime Environment (JRE) is mandatory. If you do not have Java installed, you will receive a command-line or system error stating <code className="text-[10px] bg-muted px-1 py-0.5 rounded font-mono font-bold">java: command not found</code>.
+                Java Runtime Environment (JRE) is mandatory. If you do not have Java installed, you will receive a command-line or system error stating <code className="text-[10px] bg-muted text-foreground border border-border/60 px-1.5 py-0.5 rounded font-mono font-semibold">java: command not found</code>.
               </p>
             </div>
           </Card>
@@ -669,20 +671,24 @@ export default function DownloadPageClient() {
                   <Monitor className="h-3.5 w-3.5 text-primary" />
                   Windows (Winget)
                 </div>
-                <div className="relative group rounded-md border border-border bg-black/40 px-3 py-2 font-mono text-[11px] flex items-center justify-between gap-2">
-                  <code className="text-purple-accent">winget install Microsoft.OpenJDK.17</code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100"
+                <div className="relative group rounded-xl border border-border/80 bg-muted/30 dark:bg-zinc-950/60 px-3.5 py-2.5 font-mono text-[11px] flex items-center justify-between gap-3 transition-colors">
+                  <code className="text-purple-700 dark:text-purple-300 font-semibold dark:font-medium">winget install Microsoft.OpenJDK.17</code>
+                  <button
+                    type="button"
+                    className={`h-6 w-6 rounded-md border flex items-center justify-center transition-all duration-200 shrink-0 ${
+                      copiedText === "install-win"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "border-border/70 bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
                     onClick={() => handleCopy("winget install Microsoft.OpenJDK.17", "install-win")}
+                    title="Copy command"
                   >
                     {copiedText === "install-win" ? (
-                      <Check className="h-3 w-3 text-emerald-400" />
+                      <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     ) : (
                       <Copy className="h-3 w-3" />
                     )}
-                  </Button>
+                  </button>
                 </div>
               </div>
 
@@ -692,20 +698,24 @@ export default function DownloadPageClient() {
                   <Apple className="h-3.5 w-3.5 text-primary" />
                   macOS (Homebrew)
                 </div>
-                <div className="relative group rounded-md border border-border bg-black/40 px-3 py-2 font-mono text-[11px] flex items-center justify-between gap-2">
-                  <code className="text-purple-accent">brew install openjdk@17</code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100"
+                <div className="relative group rounded-xl border border-border/80 bg-muted/30 dark:bg-zinc-950/60 px-3.5 py-2.5 font-mono text-[11px] flex items-center justify-between gap-3 transition-colors">
+                  <code className="text-purple-700 dark:text-purple-300 font-semibold dark:font-medium">brew install openjdk@17</code>
+                  <button
+                    type="button"
+                    className={`h-6 w-6 rounded-md border flex items-center justify-center transition-all duration-200 shrink-0 ${
+                      copiedText === "install-mac"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "border-border/70 bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
                     onClick={() => handleCopy("brew install openjdk@17", "install-mac")}
+                    title="Copy command"
                   >
                     {copiedText === "install-mac" ? (
-                      <Check className="h-3 w-3 text-emerald-400" />
+                      <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     ) : (
                       <Copy className="h-3 w-3" />
                     )}
-                  </Button>
+                  </button>
                 </div>
               </div>
 
@@ -715,20 +725,24 @@ export default function DownloadPageClient() {
                   <Terminal className="h-3.5 w-3.5 text-primary" />
                   Linux (Ubuntu / Debian / Mint)
                 </div>
-                <div className="relative group rounded-md border border-border bg-black/40 px-3 py-2 font-mono text-[11px] flex items-center justify-between gap-2">
-                  <code className="text-purple-accent">sudo apt install default-jre</code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-80 group-hover:opacity-100"
+                <div className="relative group rounded-xl border border-border/80 bg-muted/30 dark:bg-zinc-950/60 px-3.5 py-2.5 font-mono text-[11px] flex items-center justify-between gap-3 transition-colors">
+                  <code className="text-purple-700 dark:text-purple-300 font-semibold dark:font-medium">sudo apt install default-jre</code>
+                  <button
+                    type="button"
+                    className={`h-6 w-6 rounded-md border flex items-center justify-center transition-all duration-200 shrink-0 ${
+                      copiedText === "install-linux"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                        : "border-border/70 bg-card hover:bg-muted text-muted-foreground hover:text-foreground"
+                    }`}
                     onClick={() => handleCopy("sudo apt install default-jre", "install-linux")}
+                    title="Copy command"
                   >
                     {copiedText === "install-linux" ? (
-                      <Check className="h-3 w-3 text-emerald-400" />
+                      <Check className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                     ) : (
                       <Copy className="h-3 w-3" />
                     )}
-                  </Button>
+                  </button>
                 </div>
               </div>
             </div>
