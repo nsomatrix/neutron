@@ -441,7 +441,7 @@ export default function DownloadPageClient() {
                 <div className="grid grid-cols-3 gap-4 border-y border-border py-4 text-center lg:text-left">
                   <div>
                     <div className="text-xs text-muted-foreground">File Size</div>
-                    <div className="text-sm font-semibold mt-1">486 KB</div>
+                    <div className="text-sm font-semibold mt-1">487 KB</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Requirement</div>
