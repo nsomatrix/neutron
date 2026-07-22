@@ -31,7 +31,7 @@ import logoImg from "@/assets/ntn.png";
 const EXPRESS_JAR_SHA256 = "e6be9934225f9753f05029cf546b16c0853e98a282cb06cbe523c399a13bd513";
 const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron.jar";
 
-const CORE_JAR_SHA256 = "c9693b17ec79e54dc925340ef6f8aed4423f4855dafa3e77fc9c9bef7a60a17b";
+const CORE_JAR_SHA256 = "5480fb19038d0a949e3ec48be10cc6ffb65b4ceebd78dc4e019c211bf90f59dc";
 const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron-core.jar";
 
 interface DownloadButtonProps {

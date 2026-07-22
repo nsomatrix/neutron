@@ -1432,6 +1432,40 @@ public class Main extends JFrame {
 		this.resizeButton.putClientProperty("JButton.buttonType", "toolBarButton");
 		this.resizeButton.setFont(this.resizeButton.getFont().deriveFont(11.0f));
 		this.resizeButton.setFocusable(false);
+		this.resizeButton.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+
+		if (isFlatLafAvailable()) {
+			this.resizeButton.setMargin(new java.awt.Insets(1, 4, 1, 4));
+		} else {
+			this.resizeButton.setContentAreaFilled(false);
+			this.resizeButton.setBorderPainted(false);
+			this.resizeButton.setFocusPainted(false);
+			this.resizeButton.setOpaque(false);
+			this.resizeButton.setMargin(new java.awt.Insets(1, 4, 1, 4));
+			this.resizeButton.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 6, 2, 6));
+
+			this.resizeButton.addMouseListener(new java.awt.event.MouseAdapter() {
+				@Override
+				public void mouseEntered(java.awt.event.MouseEvent e) {
+					if (resizeButton.isEnabled()) {
+						resizeButton.setContentAreaFilled(true);
+						java.awt.Color bg = UIManager.getColor("Panel.background");
+						if (bg != null) {
+							double luminance = (0.299 * bg.getRed() + 0.587 * bg.getGreen() + 0.114 * bg.getBlue()) / 255.0;
+							resizeButton.setBackground(luminance < 0.5 ? new java.awt.Color(255, 255, 255, 25) : new java.awt.Color(0, 0, 0, 18));
+						} else {
+							resizeButton.setBackground(new java.awt.Color(0, 0, 0, 18));
+						}
+					}
+				}
+
+				@Override
+				public void mouseExited(java.awt.event.MouseEvent e) {
+					resizeButton.setContentAreaFilled(false);
+				}
+			});
+		}
+
 		statusBar.getRightPanel().add(this.resizeButton);
 
 		statusBar.setOnCoordinateBadgeClick(new Runnable() {
