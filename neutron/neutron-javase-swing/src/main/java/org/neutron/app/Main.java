@@ -1120,27 +1120,30 @@ public class Main extends JFrame {
 		menuSleepMode.addActionListener(menuSleepModeListener);
 		menuOptions.add(menuSleepMode);
 
-		menuTheme = new JMenu("Theme");
-		ButtonGroup themeGroup = new ButtonGroup();
-		String[] themes = {
-			"FlatLaf Dark", "FlatLaf Light", "FlatLaf IntelliJ", 
-			"FlatLaf Dracula", "FlatLaf macOS Dark", "FlatLaf macOS Light", 
-			"System Look and Feel"
-		};
-		String currentTheme = Config.getTheme();
-		for (final String themeName : themes) {
-			JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeName, themeName.equals(currentTheme));
-			themeItem.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					Config.setTheme(themeName);
-					applyTheme(themeName, devicePanel);
-					Common.setStatusBar("Theme: " + themeName);
-				}
-			});
-			themeGroup.add(themeItem);
-			menuTheme.add(themeItem);
+		if (isFlatLafAvailable()) {
+			menuTheme = new JMenu("Theme");
+			ButtonGroup themeGroup = new ButtonGroup();
+			String[] themes = {
+				"FlatLaf Dark", "FlatLaf Light", "FlatLaf IntelliJ", 
+				"FlatLaf Dracula", "FlatLaf macOS Dark", "FlatLaf macOS Light", 
+				"System Look and Feel"
+			};
+			String currentTheme = Config.getTheme();
+			for (final String themeName : themes) {
+				JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeName, themeName.equals(currentTheme));
+				themeItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						Config.setTheme(themeName);
+						applyTheme(themeName, devicePanel);
+						Common.setStatusBar("Theme: " + themeName);
+					}
+				});
+				themeGroup.add(themeItem);
+				menuTheme.add(themeItem);
+			}
+			menuOptions.add(menuTheme);
 		}
-		menuOptions.add(menuTheme);
+
 
 		menuFilter = new JMenu("Graphics Filter");
 		ButtonGroup filterGroup = new ButtonGroup();
@@ -1695,6 +1698,7 @@ public class Main extends JFrame {
 	}
 
 	protected void updateThemeSelection() {
+		if (menuTheme == null) return;
 		String currentTheme = Config.getTheme();
 		for (int i = 0; i < menuTheme.getItemCount(); i++) {
 			JMenuItem item = menuTheme.getItem(i);
@@ -1706,6 +1710,7 @@ public class Main extends JFrame {
 			}
 		}
 	}
+
 
 	protected void updateFilterSelection() {
 		if (menuFilter == null) {
@@ -1760,31 +1765,54 @@ public class Main extends JFrame {
 		devicePanel.requestFocus();
 	}
 
+	public static boolean isFlatLafAvailable() {
+		try {
+			Class.forName("com.formdev.flatlaf.FlatLaf");
+			return true;
+		} catch (ClassNotFoundException e) {
+			return false;
+		}
+	}
+
 	public static void applyTheme(String theme) {
 		applyTheme(theme, null);
 	}
 
 	public static void applyTheme(String theme, SwingDeviceComponent devicePanel) {
 		try {
-			System.setProperty("flatlaf.useWindowDecorations", "true");
-			System.setProperty("flatlaf.useSystemFileChooser", "false");
-			UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
-			if ("FlatLaf Light".equals(theme)) {
-				com.formdev.flatlaf.FlatLightLaf.setup();
-			} else if ("FlatLaf Dark".equals(theme)) {
-				com.formdev.flatlaf.FlatDarkLaf.setup();
-			} else if ("FlatLaf IntelliJ".equals(theme)) {
-				com.formdev.flatlaf.FlatIntelliJLaf.setup();
-			} else if ("FlatLaf Dracula".equals(theme)) {
-				com.formdev.flatlaf.FlatDarculaLaf.setup();
-			} else if ("FlatLaf macOS Light".equals(theme)) {
-				com.formdev.flatlaf.themes.FlatMacLightLaf.setup();
-			} else if ("FlatLaf macOS Dark".equals(theme)) {
-				com.formdev.flatlaf.themes.FlatMacDarkLaf.setup();
+			if (isFlatLafAvailable()) {
+				System.setProperty("flatlaf.useWindowDecorations", "true");
+				System.setProperty("flatlaf.useSystemFileChooser", "false");
+				UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
+				String lafClassName = null;
+				if ("FlatLaf Light".equals(theme)) {
+					lafClassName = "com.formdev.flatlaf.FlatLightLaf";
+				} else if ("FlatLaf Dark".equals(theme)) {
+					lafClassName = "com.formdev.flatlaf.FlatDarkLaf";
+				} else if ("FlatLaf IntelliJ".equals(theme)) {
+					lafClassName = "com.formdev.flatlaf.FlatIntelliJLaf";
+				} else if ("FlatLaf Dracula".equals(theme)) {
+					lafClassName = "com.formdev.flatlaf.FlatDarculaLaf";
+				} else if ("FlatLaf macOS Light".equals(theme)) {
+					lafClassName = "com.formdev.flatlaf.themes.FlatMacLightLaf";
+				} else if ("FlatLaf macOS Dark".equals(theme)) {
+					lafClassName = "com.formdev.flatlaf.themes.FlatMacDarkLaf";
+				}
+
+				if (lafClassName != null) {
+					Class<?> lafClass = Class.forName(lafClassName);
+					java.lang.reflect.Method setupMethod = lafClass.getMethod("setup");
+					setupMethod.invoke(null);
+				} else {
+					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+				}
+				Class<?> flatLafClass = Class.forName("com.formdev.flatlaf.FlatLaf");
+				java.lang.reflect.Method updateUIMethod = flatLafClass.getMethod("updateUI");
+				updateUIMethod.invoke(null);
 			} else {
 				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 			}
-			com.formdev.flatlaf.FlatLaf.updateUI();
+
 			if (devicePanel != null) {
 				try {
 					SwingDisplayComponent sdc = (SwingDisplayComponent) devicePanel.getDisplayComponent();
@@ -1809,9 +1837,11 @@ public class Main extends JFrame {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		System.setProperty("apple.awt.application.name", "Neutron");
 		System.setProperty("apple.awt.application.appearance", "system");
-		System.setProperty("flatlaf.useWindowDecorations", "true");
-		System.setProperty("flatlaf.useSystemFileChooser", "false");
-		UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
+		if (isFlatLafAvailable()) {
+			System.setProperty("flatlaf.useWindowDecorations", "true");
+			System.setProperty("flatlaf.useSystemFileChooser", "false");
+			UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
+		}
 		List params = new ArrayList();
 		StringBuffer debugArgs = new StringBuffer();
 		for (int i = 0; i < args.length; i++) {
@@ -1827,6 +1857,7 @@ public class Main extends JFrame {
 		}
 
 		applyTheme(Config.preLoadTheme());
+
 
 		final Main app = new Main();
 		if (args.length > 0) {

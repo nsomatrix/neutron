@@ -138,7 +138,7 @@ public class SwingDocsDialog extends SwingDialogPanel {
 				+ "  <li><b>Record Store Manager</b>: View and delete keys stored in the RMS J2ME database (saves, highscores).</li>"
 				+ "  <li><b>Log Console</b>: Open developer logging window to inspect output, warnings, and error traces.</li>"
 				+ "  <li><b>Sleep Mode</b> (<code>Ctrl+L</code>): Pause threads on idle to drastically lower CPU usage.</li>"
-				+ "  <li><b>Theme</b>: Changes the Look-and-Feel skin style (e.g., FlatLaf macOS Dark, Dracula, System).</li>"
+				+ (org.neutron.app.Main.isFlatLafAvailable() ? "  <li><b>Theme</b>: Changes the Look-and-Feel skin style (e.g., FlatLaf macOS Dark, Dracula, System).</li>" : "")
 				+ "  <li><b>Graphics Filter</b>: Renders drawing with Bilinear, Bicubic, Scale2x, CRT Scanlines, or LCD Grid.</li>"
 				+ "  <li><b>Video Settings</b>: Sliders for Brightness, Contrast, Gamma, Saturation, Sharpness, Ghosting, & Invert.</li>"
 				+ "  <li><b>Memory Limit</b>: Limit heap memory (32MB - 512MB). Periodically triggers GC if exceeded.</li>"
