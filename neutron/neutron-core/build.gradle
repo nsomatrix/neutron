@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.tukaani:xz:1.9'
+    }
+}
+
 apply plugin: 'java-library'
 apply plugin: 'application'
 
@@ -7,7 +16,10 @@ targetCompatibility = 1.8
 sourceSets {
     main {
         java {
-            srcDirs = [project(':neutron:neutron-javase-swing').file('src/main/java')]
+            srcDirs = [
+                'src/main/java',
+                project(':neutron:neutron-javase-swing').file('src/main/java')
+            ]
         }
         resources {
             srcDirs = [project(':neutron:neutron-javase-swing').file('src/main/resources')]
@@ -18,18 +30,79 @@ sourceSets {
 dependencies {
     api project(':neutron:neutron-javase')
     implementation project(path: ':neutron:neutron-injected', configuration: 'inject')
+    implementation 'org.tukaani:xz:1.9'
 }
 
-mainClassName = 'org.neutron.app.Main'
+mainClassName = 'org.neutron.app.CoreLauncher'
+
+application {
+    applicationDefaultJvmArgs = [
+        '-XX:+UseSerialGC',
+        '-XX:TieredStopAtLevel=1',
+        '-Xms16m',
+        '-Xmx64m'
+    ]
+}
+
+task rawJar(type: Jar) {
+    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar', ':neutron:neutron-injected:jar', compileJava, processResources
+    archiveBaseName = 'neutron-core-raw'
+    destinationDirectory = file("${buildDir}/tmp/rawJar")
+    entryCompression = ZipEntryCompression.STORED
+    from sourceSets.main.output
+    from {
+        configurations.runtimeClasspath.findAll { !it.name.contains('xz') }.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    exclude 'META-INF/maven/**'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude '**/README*'
+    exclude '**/COPYING*'
+    exclude '**/*.launch'
+    exclude 'payload.jar.xz'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+task compressPayload {
+    dependsOn rawJar
+    inputs.file rawJar.archiveFile
+    outputs.file "${buildDir}/resources/main/payload.jar.xz"
+
+    doLast {
+        def inFile = rawJar.archiveFile.get().asFile
+        def outFile = file("${buildDir}/resources/main/payload.jar.xz")
+        outFile.parentFile.mkdirs()
+
+        inFile.withInputStream { is ->
+            outFile.withOutputStream { os ->
+                def xzOut = new org.tukaani.xz.XZOutputStream(os, new org.tukaani.xz.LZMA2Options(6))
+                byte[] buf = new byte[32768]
+                int n
+                while ((n = is.read(buf)) != -1) {
+                    xzOut.write(buf, 0, n)
+                }
+                xzOut.finish()
+            }
+        }
+    }
+}
 
 jar {
-    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar'
+    dependsOn compressPayload
     archiveBaseName = 'neutron-core'
     manifest {
-        attributes 'Main-Class': 'org.neutron.app.Main'
+        attributes 'Main-Class': 'org.neutron.app.CoreLauncher'
     }
+    from fileTree(dir: "${buildDir}/classes/java/main", include: 'org/neutron/app/CoreLauncher*.class')
     from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.findAll { it.name.contains('xz') }.collect { zipTree(it) }
     }
+    from("${buildDir}/resources/main") {
+        include 'payload.jar.xz'
+    }
+    include 'org/neutron/app/CoreLauncher*.class'
+    include 'org/tukaani/xz/**'
+    include 'payload.jar.xz'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
