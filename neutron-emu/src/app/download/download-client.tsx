@@ -18,15 +18,20 @@ import {
   ChevronDown,
   Info,
   ArrowRight,
-  BookOpen
+  BookOpen,
+  Cloud,
+  Server
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import logoImg from "@/assets/ntn.png";
 
-const JAR_SHA256 = "e6be9934225f9753f05029cf546b16c0853e98a282cb06cbe523c399a13bd513";
-const DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron.jar";
+const EXPRESS_JAR_SHA256 = "e6be9934225f9753f05029cf546b16c0853e98a282cb06cbe523c399a13bd513";
+const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron.jar";
+
+const CORE_JAR_SHA256 = "c9693b17ec79e54dc925340ef6f8aed4423f4855dafa3e77fc9c9bef7a60a17b";
+const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.0.0/neutron-core.jar";
 
 const platforms = [
   {
@@ -225,7 +230,7 @@ export default function DownloadPageClient() {
           </div>
         </motion.div>
 
-        {/* Main Download Card */}
+        {/* Express Edition Download Card */}
         <motion.div variants={itemVariants}>
           <div className="relative rounded-2xl border border-border bg-card/65 backdrop-blur-md overflow-hidden shadow-2xl">
             {/* Header background accents */}
@@ -236,8 +241,8 @@ export default function DownloadPageClient() {
             <div className="p-8 sm:p-10 flex flex-col lg:flex-row gap-10 items-center justify-between">
               <div className="space-y-6 text-center lg:text-left max-w-xl">
                 <div className="space-y-2">
-                  <span className="text-xs font-bold tracking-widest text-primary uppercase">Primary Release File</span>
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Universal Executable JAR</h2>
+                  <span className="text-xs font-bold tracking-widest text-primary uppercase">Standard Release File</span>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Express Edition JAR</h2>
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                     This standalone application runs seamlessly across Windows, macOS, and Linux. Built completely with Java, it includes the core graphical interface, configurations, and emulator controls.
                   </p>
@@ -279,9 +284,9 @@ export default function DownloadPageClient() {
                   className="w-full sm:w-auto"
                 >
                   <Button asChild size="lg" className="w-full sm:w-64 h-14 text-base font-semibold shadow-lg shadow-primary/20 bg-primary hover:bg-primary/95 text-primary-foreground">
-                    <a href={DOWNLOAD_URL} download="neutron.jar">
+                    <a href={EXPRESS_DOWNLOAD_URL} download="neutron.jar">
                       <Download className="h-5 w-5 mr-1" />
-                      Download neutron.jar
+                      Download
                     </a>
                   </Button>
                 </motion.div>
@@ -309,16 +314,125 @@ export default function DownloadPageClient() {
                 <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
                 <span className="font-medium text-foreground">SHA-256 Checksum:</span>
                 <code className="bg-muted px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono break-all max-w-[250px] sm:max-w-none">
-                  {JAR_SHA256}
+                  {EXPRESS_JAR_SHA256}
                 </code>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 className="h-8 text-[11px] gap-1.5 px-3 hover:bg-card w-full sm:w-auto text-muted-foreground hover:text-foreground shrink-0"
-                onClick={() => handleCopy(JAR_SHA256, "checksum")}
+                onClick={() => handleCopy(EXPRESS_JAR_SHA256, "express-checksum")}
               >
-                {copiedText === "checksum" ? (
+                {copiedText === "express-checksum" ? (
+                  <>
+                    <Check className="h-3 w-3 text-emerald-400 animate-in fade-in zoom-in duration-200" />
+                    Copied!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3 w-3" />
+                    Copy SHA-256
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Cloud Edition Download Card */}
+        <motion.div variants={itemVariants}>
+          <div className="relative rounded-2xl border border-border bg-card/65 backdrop-blur-md overflow-hidden shadow-2xl">
+            {/* Header background accents */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-accent/30 to-transparent" />
+            <div className="absolute top-0 right-0 h-40 w-40 bg-blue-accent/5 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-0 h-40 w-40 bg-purple-accent/5 rounded-full blur-3xl" />
+
+            <div className="p-8 sm:p-10 flex flex-col lg:flex-row gap-10 items-center justify-between">
+              <div className="space-y-6 text-center lg:text-left max-w-xl">
+                <div className="space-y-2">
+                  <span className="text-xs font-bold tracking-widest text-cyan-accent uppercase">Core Release File</span>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Cloud Edition JAR</h2>
+                  <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                    Specifically designed for cloud servers and VPS environments. Built completely with Java, it includes the core headless emulation engine, server configurations, and remote controls.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 border-y border-border py-4 text-center lg:text-left">
+                  <div>
+                    <div className="text-xs text-muted-foreground">File Size</div>
+                    <div className="text-sm font-semibold mt-1">486 KB</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Requirement</div>
+                    <div className="text-sm font-semibold mt-1">Java 8+</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Format</div>
+                    <div className="text-sm font-semibold mt-1">.jar Executable</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3">
+                  <span className="text-xs text-muted-foreground font-medium">Optimized for:</span>
+                  <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground flex items-center gap-1">
+                    <Cloud className="h-3 w-3" /> Cloud Servers
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground flex items-center gap-1">
+                    <Server className="h-3 w-3" /> VPS Instances
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground flex items-center gap-1">
+                    <Terminal className="h-3 w-3" /> Headless Linux
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="flex flex-col items-center justify-center gap-4 w-full lg:w-auto shrink-0">
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full sm:w-auto"
+                >
+                  <Button asChild size="lg" className="w-full sm:w-64 h-14 text-base font-semibold shadow-lg shadow-cyan-accent/20 bg-gradient-to-r from-cyan-accent to-blue-accent hover:opacity-95 text-white">
+                    <a href={CORE_DOWNLOAD_URL} download="neutron-core.jar">
+                      <Download className="h-5 w-5 mr-1" />
+                      Download
+                    </a>
+                  </Button>
+                </motion.div>
+
+                <div className="flex flex-col sm:flex-row gap-2 w-full justify-center">
+                  <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Link href="/docs/getting-started/quick-start" className="flex items-center gap-1 text-xs">
+                      <BookOpen className="h-3.5 w-3.5" />
+                      Quick Start Guide
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                    <Link href="/docs/advanced/cli" className="flex items-center gap-1 text-xs">
+                      CLI Docs
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Checksum details */}
+            <div className="border-t border-border bg-muted/20 px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <ShieldCheck className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span className="font-medium text-foreground">SHA-256 Checksum:</span>
+                <code className="bg-muted px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-mono break-all max-w-[250px] sm:max-w-none">
+                  {CORE_JAR_SHA256}
+                </code>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-[11px] gap-1.5 px-3 hover:bg-card w-full sm:w-auto text-muted-foreground hover:text-foreground shrink-0"
+                onClick={() => handleCopy(CORE_JAR_SHA256, "core-checksum")}
+              >
+                {copiedText === "core-checksum" ? (
                   <>
                     <Check className="h-3 w-3 text-emerald-400 animate-in fade-in zoom-in duration-200" />
                     Copied!
