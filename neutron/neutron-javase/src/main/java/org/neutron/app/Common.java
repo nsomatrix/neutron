@@ -1157,6 +1157,7 @@ public class Common implements Neutron, CommonInterface {
                 File file = new File(midletClassOrUrl);
                 String url = file.exists() ? IOUtils.getCanonicalFileURL(file) : midletClassOrUrl;
                 openMIDletUrl(url);
+                return MIDletBridge.getCurrentMIDlet();
             } catch (IOException exception) {
                 Logger.error("Cannot load " + midletClassOrUrl + " URL", exception);
             }
