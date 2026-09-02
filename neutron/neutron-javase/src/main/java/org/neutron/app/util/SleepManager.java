@@ -22,7 +22,7 @@ public class SleepManager {
     private static Runnable uiCallback;
 
     private static volatile long lastActivityTime = System.currentTimeMillis();
-    private static final long INACTIVITY_DELAY = 120000; // 2 minutes in milliseconds
+    private static final long INACTIVITY_DELAY = 60000; // 1 minute in milliseconds
     private static ScheduledExecutorService inactivityScheduler;
 
     public static boolean isSleepModeActive() {
