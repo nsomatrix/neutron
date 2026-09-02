@@ -591,9 +591,15 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 
 		g.drawImage(offi, 0, 0, null);
 
-		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
-			g.setColor(new java.awt.Color(10, 12, 18, 220));
-			g.fillRect(0, 0, getWidth(), getHeight());
+		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+			float alpha = SwingSleepUI.getCurrentAlpha();
+			if (alpha > 0.001f) {
+				java.awt.Graphics2D g2d = (java.awt.Graphics2D) g.create();
+				g2d.setComposite(java.awt.AlphaComposite.getInstance(java.awt.AlphaComposite.SRC_OVER, alpha));
+				g2d.setColor(new java.awt.Color(10, 12, 18, 220));
+				g2d.fillRect(0, 0, getWidth(), getHeight());
+				g2d.dispose();
+			}
 		}
 	}
 

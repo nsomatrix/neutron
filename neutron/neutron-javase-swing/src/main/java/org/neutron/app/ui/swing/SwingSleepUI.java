@@ -101,12 +101,14 @@ public class SwingSleepUI {
     }
 
     private static BufferedImage generateFastBlur(BufferedImage src) {
+        if (src == null) return null;
         int w = src.getWidth();
         int h = src.getHeight();
+        if (w <= 0 || h <= 0) return null;
 
-        // Downscale image to 1/2 size for light, crisp depth-of-field
-        int smallW = Math.max(128, w / 2);
-        int smallH = Math.max(128, h / 2);
+        // Proportional 2x downscale preserving exact aspect ratio (no hardcoded dimension bounds)
+        int smallW = Math.max(1, w / 2);
+        int smallH = Math.max(1, h / 2);
 
         BufferedImage smallImg = new BufferedImage(smallW, smallH, BufferedImage.TYPE_INT_ARGB);
         Graphics2D gSmall = smallImg.createGraphics();
@@ -114,18 +116,84 @@ public class SwingSleepUI {
         gSmall.drawImage(src, 0, 0, smallW, smallH, null);
         gSmall.dispose();
 
-        // Single light 3x3 Box Blur Pass
-        float[] matrix = {
-            1f/9f, 1f/9f, 1f/9f,
-            1f/9f, 1f/9f, 1f/9f,
-            1f/9f, 1f/9f, 1f/9f
-        };
-        ConvolveOp blurOp = new ConvolveOp(new Kernel(3, 3, matrix), ConvolveOp.EDGE_NO_OP, null);
+        int[] inPixels = ((java.awt.image.DataBufferInt) smallImg.getRaster().getDataBuffer()).getData();
+        int[] outPixels = new int[smallW * smallH];
 
-        BufferedImage blurredSmall = new BufferedImage(smallW, smallH, BufferedImage.TYPE_INT_ARGB);
-        blurOp.filter(smallImg, blurredSmall);
+        // Separable 2-Pass Box Blur with Edge Clamping (Industry Standard: Edge-to-Edge with 0 border gap)
+        int radius = 3;
+        boxBlurHorizontal(inPixels, outPixels, smallW, smallH, radius);
+        boxBlurVertical(outPixels, inPixels, smallW, smallH, radius);
 
-        return blurredSmall;
+        return smallImg;
+    }
+
+    private static void boxBlurHorizontal(int[] in, int[] out, int w, int h, int r) {
+        int windowSize = 2 * r + 1;
+        for (int y = 0; y < h; y++) {
+            int rowOffset = y * w;
+            int aSum = 0, rSum = 0, gSum = 0, bSum = 0;
+
+            for (int i = -r; i <= r; i++) {
+                int clampedX = Math.min(Math.max(i, 0), w - 1);
+                int pixel = in[rowOffset + clampedX];
+                aSum += (pixel >>> 24);
+                rSum += (pixel >> 16) & 0xff;
+                gSum += (pixel >> 8) & 0xff;
+                bSum += pixel & 0xff;
+            }
+
+            for (int x = 0; x < w; x++) {
+                out[rowOffset + x] = ((aSum / windowSize) << 24)
+                                   | ((rSum / windowSize) << 16)
+                                   | ((gSum / windowSize) << 8)
+                                   | (bSum / windowSize);
+
+                int leftClampedX = Math.min(Math.max(x - r, 0), w - 1);
+                int rightClampedX = Math.min(Math.max(x + r + 1, 0), w - 1);
+
+                int leftPixel = in[rowOffset + leftClampedX];
+                int rightPixel = in[rowOffset + rightClampedX];
+
+                aSum += (rightPixel >>> 24) - (leftPixel >>> 24);
+                rSum += ((rightPixel >> 16) & 0xff) - ((leftPixel >> 16) & 0xff);
+                gSum += ((rightPixel >> 8) & 0xff) - ((leftPixel >> 8) & 0xff);
+                bSum += (rightPixel & 0xff) - (leftPixel & 0xff);
+            }
+        }
+    }
+
+    private static void boxBlurVertical(int[] in, int[] out, int w, int h, int r) {
+        int windowSize = 2 * r + 1;
+        for (int x = 0; x < w; x++) {
+            int aSum = 0, rSum = 0, gSum = 0, bSum = 0;
+
+            for (int i = -r; i <= r; i++) {
+                int clampedY = Math.min(Math.max(i, 0), h - 1);
+                int pixel = in[clampedY * w + x];
+                aSum += (pixel >>> 24);
+                rSum += (pixel >> 16) & 0xff;
+                gSum += (pixel >> 8) & 0xff;
+                bSum += pixel & 0xff;
+            }
+
+            for (int y = 0; y < h; y++) {
+                out[y * w + x] = ((aSum / windowSize) << 24)
+                                 | ((rSum / windowSize) << 16)
+                                 | ((gSum / windowSize) << 8)
+                                 | (bSum / windowSize);
+
+                int topClampedY = Math.min(Math.max(y - r, 0), h - 1);
+                int bottomClampedY = Math.min(Math.max(y + r + 1, 0), h - 1);
+
+                int topPixel = in[topClampedY * w + x];
+                int bottomPixel = in[bottomClampedY * w + x];
+
+                aSum += (bottomPixel >>> 24) - (topPixel >>> 24);
+                rSum += ((bottomPixel >> 16) & 0xff) - ((topPixel >> 16) & 0xff);
+                gSum += ((bottomPixel >> 8) & 0xff) - ((topPixel >> 8) & 0xff);
+                bSum += (bottomPixel & 0xff) - (topPixel & 0xff);
+            }
+        }
     }
 
     private static float easeOutCubic(float t) {
