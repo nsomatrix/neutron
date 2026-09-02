@@ -106,7 +106,7 @@ public class SwingSleepUI {
         int h = src.getHeight();
         if (w <= 0 || h <= 0) return null;
 
-        // Proportional 2x downscale preserving exact aspect ratio (no hardcoded dimension bounds)
+        // Proportional 2x downscale preserving exact aspect ratio
         int smallW = Math.max(1, w / 2);
         int smallH = Math.max(1, h / 2);
 
@@ -119,12 +119,43 @@ public class SwingSleepUI {
         int[] inPixels = ((java.awt.image.DataBufferInt) smallImg.getRaster().getDataBuffer()).getData();
         int[] outPixels = new int[smallW * smallH];
 
-        // Separable 2-Pass Box Blur with Edge Clamping (Industry Standard: Edge-to-Edge with 0 border gap)
+        // 3-Pass Cascaded Box Blur (Central Limit Theorem: mathematically converges to Gaussian Curve)
         int radius = 3;
         boxBlurHorizontal(inPixels, outPixels, smallW, smallH, radius);
         boxBlurVertical(outPixels, inPixels, smallW, smallH, radius);
 
+        boxBlurHorizontal(inPixels, outPixels, smallW, smallH, radius);
+        boxBlurVertical(outPixels, inPixels, smallW, smallH, radius);
+
+        boxBlurHorizontal(inPixels, outPixels, smallW, smallH, radius);
+        boxBlurVertical(outPixels, inPixels, smallW, smallH, radius);
+
+        // Saturation / Vibrancy boost (1.3x) to keep background colors rich & luminous
+        applyVibrancy(inPixels, smallW * smallH, 1.3f);
+
         return smallImg;
+    }
+
+    private static void applyVibrancy(int[] pixels, int length, float satBoost) {
+        for (int i = 0; i < length; i++) {
+            int argb = pixels[i];
+            int a = argb & 0xff000000;
+            int r = (argb >> 16) & 0xff;
+            int g = (argb >> 8) & 0xff;
+            int b = argb & 0xff;
+
+            int luma = (int) (0.299f * r + 0.587f * g + 0.114f * b);
+
+            int newR = (int) (luma + satBoost * (r - luma));
+            int newG = (int) (luma + satBoost * (g - luma));
+            int newB = (int) (luma + satBoost * (b - luma));
+
+            if (newR < 0) newR = 0; else if (newR > 255) newR = 255;
+            if (newG < 0) newG = 0; else if (newG > 255) newG = 255;
+            if (newB < 0) newB = 0; else if (newB > 255) newB = 255;
+
+            pixels[i] = a | (newR << 16) | (newG << 8) | newB;
+        }
     }
 
     private static void boxBlurHorizontal(int[] in, int[] out, int w, int h, int r) {
