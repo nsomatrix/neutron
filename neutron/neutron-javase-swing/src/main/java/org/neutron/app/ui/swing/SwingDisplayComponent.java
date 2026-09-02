@@ -318,7 +318,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						org.neutron.app.Main.updateSleepModeMenuState(org.neutron.app.util.SleepManager.isSleepEnabled());
 						if (active) {
 							if (sleepRepaintTimer == null) {
-								sleepRepaintTimer = new javax.swing.Timer(33, new java.awt.event.ActionListener() {
+								sleepRepaintTimer = new javax.swing.Timer(66, new java.awt.event.ActionListener() {
 									public void actionPerformed(java.awt.event.ActionEvent e) {
 										repaint();
 									}
@@ -611,6 +611,9 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	}
 
 	public void repaintRequest(int x, int y, int width, int height) {
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			return;
+		}
 		MIDletAccess ma = MIDletBridge.getMIDletAccess();
 		if (ma == null) {
 			return;

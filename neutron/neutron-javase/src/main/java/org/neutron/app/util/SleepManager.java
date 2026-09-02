@@ -5,12 +5,15 @@
  */
 package org.neutron.app.util;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.neutron.log.Logger;
 
 /**
  * SleepManager controls the sleep and hibernate state of the emulator.
- * When sleep mode is active, J2ME thread execution is suspended to optimize CPU and memory resources.
- * It supports auto-sleep after 2 minutes of inactivity.
+ * When sleep mode is active, J2ME rendering is suspended while background logic and connections remain active.
+ * It supports auto-sleep after 2 minutes of inactivity using a ScheduledExecutorService.
  */
 public class SleepManager {
     private static volatile boolean sleepEnabled = false;
@@ -20,7 +23,7 @@ public class SleepManager {
 
     private static volatile long lastActivityTime = System.currentTimeMillis();
     private static final long INACTIVITY_DELAY = 120000; // 2 minutes in milliseconds
-    private static java.util.Timer inactivityTimer;
+    private static ScheduledExecutorService inactivityScheduler;
 
     public static boolean isSleepModeActive() {
         return sleepModeActive;
@@ -56,10 +59,10 @@ public class SleepManager {
             if (sleepModeActive != active) {
                 sleepModeActive = active;
                 if (active) {
-                    Logger.info("Entering Sleep/Hibernate Mode due to inactivity. Suspending J2ME threads...");
+                    Logger.info("Entering Sleep/Hibernate Mode due to inactivity.");
                     System.gc();
                 } else {
-                    Logger.info("Waking up from Sleep/Hibernate Mode. Resuming J2ME threads...");
+                    Logger.info("Waking up from Sleep/Hibernate Mode.");
                     lastActivityTime = System.currentTimeMillis();
                     sleepLock.notifyAll();
                     System.gc();
@@ -76,20 +79,20 @@ public class SleepManager {
     }
 
     private static synchronized void startInactivityTimer() {
-        if (inactivityTimer == null) {
-            inactivityTimer = new java.util.Timer("NeutronSleepInactivityTimer", true);
-            inactivityTimer.scheduleAtFixedRate(new java.util.TimerTask() {
-                public void run() {
-                    checkInactivity();
-                }
-            }, 1000, 1000);
+        if (inactivityScheduler == null || inactivityScheduler.isShutdown()) {
+            inactivityScheduler = Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "NeutronSleepInactivityTimer");
+                t.setDaemon(true);
+                return t;
+            });
+            inactivityScheduler.scheduleAtFixedRate(SleepManager::checkInactivity, 1, 1, TimeUnit.SECONDS);
         }
     }
 
     private static synchronized void stopInactivityTimer() {
-        if (inactivityTimer != null) {
-            inactivityTimer.cancel();
-            inactivityTimer = null;
+        if (inactivityScheduler != null) {
+            inactivityScheduler.shutdownNow();
+            inactivityScheduler = null;
         }
     }
 
@@ -102,6 +105,22 @@ public class SleepManager {
     }
 
     public static void checkSleep() {
-        // J2ME threads are no longer suspended during sleep mode to ensure that background farming and network connections remain active and run seamlessly.
+        if (sleepModeActive) {
+            try {
+                // Throttle background J2ME execution loops (~12 FPS) during sleep mode to drastically lower CPU usage
+                // while preserving active TCP/HTTP socket connections and MIDlet state.
+                Thread.sleep(80);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+
+    public static void onWindowIconified() {
+        if (sleepEnabled && !sleepModeActive) {
+            setSleepModeActive(true);
+        }
     }
 }
+
+

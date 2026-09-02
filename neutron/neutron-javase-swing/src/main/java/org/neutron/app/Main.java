@@ -866,17 +866,29 @@ public class Main extends JFrame {
 		}
 
 		public void windowIconified(WindowEvent ev) {
-			MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet()).pauseApp();
+			org.neutron.app.util.SleepManager.onWindowIconified();
+			MIDletAccess ma = MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet());
+			if (ma != null) {
+				ma.pauseApp();
+			}
 		}
 
 		public void windowDeiconified(WindowEvent ev) {
 			try {
-				MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet()).startApp();
+				MIDletAccess ma = MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet());
+				if (ma != null) {
+					ma.startApp();
+				}
 			} catch (MIDletStateChangeException ex) {
 				System.err.println(ex);
 			}
 		}
+
+		public void windowGainedFocus(WindowEvent ev) {
+			org.neutron.app.util.SleepManager.notifyActivity();
+		}
 	};
+
 
 	public Main() {
 		this(null);
@@ -1360,6 +1372,8 @@ public class Main extends JFrame {
 		this.setIconImage(Toolkit.getDefaultToolkit().getImage(Main.class.getResource("/org/neutron/icon.png")));
 
 		addWindowListener(windowListener);
+		addWindowFocusListener(windowListener);
+
 
 		Config.loadConfig(defaultDevice, emulatorContext);
 		org.neutron.cldc.http.Connection.setAllowNetworkConnection(Config.isNetworkAccessEnabled());

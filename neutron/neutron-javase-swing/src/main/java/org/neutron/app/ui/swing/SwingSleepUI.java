@@ -12,8 +12,8 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import javax.swing.UIManager;
 
 /**
@@ -23,8 +23,8 @@ import javax.swing.UIManager;
  * and wakes on a simple tap anywhere on the screen.
  */
 public class SwingSleepUI {
-    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss");
-    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, MMMM dd");
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("EEEE, MMMM dd");
 
     private static final int containerWidth = 290;
     private static final int containerHeight = 240;
@@ -97,19 +97,22 @@ public class SwingSleepUI {
         g2.setStroke(new BasicStroke(1.0f));
         g2.drawRoundRect(cx, cy, containerWidth, containerHeight, 12, 12);
 
+        LocalDateTime nowDateTime = LocalDateTime.now();
+
         // 4. Digital Clock at the top
         g2.setFont(new Font("SansSerif", Font.BOLD, 26));
         g2.setColor(textColor);
-        String timeStr = timeFormat.format(new Date());
+        String timeStr = nowDateTime.format(TIME_FORMATTER);
         FontMetrics fmTime = g2.getFontMetrics();
         g2.drawString(timeStr, cx + (containerWidth - fmTime.stringWidth(timeStr)) / 2, cy + 35);
 
         // 5. Date Subtitle
         g2.setFont(new Font("SansSerif", Font.PLAIN, 11));
         g2.setColor(subTextColor);
-        String dateStr = dateFormat.format(new Date());
+        String dateStr = nowDateTime.format(DATE_FORMATTER);
         FontMetrics fmDate = g2.getFontMetrics();
         g2.drawString(dateStr, cx + (containerWidth - fmDate.stringWidth(dateStr)) / 2, cy + 54);
+
 
         // 6. Animated Neutron Icon in the center
         int lockX = cx + containerWidth / 2;

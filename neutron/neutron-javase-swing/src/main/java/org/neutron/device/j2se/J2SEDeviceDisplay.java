@@ -189,6 +189,10 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 	}
 
 	public void paintDisplayable(J2SEGraphicsSurface graphicsSurface, int x, int y, int width, int height) {
+		org.neutron.app.util.SleepManager.checkSleep();
+		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+			return;
+		}
 		MIDletAccess ma = MIDletBridge.getMIDletAccess();
 		if (ma == null) {
 			return;
@@ -459,6 +463,10 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
     }
     
     public void flushGraphics(GameCanvas gameCanvas, int x, int y, int width, int height) {
+        org.neutron.app.util.SleepManager.checkSleep();
+        if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+            return;
+        }
         int maxFps = org.neutron.app.Config.getMaxFps();
         if (maxFps > 0) {
             gameCanvasFpsLimiter.limit(maxFps);
