@@ -388,20 +388,6 @@ public class SwingStatusBar extends JPanel {
 		g2.dispose();
 	}
 
-	@Override
-	public void paint(Graphics g) {
-		super.paint(g);
-		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
-			float alpha = SwingSleepUI.getCurrentAlpha();
-			if (alpha > 0.001f) {
-				Graphics2D g2 = (Graphics2D) g.create();
-				g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
-				g2.setColor(new Color(2, 3, 6));
-				g2.fillRect(0, 0, getWidth(), getHeight());
-				g2.dispose();
-			}
-		}
-	}
 
 	private static class SpinnerComponent extends JComponent {
 		private static final long serialVersionUID = 1L;
