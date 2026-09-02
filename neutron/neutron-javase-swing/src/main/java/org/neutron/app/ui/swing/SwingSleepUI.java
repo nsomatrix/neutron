@@ -19,7 +19,7 @@ import java.awt.image.Kernel;
 import javax.swing.UIManager;
 
 /**
- * SwingSleepUI provides a smooth GTA V style pause experience.
+ * SwingSleepUI provides a smooth, professional pause experience.
  * It renders a light, crisp blurred game backdrop with smooth alpha fade-in & fade-out transitions.
  */
 public class SwingSleepUI {
