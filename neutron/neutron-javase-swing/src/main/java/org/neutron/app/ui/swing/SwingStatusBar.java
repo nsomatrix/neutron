@@ -1,5 +1,6 @@
 package org.neutron.app.ui.swing;
 
+import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -385,6 +386,21 @@ public class SwingStatusBar extends JPanel {
 		g2.setColor(borderColor);
 		g2.drawLine(0, 0, getWidth(), 0);
 		g2.dispose();
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		super.paint(g);
+		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+			float alpha = SwingSleepUI.getCurrentAlpha();
+			if (alpha > 0.001f) {
+				Graphics2D g2 = (Graphics2D) g.create();
+				g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+				g2.setColor(new Color(2, 3, 6));
+				g2.fillRect(0, 0, getWidth(), getHeight());
+				g2.dispose();
+			}
+		}
 	}
 
 	private static class SpinnerComponent extends JComponent {

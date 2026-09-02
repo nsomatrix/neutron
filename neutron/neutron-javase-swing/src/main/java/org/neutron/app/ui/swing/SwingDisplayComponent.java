@@ -107,10 +107,8 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 			org.neutron.app.util.SleepManager.notifyActivity();
 
-			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
-				if (SwingSleepUI.isWakeUpClicked(e.getX(), e.getY(), getWidth(), getHeight())) {
-					org.neutron.app.util.SleepManager.setSleepModeActive(false);
-				}
+			if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+				SwingSleepUI.requestWakeUp();
 				return;
 			}
 
@@ -317,18 +315,31 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						boolean active = org.neutron.app.util.SleepManager.isSleepModeActive();
 						org.neutron.app.Main.updateSleepModeMenuState(org.neutron.app.util.SleepManager.isSleepEnabled());
 						if (active) {
+							SwingSleepUI.startSleep();
 							if (sleepRepaintTimer == null) {
-								sleepRepaintTimer = new javax.swing.Timer(66, new java.awt.event.ActionListener() {
+								sleepRepaintTimer = new javax.swing.Timer(16, new java.awt.event.ActionListener() {
 									public void actionPerformed(java.awt.event.ActionEvent e) {
 										repaint();
+										if (SwingDisplayComponent.this.deviceComponent != null) {
+											SwingDisplayComponent.this.deviceComponent.repaint();
+										}
+										if (!org.neutron.app.util.SleepManager.isSleepModeActive() && !SwingSleepUI.isTransitioning()) {
+											if (sleepRepaintTimer != null) {
+												sleepRepaintTimer.stop();
+												sleepRepaintTimer = null;
+											}
+										}
 									}
 								});
 								sleepRepaintTimer.start();
 							}
 						} else {
-							if (sleepRepaintTimer != null) {
-								sleepRepaintTimer.stop();
-								sleepRepaintTimer = null;
+							if (!SwingSleepUI.isTransitioning()) {
+								SwingSleepUI.resetSleepState();
+								if (sleepRepaintTimer != null) {
+									sleepRepaintTimer.stop();
+									sleepRepaintTimer = null;
+								}
 							}
 						}
 						repaint();
@@ -482,9 +493,24 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	}
 
 	protected void paintComponent(Graphics g) {
-		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
+		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+			if (!SwingSleepUI.hasSnapshot() && graphicsSurface != null) {
+				synchronized (graphicsSurface) {
+					if (graphicsSurface.getImage() != null) {
+						SwingSleepUI.captureSnapshot(graphicsSurface.getImage());
+					}
+				}
+			}
+			if (SwingSleepUI.getCurrentAlpha() < 0.999f) {
+				paintDisplaySurface(g);
+			}
 			SwingSleepUI.paintScreensaver(g, getWidth(), getHeight());
 		} else {
+			paintDisplaySurface(g);
+		}
+	}
+
+	private void paintDisplaySurface(Graphics g) {
 			J2SEGraphicsSurface localSurface = graphicsSurface;
 			if (localSurface != null) {
 				synchronized (localSurface) {
@@ -607,7 +633,6 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 					SwingAutoClicker.drawOverlay(g2d, SwingDisplayComponent.this);
 				}
 			}
-		}
 	}
 
 	public void repaintRequest(int x, int y, int width, int height) {

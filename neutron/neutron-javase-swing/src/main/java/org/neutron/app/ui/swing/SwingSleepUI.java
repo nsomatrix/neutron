@@ -5,168 +5,201 @@
  */
 package org.neutron.app.ui.swing;
 
-import java.awt.BasicStroke;
+import java.awt.AlphaComposite;
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
+import java.awt.Composite;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import javax.swing.UIManager;
 
 /**
- * SwingSleepUI provides a clean, theme-aware app-based lock screen matching
- * the active FlatLaf / Look and Feel theme colors. It renders a beautiful, 
- * dynamic orbital Neutron icon, displays floating ambient light blobs in the background,
- * and wakes on a simple tap anywhere on the screen.
+ * SwingSleepUI provides a smooth GTA V style pause experience.
+ * It renders a light, crisp blurred game backdrop with smooth alpha fade-in & fade-out transitions.
  */
 public class SwingSleepUI {
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("EEEE, MMMM dd");
 
-    private static final int containerWidth = 290;
-    private static final int containerHeight = 240;
+    public enum State {
+        INACTIVE,
+        ENTERING,
+        ACTIVE,
+        EXITING
+    }
+
+    private static State currentState = State.INACTIVE;
+    private static long transitionStartTime = 0;
+    private static final long FADE_IN_DURATION = 250;  // 250ms smooth fade-in
+    private static final long FADE_OUT_DURATION = 200; // 200ms smooth fade-out
+    private static float currentAlpha = 0.0f;
+
+    private static BufferedImage cachedSnapshot = null;
+    private static BufferedImage cachedBlurredSnapshot = null;
 
     public static boolean isWakeUpClicked(int clickX, int clickY, int width, int height) {
-        // Any click on the screen wakes up the emulator
         return true;
     }
 
-    public static void paintScreensaver(Graphics g, int width, int height) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-        // Fetch theme colors dynamically from UIManager
-        Color panelBg = UIManager.getColor("Panel.background");
-        if (panelBg == null) panelBg = new Color(240, 240, 240);
+    public static synchronized void captureSnapshot(BufferedImage surfaceImage) {
+        if (surfaceImage == null) return;
         
-        Color textColor = UIManager.getColor("Label.foreground");
-        if (textColor == null) textColor = Color.BLACK;
+        int w = surfaceImage.getWidth();
+        int h = surfaceImage.getHeight();
+        if (w <= 0 || h <= 0) return;
 
-        Color subTextColor = UIManager.getColor("Label.disabledForeground");
-        if (subTextColor == null) subTextColor = Color.GRAY;
-
-        Color borderCol = UIManager.getColor("Component.borderColor");
-        if (borderCol == null) borderCol = new Color(200, 200, 200);
-
-        Color accentColor = UIManager.getColor("Component.focusColor");
-        if (accentColor == null) accentColor = UIManager.getColor("Button.default.background");
-        if (accentColor == null) accentColor = new Color(0, 120, 215); // Clean modern blue
-
-        // 1. Draw Solid Theme Background
-        g2.setColor(panelBg);
-        g2.fillRect(0, 0, width, height);
-
-        // 2. Draw Floating Ambient Glowing Particles
-        long now = System.currentTimeMillis();
-        int[] sizes = { 100, 140, 110, 160, 95, 120 };
-        double[] speeds = { 0.04, 0.02, 0.035, 0.015, 0.05, 0.025 };
-        double[] phases = { 0.0, 1.5, 3.1, 4.5, 2.1, 0.8 };
-        
-        for (int i = 0; i < 6; i++) {
-            double t = (now / 1000.0) * speeds[i];
-            int px = (int) (width * (0.5 + 0.45 * Math.sin(t + phases[i])));
-            int py = (int) (height * (0.5 + 0.48 * Math.cos(t * 0.8 + phases[i])));
-            
-            // Soft outer glow matching the active theme's accent color
-            g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 12));
-            g2.fillOval(px - sizes[i] / 2, py - sizes[i] / 2, sizes[i], sizes[i]);
-            
-            // Subtle core highlight
-            g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 6));
-            g2.fillOval(px - sizes[i] / 4, py - sizes[i] / 4, sizes[i] / 2, sizes[i] / 2);
+        if (cachedSnapshot == null || cachedSnapshot.getWidth() != w || cachedSnapshot.getHeight() != h) {
+            cachedSnapshot = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         }
 
-        // 3. Central Lock Card
-        int cx = (width - containerWidth) / 2;
-        int cy = (height - containerHeight) / 2;
+        Graphics2D g2 = cachedSnapshot.createGraphics();
+        g2.drawImage(surfaceImage, 0, 0, null);
+        g2.dispose();
 
-        // Card Background (slightly different from panel bg for contrast)
-        Color cardBg = UIManager.getColor("TextArea.background");
-        if (cardBg == null) cardBg = UIManager.getColor("EditorPane.background");
-        if (cardBg == null) cardBg = Color.WHITE;
-        
-        g2.setColor(cardBg);
-        g2.fillRoundRect(cx, cy, containerWidth, containerHeight, 12, 12);
+        cachedBlurredSnapshot = generateFastBlur(cachedSnapshot);
+    }
 
-        // Card Border
-        g2.setColor(borderCol);
-        g2.setStroke(new BasicStroke(1.0f));
-        g2.drawRoundRect(cx, cy, containerWidth, containerHeight, 12, 12);
+    public static boolean hasSnapshot() {
+        return cachedSnapshot != null;
+    }
 
-        LocalDateTime nowDateTime = LocalDateTime.now();
+    public static synchronized void startSleep() {
+        if (currentState != State.ACTIVE && currentState != State.ENTERING) {
+            currentState = State.ENTERING;
+            transitionStartTime = System.currentTimeMillis();
+            currentAlpha = 0.0f;
+        }
+    }
 
-        // 4. Digital Clock at the top
-        g2.setFont(new Font("SansSerif", Font.BOLD, 26));
-        g2.setColor(textColor);
-        String timeStr = nowDateTime.format(TIME_FORMATTER);
-        FontMetrics fmTime = g2.getFontMetrics();
-        g2.drawString(timeStr, cx + (containerWidth - fmTime.stringWidth(timeStr)) / 2, cy + 35);
+    public static synchronized void requestWakeUp() {
+        if (currentState == State.ACTIVE || currentState == State.ENTERING) {
+            currentState = State.EXITING;
+            transitionStartTime = System.currentTimeMillis();
+        } else if (currentState == State.INACTIVE) {
+            org.neutron.app.util.SleepManager.setSleepModeActive(false);
+            resetSleepState();
+        }
+    }
 
-        // 5. Date Subtitle
-        g2.setFont(new Font("SansSerif", Font.PLAIN, 11));
-        g2.setColor(subTextColor);
-        String dateStr = nowDateTime.format(DATE_FORMATTER);
-        FontMetrics fmDate = g2.getFontMetrics();
-        g2.drawString(dateStr, cx + (containerWidth - fmDate.stringWidth(dateStr)) / 2, cy + 54);
+    public static synchronized void resetSleepState() {
+        currentState = State.INACTIVE;
+        transitionStartTime = 0;
+        currentAlpha = 0.0f;
+        cachedSnapshot = null;
+        cachedBlurredSnapshot = null;
+    }
 
+    public static boolean isTransitioning() {
+        return currentState != State.INACTIVE;
+    }
 
-        // 6. Animated Neutron Icon in the center
-        int lockX = cx + containerWidth / 2;
-        int lockY = cy + 115;
-        double animFrame = (System.currentTimeMillis() % 100000) * 0.003;
+    public static float getCurrentAlpha() {
+        return currentAlpha;
+    }
 
-        // Outer orbit ring
-        g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 40));
-        g2.drawOval(lockX - 45, lockY - 45, 90, 90);
+    private static BufferedImage generateFastBlur(BufferedImage src) {
+        int w = src.getWidth();
+        int h = src.getHeight();
 
-        // Two intersecting elliptical orbits
-        g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 100));
-        g2.drawOval(lockX - 50, lockY - 22, 100, 44);
-        g2.drawOval(lockX - 22, lockY - 50, 44, 100);
+        // Downscale image to 1/2 size for light, crisp depth-of-field
+        int smallW = Math.max(128, w / 2);
+        int smallH = Math.max(128, h / 2);
 
-        // Pulsating nucleus core
-        double pulse = Math.sin(animFrame * 2.0);
-        int pulseOffset = (int) (pulse * 3.0);
-        g2.setColor(new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 60));
-        g2.fillOval(lockX - 18 - pulseOffset / 2, lockY - 18 - pulseOffset / 2, 36 + pulseOffset, 36 + pulseOffset);
+        BufferedImage smallImg = new BufferedImage(smallW, smallH, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D gSmall = smallImg.createGraphics();
+        gSmall.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        gSmall.drawImage(src, 0, 0, smallW, smallH, null);
+        gSmall.dispose();
 
-        g2.setColor(accentColor);
-        g2.fillOval(lockX - 11, lockY - 11, 22, 22);
+        // Single light 3x3 Box Blur Pass
+        float[] matrix = {
+            1f/9f, 1f/9f, 1f/9f,
+            1f/9f, 1f/9f, 1f/9f,
+            1f/9f, 1f/9f, 1f/9f
+        };
+        ConvolveOp blurOp = new ConvolveOp(new Kernel(3, 3, matrix), ConvolveOp.EDGE_NO_OP, null);
 
-        g2.setColor(textColor);
-        g2.fillOval(lockX - 4, lockY - 4, 8, 8);
+        BufferedImage blurredSmall = new BufferedImage(smallW, smallH, BufferedImage.TYPE_INT_ARGB);
+        blurOp.filter(smallImg, blurredSmall);
 
-        // Orbiting electrons
-        g2.setColor(textColor);
-        // Horizontal orbit
-        int hx1 = lockX + (int) (50 * Math.cos(animFrame));
-        int hy1 = lockY + (int) (22 * Math.sin(animFrame));
-        int hx2 = lockX + (int) (50 * Math.cos(animFrame + Math.PI));
-        int hy2 = lockY + (int) (22 * Math.sin(animFrame + Math.PI));
-        g2.fillOval(hx1 - 3, hy1 - 3, 6, 6);
-        g2.fillOval(hx2 - 3, hy2 - 3, 6, 6);
+        return blurredSmall;
+    }
 
-        // Vertical orbit (reverse direction)
-        int vx1 = lockX + (int) (22 * Math.cos(-animFrame));
-        int vy1 = lockY + (int) (50 * Math.sin(-animFrame));
-        int vx2 = lockX + (int) (22 * Math.cos(-animFrame + Math.PI));
-        int vy2 = lockY + (int) (50 * Math.sin(-animFrame + Math.PI));
-        g2.fillOval(vx1 - 3, vy1 - 3, 6, 6);
-        g2.fillOval(vx2 - 3, vy2 - 3, 6, 6);
+    private static float easeOutCubic(float t) {
+        float f = 1.0f - t;
+        return 1.0f - f * f * f;
+    }
 
-        // 7. Pulsing Unlock Prompt at the bottom
-        double textPulse = Math.sin(System.currentTimeMillis() * 0.003);
-        int alpha = (int) (120 + textPulse * 60); // pulse alpha between 60 and 180
-        alpha = Math.max(0, Math.min(255, alpha));
-        
-        g2.setFont(new Font("SansSerif", Font.BOLD, 11));
-        g2.setColor(new Color(textColor.getRed(), textColor.getGreen(), textColor.getBlue(), alpha));
-        String promptStr = "TAP ANYWHERE TO WAKE UP";
-        FontMetrics fmPrompt = g2.getFontMetrics();
-        g2.drawString(promptStr, cx + (containerWidth - fmPrompt.stringWidth(promptStr)) / 2, cy + 195);
+    private static void updateTransition() {
+        if (currentState == State.INACTIVE) {
+            currentAlpha = 0.0f;
+            return;
+        }
+
+        long now = System.currentTimeMillis();
+        long elapsed = now - transitionStartTime;
+
+        if (currentState == State.ENTERING) {
+            float progress = Math.min(1.0f, (float) elapsed / FADE_IN_DURATION);
+            currentAlpha = easeOutCubic(progress);
+            if (progress >= 1.0f) {
+                currentState = State.ACTIVE;
+                currentAlpha = 1.0f;
+            }
+        } else if (currentState == State.EXITING) {
+            float progress = Math.min(1.0f, (float) elapsed / FADE_OUT_DURATION);
+            currentAlpha = easeOutCubic(1.0f - progress);
+            if (progress >= 1.0f || currentAlpha <= 0.01f) {
+                currentAlpha = 0.0f;
+                currentState = State.INACTIVE;
+                org.neutron.app.util.SleepManager.setSleepModeActive(false);
+                resetSleepState();
+            }
+        }
+    }
+
+    public static void paintScreensaver(Graphics g, int width, int height) {
+        updateTransition();
+
+        if (currentAlpha <= 0.001f) return;
+
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+        Composite oldComp = g2.getComposite();
+        g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, currentAlpha));
+
+        // 1. Draw Crisp Light Blurred Game Snapshot
+        if (cachedBlurredSnapshot != null) {
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2.drawImage(cachedBlurredSnapshot, 0, 0, width, height, null);
+        } else {
+            Color panelBg = UIManager.getColor("Panel.background");
+            if (panelBg == null) panelBg = new Color(20, 24, 32);
+            g2.setColor(panelBg);
+            g2.fillRect(0, 0, width, height);
+        }
+
+        // 2. Ultra-Light Dark Tint Layer (keeps game frame vibrant & clear)
+        g2.setColor(new Color(0, 0, 0, 45));
+        g2.fillRect(0, 0, width, height);
+
+        // 3. Soft Radial Vignette Overlay
+        Point2D center = new Point2D.Float(width / 2.0f, height / 2.0f);
+        float radius = Math.max(width, height) * 0.75f;
+        float[] dist = {0.0f, 0.65f, 1.0f};
+        Color[] colors = {
+            new Color(5, 8, 15, 20),   // Center clear
+            new Color(4, 6, 12, 80),   // Mid soft shade
+            new Color(2, 3, 6, 150)    // Edge gentle vignette
+        };
+        RadialGradientPaint p = new RadialGradientPaint(center, radius, dist, colors);
+        g2.setPaint(p);
+        g2.fillRect(0, 0, width, height);
+
+        g2.setComposite(oldComp);
     }
 }

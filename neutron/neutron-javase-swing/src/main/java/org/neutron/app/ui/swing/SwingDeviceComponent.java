@@ -157,8 +157,8 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 		public void mousePressed(MouseEvent e) {
 			requestFocus();
 			org.neutron.app.util.SleepManager.notifyActivity();
-			if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
-				org.neutron.app.util.SleepManager.setSleepModeActive(false);
+			if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+				SwingSleepUI.requestWakeUp();
 				return;
 			}
 			mouseButtonDown = true;
@@ -417,8 +417,8 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 
 	public void keyPressed(KeyEvent ev) {
 		org.neutron.app.util.SleepManager.notifyActivity();
-		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
-			org.neutron.app.util.SleepManager.setSleepModeActive(false);
+		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+			SwingSleepUI.requestWakeUp();
 			return;
 		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {
@@ -592,7 +592,7 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 		g.drawImage(offi, 0, 0, null);
 
 		if (org.neutron.app.util.SleepManager.isSleepModeActive()) {
-			g.setColor(new java.awt.Color(0, 0, 0, 180));
+			g.setColor(new java.awt.Color(10, 12, 18, 220));
 			g.fillRect(0, 0, getWidth(), getHeight());
 		}
 	}
