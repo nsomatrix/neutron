@@ -1,6 +1,5 @@
 package org.neutron.app.ui.swing;
 
-import java.awt.AlphaComposite;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -14,8 +13,6 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
@@ -108,6 +105,22 @@ public class SwingStatusBar extends JPanel {
 			Font smallFont = baseFont.deriveFont(11.0f);
 			messageLabel.setFont(smallFont);
 		}
+
+		// Register configuration change listener to dynamically trigger Braille spinner on settings update
+		org.neutron.app.Config.addConfigChangeListener(new org.neutron.app.ConfigChangeListener() {
+			public void onConfigChanged(final String key, final Object value) {
+				if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
+					javax.swing.SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							onConfigChanged(key, value);
+						}
+					});
+					return;
+				}
+				String valStr = (value instanceof Boolean) ? (((Boolean) value) ? "Enabled" : "Disabled") : (value != null ? value.toString() : "");
+				setText("Setting: " + key + (valStr.isEmpty() ? "" : " → " + valStr));
+			}
+		});
 	}
 
 	public void setText(final String text) {
@@ -149,8 +162,9 @@ public class SwingStatusBar extends JPanel {
 			if (processedText.equalsIgnoreCase("Loading...")) {
 				transitionToText("", false);
 			} else {
-				transitionToText(processedText, false);
+				transitionToText(processedText, true);
 			}
+			startRevertTimer();
 		} else if (type == MessageType.TRANSIENT) {
 			spinnerComponent.stop();
 			statusDotComponent.setVisible(true);
@@ -187,7 +201,7 @@ public class SwingStatusBar extends JPanel {
 		if (text.isEmpty() || text.equalsIgnoreCase("Ready") || text.startsWith("Ready to launch") || text.startsWith("Running")) {
 			return MessageType.PERSISTENT;
 		}
-		if (text.startsWith("Loading") || text.startsWith("Downloading") || (text.contains("...") && !text.contains("complete"))) {
+		if (text.startsWith("Loading") || text.startsWith("Downloading") || text.startsWith("Setting:") || text.startsWith("Updating") || (text.contains("...") && !text.contains("complete"))) {
 			return MessageType.LOADING;
 		}
 		return MessageType.TRANSIENT;
@@ -391,34 +405,61 @@ public class SwingStatusBar extends JPanel {
 
 	private static class SpinnerComponent extends JComponent {
 		private static final long serialVersionUID = 1L;
-		private double angle = 0;
+
+		// 10-frame Unicode Braille pattern dots sequence (0x2800 offset bitmasks)
+		private static final int[] BRAILLE_MASKS = {
+			0x0B, // ⠋ (dots 1, 2, 4)
+			0x19, // ⠙ (dots 1, 4, 5)
+			0x39, // ⠹ (dots 1, 4, 5, 6)
+			0x38, // ⠸ (dots 4, 5, 6)
+			0x3C, // ⠼ (dots 3, 4, 5, 6)
+			0x34, // ⠴ (dots 3, 5, 6)
+			0x26, // ⠦ (dots 2, 3, 6)
+			0x27, // ⠧ (dots 1, 2, 3, 6)
+			0x07, // ⠇ (dots 1, 2, 3)
+			0x0F  // ⠏ (dots 1, 2, 3, 4)
+		};
+
+		// Bit indices for 8 dots in standard Braille 2x4 matrix:
+		// Row 0: Dot 1 (bit 0), Dot 4 (bit 3)
+		// Row 1: Dot 2 (bit 1), Dot 5 (bit 4)
+		// Row 2: Dot 3 (bit 2), Dot 6 (bit 5)
+		// Row 3: Dot 7 (bit 6), Dot 8 (bit 7)
+		private static final int[][] DOT_BITS = {
+			{0, 3}, // Row 0
+			{1, 4}, // Row 1
+			{2, 5}, // Row 2
+			{6, 7}  // Row 3
+		};
+
+		private int frameIndex = 0;
 		private final Timer timer;
 
 		public SpinnerComponent() {
-			setPreferredSize(new Dimension(16, 16));
+			setPreferredSize(new Dimension(18, 18));
 			setVisible(false);
 
-			timer = new Timer(30, new ActionListener() {
+			timer = new Timer(50, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					angle += Math.PI / 8;
-					if (angle >= 2 * Math.PI) {
-						angle -= 2 * Math.PI;
-					}
+					frameIndex = (frameIndex + 1) % BRAILLE_MASKS.length;
 					repaint();
 				}
 			});
 		}
 
 		public void start() {
+			frameIndex = 0;
 			timer.start();
 			setVisible(true);
 			revalidate();
+			repaint();
 		}
 
 		public void stop() {
 			timer.stop();
 			setVisible(false);
 			revalidate();
+			repaint();
 		}
 
 		@Override
@@ -433,25 +474,51 @@ public class SwingStatusBar extends JPanel {
 
 			int w = getWidth();
 			int h = getHeight();
-			int size = Math.min(w, h) - 4;
-			int x = (w - size) / 2;
-			int y = (h - size) / 2;
-
-			g2.rotate(angle, w / 2.0, h / 2.0);
-			g2.setStroke(new java.awt.BasicStroke(2.0f, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));
 
 			Color accent = UIManager.getColor("ProgressBar.foreground");
 			if (accent == null) {
-				accent = new Color(52, 152, 219); // Fallback: sleek blue
+				accent = UIManager.getColor("Component.accentColor");
+			}
+			if (accent == null) {
+				accent = new Color(52, 152, 219); // Sleek modern blue
 			}
 
-			// Draw full subtle track
-			g2.setColor(new Color(accent.getRed(), accent.getGreen(), accent.getBlue(), 40));
-			g2.drawArc(x, y, size, size, 0, 360);
+			int currentMask = BRAILLE_MASKS[frameIndex];
 
-			// Draw active rotating part
-			g2.setColor(accent);
-			g2.drawArc(x, y, size, size, 0, 120);
+			// Braille dot matrix grid layout: 2 columns, 4 rows
+			double colWidth = 4.5;
+			double rowHeight = 3.2;
+			double startX = (w - colWidth) / 2.0;
+			double startY = (h - (3 * rowHeight)) / 2.0;
+
+			double dotRadius = 1.1;
+			double dotDiameter = dotRadius * 2.0;
+
+			for (int r = 0; r < 4; r++) {
+				for (int c = 0; c < 2; c++) {
+					int bit = DOT_BITS[r][c];
+					boolean active = (currentMask & (1 << bit)) != 0;
+
+					double dx = startX + (c * colWidth);
+					double dy = startY + (r * rowHeight);
+
+					if (active) {
+						// Clean solid active dot (non-glowing)
+						g2.setColor(accent);
+						g2.fill(new java.awt.geom.Ellipse2D.Double(dx - dotRadius, dy - dotRadius, dotDiameter, dotDiameter));
+					} else {
+						// Subtly visible inactive dot matrix background
+						Color inactiveColor;
+						if (accent.getRed() + accent.getGreen() + accent.getBlue() > 384) {
+							inactiveColor = new Color(255, 255, 255, 30);
+						} else {
+							inactiveColor = new Color(0, 0, 0, 35);
+						}
+						g2.setColor(inactiveColor);
+						g2.fill(new java.awt.geom.Ellipse2D.Double(dx - (dotRadius * 0.8), dy - (dotRadius * 0.8), dotDiameter * 0.8, dotDiameter * 0.8));
+					}
+				}
+			}
 
 			g2.dispose();
 		}

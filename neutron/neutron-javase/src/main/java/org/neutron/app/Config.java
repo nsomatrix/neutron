@@ -67,6 +67,28 @@ public class Config {
 
 	private static MRUList urlsMRU = new MRUList(MidletURLReference.class, "midlet");
 
+	private static final java.util.List<ConfigChangeListener> configChangeListeners = new java.util.concurrent.CopyOnWriteArrayList<ConfigChangeListener>();
+
+	public static void addConfigChangeListener(ConfigChangeListener listener) {
+		if (listener != null && !configChangeListeners.contains(listener)) {
+			configChangeListeners.add(listener);
+		}
+	}
+
+	public static void removeConfigChangeListener(ConfigChangeListener listener) {
+		configChangeListeners.remove(listener);
+	}
+
+	public static void notifyConfigChanged(String key, Object newValue) {
+		for (ConfigChangeListener listener : configChangeListeners) {
+			try {
+				listener.onConfigChanged(key, newValue);
+			} catch (Exception e) {
+				Logger.error("Error notifying config change listener for key: " + key, e);
+			}
+		}
+	}
+
 	private static File initMEHomePath() {
 		try {
 			File meHome = new File(System.getProperty("user.home") + "/.neutron/");
@@ -491,6 +513,7 @@ public class Config {
 		XMLElement themeXml = optionsXml.getChildOrNew("theme");
 		themeXml.setContent(theme);
 		saveConfig();
+		notifyConfigChanged("Theme", theme);
 	}
 
 	public static String getGraphicsFilter() {
@@ -506,6 +529,7 @@ public class Config {
 		XMLElement filterXml = optionsXml.getChildOrNew("graphicsFilter");
 		filterXml.setContent(filter);
 		saveConfig();
+		notifyConfigChanged("Graphics Filter", filter);
 	}
 
 	public static int getBrightness() {
@@ -521,6 +545,7 @@ public class Config {
 	public static void setBrightness(int val) {
 		configXml.getChildOrNew("options").getChildOrNew("brightness").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Brightness", val);
 	}
 
 	public static int getContrast() {
@@ -536,6 +561,7 @@ public class Config {
 	public static void setContrast(int val) {
 		configXml.getChildOrNew("options").getChildOrNew("contrast").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Contrast", val);
 	}
 
 	public static float getGamma() {
@@ -551,6 +577,7 @@ public class Config {
 	public static void setGamma(float val) {
 		configXml.getChildOrNew("options").getChildOrNew("gamma").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Gamma", val);
 	}
 
 	public static int getSaturation() {
@@ -566,6 +593,7 @@ public class Config {
 	public static void setSaturation(int val) {
 		configXml.getChildOrNew("options").getChildOrNew("saturation").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Saturation", val);
 	}
 
 	public static int getSharpness() {
@@ -581,6 +609,7 @@ public class Config {
 	public static void setSharpness(int val) {
 		configXml.getChildOrNew("options").getChildOrNew("sharpness").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Sharpness", val);
 	}
 
 	public static int getGhosting() {
@@ -596,6 +625,7 @@ public class Config {
 	public static void setGhosting(int val) {
 		configXml.getChildOrNew("options").getChildOrNew("ghosting").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Ghosting", val);
 	}
 
 	public static boolean isInvert() {
@@ -607,6 +637,7 @@ public class Config {
 	public static void setInvert(boolean val) {
 		configXml.getChildOrNew("options").getChildOrNew("invert").setContent(String.valueOf(val));
 		saveConfig();
+		notifyConfigChanged("Color Inversion", val);
 	}
 
 	public static boolean isSleepModeEnabled() {
@@ -623,6 +654,7 @@ public class Config {
 		XMLElement sleepXml = optionsXml.getChildOrNew("sleepMode");
 		sleepXml.setContent(String.valueOf(enabled));
 		saveConfig();
+		notifyConfigChanged("Sleep Mode", enabled);
 	}
 
 	private static volatile boolean fullscreen = false;
@@ -653,6 +685,7 @@ public class Config {
 		XMLElement limitXml = optionsXml.getChildOrNew("memoryLimit");
 		limitXml.setContent(String.valueOf(limit));
 		saveConfig();
+		notifyConfigChanged("Memory Limit", limit + "MB");
 	}
 
 	public static int getMaxFps() {
@@ -673,6 +706,7 @@ public class Config {
 		XMLElement maxFpsXml = optionsXml.getChildOrNew("maxFps");
 		maxFpsXml.setContent(String.valueOf(maxFps));
 		saveConfig();
+		notifyConfigChanged("FPS Limit", maxFps);
 	}
 
 	public static double getSpeedMultiplier() {
@@ -693,6 +727,7 @@ public class Config {
 		XMLElement multiplierXml = optionsXml.getChildOrNew("speedMultiplier");
 		multiplierXml.setContent(String.valueOf(multiplier));
 		saveConfig();
+		notifyConfigChanged("Emulation Speed", multiplier + "x");
 	}
 
 	public static boolean isPerfHudEnabled() {
@@ -708,6 +743,7 @@ public class Config {
 		XMLElement hudXml = optionsXml.getChildOrNew("perfHudEnabled");
 		hudXml.setContent(String.valueOf(enabled));
 		saveConfig();
+		notifyConfigChanged("Performance HUD", enabled);
 	}
 
 	public static boolean isNetworkCaptureEnabled() {
@@ -772,6 +808,7 @@ public class Config {
 		XMLElement zoomXml = optionsXml.getChildOrNew("scaledDisplayZoom");
 		zoomXml.setContent(String.valueOf(zoom));
 		saveConfig();
+		notifyConfigChanged("Display Zoom", zoom);
 	}
 
 	public static boolean isNetworkOverlayEnabled() {
