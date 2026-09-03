@@ -14,6 +14,17 @@ import org.neutron.MIDletEntry;
 
 public class LauncherCanvas extends Canvas {
 
+    // Layout Constants
+    private static final int HEADER_HEIGHT = 44;
+    private static final int LIST_ITEM_HEIGHT = 44;
+    private static final int LIST_ITEM_GAP = 8;
+    private static final int LIST_PADDING = 12;
+    private static final int LAUNCH_BTN_HEIGHT = 38;
+    private static final int DOUBLE_TAP_TIMEOUT_MS = 500;
+
+    // Color Constants
+    private static final int STATUS_DOT_GREEN = 0x00E676;
+
     private final Launcher launcher;
     private int selectedIndex = 0;
     
@@ -47,7 +58,7 @@ public class LauncherCanvas extends Canvas {
     protected void hideNotify() {
     }
 
-    // Helper to blend two colors
+    // Helper to blend two RGB colors
     private int blend(int c1, int c2, float ratio) {
         int r1 = (c1 >> 16) & 0xFF;
         int g1 = (c1 >> 8) & 0xFF;
@@ -64,31 +75,18 @@ public class LauncherCanvas extends Canvas {
         return (r << 16) | (g << 8) | b;
     }
 
-    // Helper to adjust brightness of a color
-    private int adjustBrightness(int color, float factor) {
-        int r = (color >> 16) & 0xFF;
-        int g = (color >> 8) & 0xFF;
-        int b = color & 0xFF;
-        
-        r = Math.min(255, Math.max(0, (int) (r * factor)));
-        g = Math.min(255, Math.max(0, (int) (g * factor)));
-        b = Math.min(255, Math.max(0, (int) (b * factor)));
-        
-        return (r << 16) | (g << 8) | b;
-    }
-
     protected void paint(Graphics g) {
         int w = getWidth();
         int h = getHeight();
 
-        // Query active theme colors dynamically from the Display (ties into Swing UIManager / FlatLaf)
+        // Query active theme colors dynamically from the Display
         Display d = Display.getDisplay(launcher);
         int bgColor = d.getColor(Display.COLOR_BACKGROUND);
         int fgColor = d.getColor(Display.COLOR_FOREGROUND);
         int selectBg = d.getColor(Display.COLOR_HIGHLIGHTED_BACKGROUND);
         int selectFg = d.getColor(Display.COLOR_HIGHLIGHTED_FOREGROUND);
 
-        // Decompose background to compute luminance
+        // Decompose background to compute luminance for dark/light mode detection
         int bgR = (bgColor >> 16) & 0xFF;
         int bgG = (bgColor >> 8) & 0xFF;
         int bgB = bgColor & 0xFF;
@@ -125,7 +123,7 @@ public class LauncherCanvas extends Canvas {
         g.setColor(accentColor);
         g.drawString("E M U L A T O R", w / 2, 28, Graphics.HCENTER | Graphics.TOP);
 
-        return 44;
+        return HEADER_HEIGHT;
     }
 
     private void drawEmptyState(Graphics g, int w, int h, int startY, int bgColor, int fgColor, int selectBg, boolean isDark) {
@@ -219,18 +217,24 @@ public class LauncherCanvas extends Canvas {
         g.setColor(blend(bgColor, fgColor, 0.45f));
         g.drawString("Use Run Menu to Browse", iconCenterX, textY + 35, Graphics.HCENTER | Graphics.TOP);
 
-        // Engine Status Badges / Pills (Bottom of Card)
-        int pillY = cardY + cardH - 32;
+        // 100% Dynamic Engine Status Badges / Pills (Bottom of Card)
+        Font pillFont = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
+        String label1 = "Neutron Engine";
+        String label2 = "Ready";
         
-        drawStatusPill(g, iconCenterX - 72, pillY, "Neutron Engine", selectBg, bgColor, fgColor, isDark);
-        drawStatusPillWithDot(g, iconCenterX + 28, pillY, "Ready", selectBg, bgColor, fgColor, isDark);
+        int pill1W = pillFont.stringWidth(label1) + 14;
+        int pill2W = pillFont.stringWidth(label2) + 24;
+        int pillGap = 12;
+        int totalPillWidth = pill1W + pillGap + pill2W;
+        
+        int startPillX = iconCenterX - totalPillWidth / 2;
+        int pillY = cardY + cardH - 32;
+
+        drawStatusPill(g, startPillX, pillY, pill1W, label1, pillFont, bgColor, fgColor, isDark);
+        drawStatusPillWithDot(g, startPillX + pill1W + pillGap, pillY, pill2W, label2, pillFont, selectBg, bgColor, fgColor, isDark);
     }
 
-    private void drawStatusPill(Graphics g, int x, int y, String label, int accentColor, int bgColor, int fgColor, boolean isDark) {
-        Font font = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
-        g.setFont(font);
-        int strW = font.stringWidth(label);
-        int pillW = strW + 14;
+    private void drawStatusPill(Graphics g, int x, int y, int pillW, String label, Font font, int bgColor, int fgColor, boolean isDark) {
         int pillH = 18;
 
         g.setColor(blend(bgColor, fgColor, isDark ? 0.10f : 0.06f));
@@ -238,15 +242,12 @@ public class LauncherCanvas extends Canvas {
         g.setColor(blend(bgColor, fgColor, isDark ? 0.20f : 0.15f));
         g.drawRoundRect(x, y, pillW, pillH, 8, 8);
 
+        g.setFont(font);
         g.setColor(blend(bgColor, fgColor, 0.65f));
         g.drawString(label, x + 7, y + (pillH - font.getHeight()) / 2 + 1, Graphics.LEFT | Graphics.TOP);
     }
 
-    private void drawStatusPillWithDot(Graphics g, int x, int y, String label, int accentColor, int bgColor, int fgColor, boolean isDark) {
-        Font font = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
-        g.setFont(font);
-        int strW = font.stringWidth(label);
-        int pillW = strW + 24;
+    private void drawStatusPillWithDot(Graphics g, int x, int y, int pillW, String label, Font font, int accentColor, int bgColor, int fgColor, boolean isDark) {
         int pillH = 18;
 
         g.setColor(blend(bgColor, accentColor, 0.12f));
@@ -255,18 +256,19 @@ public class LauncherCanvas extends Canvas {
         g.drawRoundRect(x, y, pillW, pillH, 8, 8);
 
         // Vibrant status green dot
-        g.setColor(0x00E676);
+        g.setColor(STATUS_DOT_GREEN);
         g.fillArc(x + 7, y + 5, 7, 7, 0, 360);
 
+        g.setFont(font);
         g.setColor(fgColor);
         g.drawString(label, x + 18, y + (pillH - font.getHeight()) / 2 + 1, Graphics.LEFT | Graphics.TOP);
     }
 
     private void drawMIDletList(Graphics g, Vector entries, int w, int h, int startY, int bgColor, int fgColor, int selectBg) {
         int listStartY = startY + 10;
-        int itemH = 44;
-        int gap = 8;
-        int padding = 12;
+        int itemH = LIST_ITEM_HEIGHT;
+        int gap = LIST_ITEM_GAP;
+        int padding = LIST_PADDING;
         
         int availableHeight = h - listStartY - 56;
         int maxVisibleItems = availableHeight / (itemH + gap);
@@ -360,7 +362,7 @@ public class LauncherCanvas extends Canvas {
         }
 
         btnW = w - 24;
-        btnH = 38;
+        btnH = LAUNCH_BTN_HEIGHT;
         btnX = 12;
         btnY = h - btnH - 12;
 
@@ -400,10 +402,10 @@ public class LauncherCanvas extends Canvas {
         Vector entries = Launcher.midletEntries;
         if (entries == null || entries.size() == 0) return;
 
-        int listStartY = 48 + 10;
-        int itemH = 44;
-        int gap = 8;
-        int padding = 12;
+        int listStartY = HEADER_HEIGHT + 10;
+        int itemH = LIST_ITEM_HEIGHT;
+        int gap = LIST_ITEM_GAP;
+        int padding = LIST_PADDING;
         int w = getWidth();
         int h = getHeight();
 
@@ -424,7 +426,7 @@ public class LauncherCanvas extends Canvas {
                 int clickedIndex = scrollOffset + i;
                 long clickTime = System.currentTimeMillis();
                 
-                if (clickedIndex == selectedIndex && clickedIndex == lastSelectedTapIndex && (clickTime - lastTapTime < 500)) {
+                if (clickedIndex == selectedIndex && clickedIndex == lastSelectedTapIndex && (clickTime - lastTapTime < DOUBLE_TAP_TIMEOUT_MS)) {
                     launchSelected();
                 } else {
                     selectedIndex = clickedIndex;
