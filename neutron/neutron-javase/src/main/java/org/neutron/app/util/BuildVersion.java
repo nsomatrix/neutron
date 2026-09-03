@@ -44,7 +44,7 @@ public class BuildVersion {
 				String version = projectProperties.getProperty("build.version");
 				if (version != null) {
 					String buildNumber = projectProperties.getProperty("build.buildNum");
-					if (buildNumber != null) {
+					if (buildNumber != null && !buildNumber.trim().equals("0")) {
 						version += "." + buildNumber;
 					}
 					return version;

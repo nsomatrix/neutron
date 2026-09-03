@@ -8,7 +8,7 @@
     <skin>
         <groupId>org.neutron</groupId>
         <artifactId>neutron-site-skin</artifactId>
-        <version>1.0</version>
+        <version>1.1.0</version>
     </skin>
 
     <bannerLeft>

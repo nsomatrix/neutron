@@ -3,4 +3,4 @@
 # This way the first build will start from 01 
 #Fri May 24 03:00:55 EDT 2013
 build.buildNum=0
-build.version=1.0
+build.version=1.1.0
