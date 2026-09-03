@@ -499,12 +499,16 @@ public class Config {
 	public static String getTheme() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return "FlatLaf macOS Light";
+			return "MacLight";
 		}
-		String theme = optionsXml.getChildString("theme", "FlatLaf macOS Light");
-		if ("FlatLaf Darcula".equals(theme)) {
-			return "FlatLaf Dracula";
-		}
+		String theme = optionsXml.getChildString("theme", "MacLight");
+		if ("FlatLaf Dark".equalsIgnoreCase(theme)) return "Dark";
+		if ("FlatLaf Light".equalsIgnoreCase(theme)) return "Light";
+		if ("FlatLaf IntelliJ".equalsIgnoreCase(theme)) return "IntelliJ";
+		if ("FlatLaf Dracula".equalsIgnoreCase(theme) || "FlatLaf Darcula".equalsIgnoreCase(theme)) return "Dracula";
+		if ("FlatLaf macOS Dark".equalsIgnoreCase(theme) || "Mac Dark".equalsIgnoreCase(theme)) return "MacDark";
+		if ("FlatLaf macOS Light".equalsIgnoreCase(theme) || "Mac Light".equalsIgnoreCase(theme)) return "MacLight";
+		if ("System Look and Feel".equalsIgnoreCase(theme)) return "System";
 		return theme;
 	}
 

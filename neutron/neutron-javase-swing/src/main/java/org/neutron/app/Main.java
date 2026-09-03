@@ -98,6 +98,7 @@ import org.neutron.app.ui.swing.MIDletUrlPanel;
 import org.neutron.app.ui.swing.RecordStoreManagerDialog;
 import org.neutron.app.ui.swing.ResizeDeviceDisplayDialog;
 import org.neutron.app.ui.swing.SwingAboutDialog;
+import org.neutron.app.ui.swing.EmulatorTheme;
 import org.neutron.app.ui.swing.SwingDeviceComponent;
 import org.neutron.app.ui.swing.SwingDialogWindow;
 import org.neutron.app.ui.swing.SwingDisplayComponent;
@@ -1135,14 +1136,11 @@ public class Main extends JFrame {
 		if (isFlatLafAvailable()) {
 			menuTheme = new JMenu("Theme");
 			ButtonGroup themeGroup = new ButtonGroup();
-			String[] themes = {
-				"FlatLaf Dark", "FlatLaf Light", "FlatLaf IntelliJ", 
-				"FlatLaf Dracula", "FlatLaf macOS Dark", "FlatLaf macOS Light", 
-				"System Look and Feel"
-			};
-			String currentTheme = Config.getTheme();
-			for (final String themeName : themes) {
-				JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeName, themeName.equals(currentTheme));
+			String currentThemeStr = Config.getTheme();
+			EmulatorTheme activeTheme = EmulatorTheme.fromString(currentThemeStr);
+			for (final EmulatorTheme theme : EmulatorTheme.values()) {
+				final String themeName = theme.getDisplayName();
+				JRadioButtonMenuItem themeItem = new JRadioButtonMenuItem(themeName, theme == activeTheme);
 				themeItem.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
 						Config.setTheme(themeName);
@@ -1836,20 +1834,8 @@ public class Main extends JFrame {
 				System.setProperty("flatlaf.useWindowDecorations", "true");
 				System.setProperty("flatlaf.useSystemFileChooser", "false");
 				UIManager.put("TitlePane.menuBarEmbedded", Boolean.FALSE);
-				String lafClassName = null;
-				if ("FlatLaf Light".equals(theme)) {
-					lafClassName = "com.formdev.flatlaf.FlatLightLaf";
-				} else if ("FlatLaf Dark".equals(theme)) {
-					lafClassName = "com.formdev.flatlaf.FlatDarkLaf";
-				} else if ("FlatLaf IntelliJ".equals(theme)) {
-					lafClassName = "com.formdev.flatlaf.FlatIntelliJLaf";
-				} else if ("FlatLaf Dracula".equals(theme)) {
-					lafClassName = "com.formdev.flatlaf.FlatDarculaLaf";
-				} else if ("FlatLaf macOS Light".equals(theme)) {
-					lafClassName = "com.formdev.flatlaf.themes.FlatMacLightLaf";
-				} else if ("FlatLaf macOS Dark".equals(theme)) {
-					lafClassName = "com.formdev.flatlaf.themes.FlatMacDarkLaf";
-				}
+				EmulatorTheme emulatorTheme = EmulatorTheme.fromString(theme);
+				String lafClassName = emulatorTheme.getLafClassName();
 
 				if (lafClassName != null) {
 					Class<?> lafClass = Class.forName(lafClassName);
