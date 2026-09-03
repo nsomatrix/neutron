@@ -117,10 +117,14 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 		menu.add(menuRecordLocation);
 
 		final JCheckBoxMenuItem menuStdOut = new JCheckBoxMenuItem("Write to standard output");
-		menuStdOut.setState(StdOutAppender.enabled);
+		boolean stdOutOn = Config.isStdOutEnabled();
+		StdOutAppender.enabled = stdOutOn;
+		menuStdOut.setState(stdOutOn);
 		menuStdOut.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				StdOutAppender.enabled = menuStdOut.getState();
+				boolean enabled = menuStdOut.getState();
+				StdOutAppender.enabled = enabled;
+				Config.setStdOutEnabled(enabled);
 			}
 		});
 		menu.add(menuStdOut);

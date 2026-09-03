@@ -657,14 +657,34 @@ public class Config {
 		notifyConfigChanged("Sleep Mode", enabled);
 	}
 
-	private static volatile boolean fullscreen = false;
-
 	public static boolean isFullscreen() {
-		return fullscreen;
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("fullscreen", "false"));
 	}
 
 	public static void setFullscreen(boolean enabled) {
-		fullscreen = enabled;
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement fsXml = optionsXml.getChildOrNew("fullscreen");
+		fsXml.setContent(String.valueOf(enabled));
+		saveConfig();
+	}
+
+	public static boolean isStdOutEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return true;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("stdOutEnabled", "true"));
+	}
+
+	public static void setStdOutEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement stdoutXml = optionsXml.getChildOrNew("stdOutEnabled");
+		stdoutXml.setContent(String.valueOf(enabled));
+		saveConfig();
 	}
 
 	public static int getMemoryLimit() {

@@ -541,6 +541,7 @@ public class Main extends JFrame {
 			}
 			boolean visible = !recordStoreManagerDialog.isVisible();
 			recordStoreManagerDialog.setVisible(visible);
+			menuRecordStoreManager.setState(visible);
 			Common.setStatusBar("Record Store Manager: " + (visible ? "Opened" : "Closed"));
 		}
 	};
@@ -563,6 +564,7 @@ public class Main extends JFrame {
 			}
 			boolean visible = !logConsoleDialog.isVisible();
 			logConsoleDialog.setVisible(visible);
+			menuLogConsole.setState(visible);
 			Common.setStatusBar("Log Console: " + (visible ? "Opened" : "Closed"));
 		}
 	};
@@ -1104,17 +1106,15 @@ public class Main extends JFrame {
 
 		JMenu menuScaleLCD = new JMenu("Scaled Display");
 		menuOptions.add(menuScaleLCD);
+		int currentZoom = Config.getScaledDisplayZoom();
 		zoomLevels = new JCheckBoxMenuItem[3];
 		for (int i = 0; i < zoomLevels.length; ++i) {
 			zoomLevels[i] = new JCheckBoxMenuItem("x " + (i + 2));
 			zoomLevels[i].setActionCommand("" + (i + 2));
+			zoomLevels[i].setState((i + 2) == currentZoom);
 			zoomLevels[i].addActionListener(menuScaledDisplayListener);
 			menuScaleLCD.add(zoomLevels[i]);
 		}
-
-
-
-
 
 		menuRecordStoreManager = new JCheckBoxMenuItem("Record Store Manager");
 		menuRecordStoreManager.setState(false);
@@ -1128,7 +1128,7 @@ public class Main extends JFrame {
 
 		menuSleepMode = new JCheckBoxMenuItem("Sleep Mode");
 		menuSleepMode.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, ActionEvent.CTRL_MASK));
-		menuSleepMode.setState(false);
+		menuSleepMode.setState(Config.isSleepModeEnabled());
 		menuSleepMode.addActionListener(menuSleepModeListener);
 		menuOptions.add(menuSleepMode);
 
@@ -1220,6 +1220,8 @@ public class Main extends JFrame {
 		menuShowMouseCoordinates.setState(Config.isShowMouseCoordinates());
 		menuShowMouseCoordinates.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent event) {
+				boolean enabled = menuShowMouseCoordinates.isSelected();
+				Config.setShowMouseCoordinates(enabled);
 				devicePanel.switchShowMouseCoordinates();
 			}
 		});
@@ -1230,7 +1232,9 @@ public class Main extends JFrame {
 		menuFullscreen.setState(Config.isFullscreen());
 		menuFullscreen.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setFullscreenMode(menuFullscreen.isSelected());
+				boolean enabled = menuFullscreen.isSelected();
+				Config.setFullscreen(enabled);
+				setFullscreenMode(enabled);
 			}
 		});
 		menuControls.add(menuFullscreen);
