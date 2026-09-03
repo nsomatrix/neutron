@@ -13,7 +13,7 @@ import org.neutron.log.Logger;
 /**
  * SleepManager controls the sleep and hibernate state of the emulator.
  * When sleep mode is active, J2ME rendering is suspended while background logic and connections remain active.
- * It supports auto-sleep after 2 minutes of inactivity using a ScheduledExecutorService.
+ * It supports auto-sleep after 1 minute of inactivity using a ScheduledExecutorService.
  */
 public class SleepManager {
     private static volatile boolean sleepEnabled = false;
@@ -55,25 +55,25 @@ public class SleepManager {
     }
 
     public static void setSleepModeActive(boolean active) {
+        Runnable callbackToRun = null;
         synchronized (sleepLock) {
             if (sleepModeActive != active) {
                 sleepModeActive = active;
                 if (active) {
                     Logger.info("Entering Sleep/Hibernate Mode due to inactivity.");
-                    System.gc();
                 } else {
                     Logger.info("Waking up from Sleep/Hibernate Mode.");
                     lastActivityTime = System.currentTimeMillis();
-                    sleepLock.notifyAll();
-                    System.gc();
                 }
-                if (uiCallback != null) {
-                    try {
-                        uiCallback.run();
-                    } catch (Throwable t) {
-                        Logger.error("Failed to run UI callback", t);
-                    }
-                }
+                callbackToRun = uiCallback;
+            }
+        }
+
+        if (callbackToRun != null) {
+            try {
+                callbackToRun.run();
+            } catch (Throwable t) {
+                Logger.error("Failed to run UI callback", t);
             }
         }
     }

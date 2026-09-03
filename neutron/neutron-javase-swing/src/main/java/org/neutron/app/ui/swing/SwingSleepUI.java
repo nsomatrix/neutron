@@ -31,18 +31,14 @@ public class SwingSleepUI {
         EXITING
     }
 
-    private static State currentState = State.INACTIVE;
-    private static long transitionStartTime = 0;
+    private static volatile State currentState = State.INACTIVE;
+    private static volatile long transitionStartTime = 0;
     private static final long FADE_IN_DURATION = 400;  // 400ms smooth cinematic fade-in
     private static final long FADE_OUT_DURATION = 350; // 350ms smooth fade-out
-    private static float currentAlpha = 0.0f;
+    private static volatile float currentAlpha = 0.0f;
 
     private static BufferedImage cachedSnapshot = null;
     private static BufferedImage cachedBlurredSnapshot = null;
-
-    public static boolean isWakeUpClicked(int clickX, int clickY, int width, int height) {
-        return true;
-    }
 
     public static synchronized void captureSnapshot(BufferedImage surfaceImage) {
         if (surfaceImage == null) return;
@@ -300,6 +296,9 @@ public class SwingSleepUI {
             new Color(4, 6, 12, 80),   // Mid soft shade
             new Color(2, 3, 6, 150)    // Edge gentle vignette
         };
+        g2.setPaint(new RadialGradientPaint(center, radius, dist, colors));
+        g2.fillRect(0, 0, width, height);
+
         // 4. Center Content (Branding Title, System Uptime & Pulsing Wake Prompt)
         drawSleepCenterContent(g2, width, height);
 
