@@ -24,6 +24,7 @@
 package org.neutron.app;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -153,14 +154,15 @@ public class Config {
 	private static void loadConfigFile(String configFileName) throws IOException {
 		File configFile = new File(getConfigPath(), configFileName);
 		InputStream is = null;
-		String xml = "";
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
-			InputStream dis = new BufferedInputStream(is = new FileInputStream(configFile));
-			while (dis.available() > 0) {
-				byte[] b = new byte[dis.available()];
-				dis.read(b);
-				xml += new String(b);
+			is = new BufferedInputStream(new FileInputStream(configFile));
+			byte[] buffer = new byte[4096];
+			int len;
+			while ((len = is.read(buffer)) != -1) {
+				baos.write(buffer, 0, len);
 			}
+			String xml = baos.toString("UTF-8");
 			configXml = new XMLElement();
 			configXml.parseString(xml);
 		} catch (XMLParseException e) {
@@ -800,19 +802,36 @@ public class Config {
 		saveConfig();
 	}
 
-	public static boolean isNetworkAccessEnabled() {
+	public static boolean isAirplaneModeEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return true;
+			return false;
 		}
-		return Boolean.parseBoolean(optionsXml.getChildString("networkAccess", "true"));
+		if (optionsXml.getChild("networkAccess") != null) {
+			boolean access = Boolean.parseBoolean(optionsXml.getChildString("networkAccess", "true"));
+			return !access;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("airplaneMode", "false"));
+	}
+
+	public static void setAirplaneModeEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement airplaneXml = optionsXml.getChildOrNew("airplaneMode");
+		airplaneXml.setContent(String.valueOf(enabled));
+		XMLElement legacyXml = optionsXml.getChild("networkAccess");
+		if (legacyXml != null) {
+			optionsXml.removeChild(legacyXml);
+		}
+		saveConfig();
+		notifyConfigChanged("Airplane Mode", enabled);
+	}
+
+	public static boolean isNetworkAccessEnabled() {
+		return !isAirplaneModeEnabled();
 	}
 
 	public static void setNetworkAccessEnabled(boolean enabled) {
-		XMLElement optionsXml = configXml.getChildOrNew("options");
-		XMLElement accessXml = optionsXml.getChildOrNew("networkAccess");
-		accessXml.setContent(String.valueOf(enabled));
-		saveConfig();
+		setAirplaneModeEnabled(!enabled);
 	}
 
 	public static int getScaledDisplayZoom() {
@@ -848,6 +867,7 @@ public class Config {
 		XMLElement overlayXml = optionsXml.getChildOrNew("networkOverlayEnabled");
 		overlayXml.setContent(String.valueOf(enabled));
 		saveConfig();
+		notifyConfigChanged("Network Overlay", enabled);
 	}
 
 	public static boolean isAutoClickerEnabled() {

@@ -164,13 +164,17 @@ public class Main extends JFrame {
 
 	private JMenuItem menuScreenshot;
 
-	private JCheckBoxMenuItem menuMIDletNetworkConnection;
+	private JCheckBoxMenuItem menuAirplaneMode;
 
 	private JCheckBoxMenuItem menuLogConsole;
 
 	private JCheckBoxMenuItem menuRecordStoreManager;
 
 	private JCheckBoxMenuItem menuSleepMode;
+
+	private JCheckBoxMenuItem menuHudOverlay;
+
+	private JCheckBoxMenuItem menuNetworkOverlay;
 
 
 
@@ -192,6 +196,35 @@ public class Main extends JFrame {
 					instance.menuSleepMode.setSelected(active);
 				}
 			});
+		}
+	}
+
+	public void syncMenuStates() {
+		if (menuAirplaneMode != null) {
+			menuAirplaneMode.setSelected(Config.isAirplaneModeEnabled());
+		}
+		if (menuHudOverlay != null) {
+			menuHudOverlay.setSelected(Config.isPerfHudEnabled());
+		}
+		if (menuNetworkOverlay != null) {
+			menuNetworkOverlay.setSelected(Config.isNetworkOverlayEnabled());
+		}
+		if (menuSleepMode != null) {
+			menuSleepMode.setSelected(Config.isSleepModeEnabled());
+		}
+		if (menuShowMouseCoordinates != null) {
+			menuShowMouseCoordinates.setSelected(Config.isShowMouseCoordinates());
+		}
+		if (menuFullscreen != null) {
+			menuFullscreen.setSelected(Config.isFullscreen());
+		}
+		if (zoomLevels != null) {
+			int currentZoom = Config.getScaledDisplayZoom();
+			for (int i = 0; i < zoomLevels.length; ++i) {
+				if (zoomLevels[i] != null) {
+					zoomLevels[i].setSelected((i + 2) == currentZoom);
+				}
+			}
 		}
 	}
 
@@ -520,13 +553,14 @@ public class Main extends JFrame {
 		}
 	};
 
-	private ActionListener menuMIDletNetworkConnectionListener = new ActionListener() {
+	private ActionListener menuAirplaneModeListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-			boolean allowed = menuMIDletNetworkConnection.getState();
+			boolean airplaneMode = menuAirplaneMode.isSelected();
+			boolean allowed = !airplaneMode;
 			org.neutron.cldc.http.Connection.setAllowNetworkConnection(allowed);
 			org.neutron.device.ui.NetworkActivityTracker.setNetworkAccessEnabled(allowed);
-			Config.setNetworkAccessEnabled(allowed);
-			Common.setStatusBar("Network Access: " + (allowed ? "Enabled" : "Disabled"));
+			Config.setAirplaneModeEnabled(airplaneMode);
+			Common.setStatusBar("Airplane Mode: " + (airplaneMode ? "Enabled" : "Disabled"));
 		}
 	};
 
@@ -904,6 +938,17 @@ public class Main extends JFrame {
 	public Main(DeviceEntry defaultDevice) {
 		instance = this;
 
+		Config.loadConfig(defaultDevice, emulatorContext);
+		Config.addConfigChangeListener(new ConfigChangeListener() {
+			public void onConfigChanged(String key, Object newValue) {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						syncMenuStates();
+					}
+				});
+			}
+		});
+
 		this.logQueueAppender = new QueueAppender(1024);
 		Logger.addAppender(logQueueAppender);
 
@@ -1260,10 +1305,10 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuProxySettings);
 
-		menuMIDletNetworkConnection = new JCheckBoxMenuItem("Network Access");
-		menuMIDletNetworkConnection.setState(Config.isNetworkAccessEnabled());
-		menuMIDletNetworkConnection.addActionListener(menuMIDletNetworkConnectionListener);
-		menuControls.add(menuMIDletNetworkConnection);
+		menuAirplaneMode = new JCheckBoxMenuItem("Airplane Mode");
+		menuAirplaneMode.setSelected(Config.isAirplaneModeEnabled());
+		menuAirplaneMode.addActionListener(menuAirplaneModeListener);
+		menuControls.add(menuAirplaneMode);
 
 		final JMenu menuFrameRate = new JMenu("Frame Rate");
 		final ButtonGroup fpsGroup = new ButtonGroup();
@@ -1381,7 +1426,7 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuNetworkCapture);
 
-		final JCheckBoxMenuItem menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
+		menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
 		menuHudOverlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean enabled = menuHudOverlay.isSelected();
@@ -1395,7 +1440,7 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuHudOverlay);
 
-		final JCheckBoxMenuItem menuNetworkOverlay = new JCheckBoxMenuItem("Network Overlay", Config.isNetworkOverlayEnabled());
+		menuNetworkOverlay = new JCheckBoxMenuItem("Network Overlay", Config.isNetworkOverlayEnabled());
 		menuNetworkOverlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean enabled = menuNetworkOverlay.isSelected();
@@ -1454,7 +1499,6 @@ public class Main extends JFrame {
 		addWindowFocusListener(windowListener);
 
 
-		Config.loadConfig(defaultDevice, emulatorContext);
 		org.neutron.cldc.http.Connection.setAllowNetworkConnection(Config.isNetworkAccessEnabled());
 		org.neutron.device.ui.NetworkActivityTracker.setNetworkAccessEnabled(Config.isNetworkAccessEnabled());
 		org.neutron.device.ui.EventDispatcher.maxFps = Config.getMaxFps();
@@ -1463,6 +1507,7 @@ public class Main extends JFrame {
 		org.neutron.app.ui.swing.SwingNetworkOverlay.setEnabled(Config.isNetworkOverlayEnabled());
 		org.neutron.device.ui.NetworkCapture.setEnabled(Config.isNetworkCaptureEnabled());
 		org.neutron.app.ui.swing.SwingAutoClicker.init();
+		syncMenuStates();
 
 		int persistedZoom = Config.getScaledDisplayZoom();
 		if (persistedZoom >= 2 && persistedZoom <= 4) {
