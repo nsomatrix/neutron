@@ -670,6 +670,54 @@ public class Common implements Neutron, CommonInterface {
         }
     }
 
+    private URL resolveOrCacheJarURL(URL originalUrl, String jarUrlStr) {
+        if (originalUrl == null) {
+            return null;
+        }
+        File appsFolder = new File(Config.getConfigPath(), "apps");
+        if (!appsFolder.exists()) {
+            appsFolder.mkdirs();
+        }
+
+        String key = String.valueOf(jarUrlStr.hashCode());
+        File cachedJar = new File(appsFolder, key + ".jar");
+
+        if ("file".equalsIgnoreCase(originalUrl.getProtocol())) {
+            File sourceFile = null;
+            try {
+                sourceFile = new File(originalUrl.toURI());
+            } catch (Exception e) {
+                try {
+                    sourceFile = new File(originalUrl.getPath());
+                } catch (Exception ex) {
+                    sourceFile = null;
+                }
+            }
+
+            if (sourceFile != null && sourceFile.exists() && sourceFile.isFile()) {
+                try {
+                    if (!cachedJar.exists() || cachedJar.length() != sourceFile.length()) {
+                        IOUtils.copyFile(sourceFile, cachedJar);
+                    }
+                } catch (IOException e) {
+                    Logger.error("Failed to back up game JAR to internal app storage", e);
+                }
+                return originalUrl;
+            }
+        }
+
+        if (cachedJar.exists() && cachedJar.isFile()) {
+            try {
+                Logger.info("Original JAR not found on host disk. Using restored internal app backup from " + cachedJar.getAbsolutePath());
+                return new URL(IOUtils.getCanonicalFileClassLoaderURL(cachedJar));
+            } catch (Exception e) {
+                Logger.error("Failed to resolve cached jar URL", e);
+            }
+        }
+
+        return originalUrl;
+    }
+
     protected void loadJar(String jadUrl, String jarUrl, MIDletClassLoader midletClassLoader) throws ClassNotFoundException {
         if (jarUrl == null) {
             throw new ClassNotFoundException("Cannot find MIDlet-Jar-URL property in jad");
@@ -727,6 +775,7 @@ public class Common implements Neutron, CommonInterface {
                     Logger.error("Unable to open temporary jar url", e);
                 }
             }
+            url = resolveOrCacheJarURL(url, jarUrl);
             midletClassLoader.addURL(url);
 
             Launcher.removeMIDletEntries();

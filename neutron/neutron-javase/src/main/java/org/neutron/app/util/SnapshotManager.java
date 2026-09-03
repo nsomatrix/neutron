@@ -55,7 +55,7 @@ import org.neutron.log.Logger;
 public class SnapshotManager {
 
 	public static void backup(final Component parent) {
-		final File rootDir = new File(System.getProperty("user.home"), ".neutron");
+		final File rootDir = org.neutron.app.Config.getConfigPath();
 		if (!rootDir.exists() || !rootDir.isDirectory()) {
 			JOptionPane.showMessageDialog(parent,
 					"No emulator root folder found at " + rootDir.getAbsolutePath() + " to backup.",
@@ -149,7 +149,7 @@ public class SnapshotManager {
 	}
 
 	public static void restore(final Component parent) {
-		final File rootDir = new File(System.getProperty("user.home"), ".neutron");
+		final File rootDir = org.neutron.app.Config.getConfigPath();
 
 		int confirm = JOptionPane.showConfirmDialog(parent,
 				"Restoring a snapshot will COMPLETELY overwrite all current settings, RMS databases, and games.\n" +

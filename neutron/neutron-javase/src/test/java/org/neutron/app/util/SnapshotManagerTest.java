@@ -162,4 +162,35 @@ public class SnapshotManagerTest extends TestCase {
 		assertTrue(keep.exists());
 		assertTrue(root.exists());
 	}
+
+	public void testAppsBackupAndRestore() throws Exception {
+		File sourceDir = new File(tempDir, "root_neutron");
+		sourceDir.mkdirs();
+
+		File appsDir = new File(sourceDir, "apps");
+		appsDir.mkdirs();
+
+		File gameJar = new File(appsDir, "123456.jar");
+		try (FileWriter fw = new FileWriter(gameJar)) {
+			fw.write("PK3456_DUMMY_GAME_JAR_DATA");
+		}
+
+		File zipFile = new File(tempDir, "snapshot.zip");
+		try (FileOutputStream fos = new FileOutputStream(zipFile);
+			 ZipOutputStream zos = new ZipOutputStream(fos)) {
+			SnapshotManager.zipDirectory(sourceDir, sourceDir, zos, zipFile);
+		}
+
+		assertTrue(zipFile.exists());
+
+		File restoredDir = new File(tempDir, "restored_neutron");
+		SnapshotManager.unzip(zipFile, restoredDir);
+
+		File restoredAppsDir = new File(restoredDir, "apps");
+		File restoredGameJar = new File(restoredAppsDir, "123456.jar");
+
+		assertTrue(restoredAppsDir.exists());
+		assertTrue(restoredGameJar.exists());
+		assertEquals("PK3456_DUMMY_GAME_JAR_DATA", new String(Files.readAllBytes(restoredGameJar.toPath())));
+	}
 }
