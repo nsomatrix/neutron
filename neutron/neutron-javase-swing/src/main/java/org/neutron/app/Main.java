@@ -77,6 +77,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.KeyStroke;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -107,6 +109,8 @@ import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkCapturePanel;
+import org.neutron.app.ui.swing.SwingEmulationSpeedDialog;
+import org.neutron.app.ui.swing.SwingFrameRateDialog;
 import org.neutron.app.ui.swing.SwingStatusBar;
 import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.ui.swing.SwingNetworkOverlay;
@@ -1253,45 +1257,110 @@ public class Main extends JFrame {
 		menuMIDletNetworkConnection.addActionListener(menuMIDletNetworkConnectionListener);
 		menuControls.add(menuMIDletNetworkConnection);
 
-		JMenu menuFrameRate = new JMenu("Frame Rate");
-		ButtonGroup fpsGroup = new ButtonGroup();
-		int currentFps = Config.getMaxFps();
-		int[] fpsValues = { -1, 60, 30, 20, 15 };
-		String[] fpsLabels = { "Unlimited", "60 FPS", "30 FPS", "20 FPS", "15 FPS" };
+		final JMenu menuFrameRate = new JMenu("Frame Rate");
+		final ButtonGroup fpsGroup = new ButtonGroup();
+		final int[] fpsValues = { -1, 60, 30, 15 };
+		final String[] fpsLabels = { "Unlimited", "60 FPS", "30 FPS", "15 FPS" };
+		final JRadioButtonMenuItem[] fpsItems = new JRadioButtonMenuItem[fpsValues.length];
+
 		for (int i = 0; i < fpsValues.length; i++) {
 			final int fpsVal = fpsValues[i];
 			final String label = fpsLabels[i];
-			JRadioButtonMenuItem fpsItem = new JRadioButtonMenuItem(label, currentFps == fpsVal);
-			fpsItem.addActionListener(new ActionListener() {
+			fpsItems[i] = new JRadioButtonMenuItem(label);
+			fpsItems[i].addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Config.setMaxFps(fpsVal);
 					org.neutron.device.ui.EventDispatcher.maxFps = fpsVal;
 					Common.setStatusBar("Frame Rate Limit: " + label);
 				}
 			});
-			fpsGroup.add(fpsItem);
-			menuFrameRate.add(fpsItem);
+			fpsGroup.add(fpsItems[i]);
+			menuFrameRate.add(fpsItems[i]);
 		}
+		menuFrameRate.addSeparator();
+		final JRadioButtonMenuItem configureFpsItem = new JRadioButtonMenuItem("Custom");
+		configureFpsItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingFrameRateDialog dialog = new SwingFrameRateDialog(Main.this);
+				dialog.setVisible(true);
+			}
+		});
+		fpsGroup.add(configureFpsItem);
+		menuFrameRate.add(configureFpsItem);
+
+		menuFrameRate.addMenuListener(new MenuListener() {
+			public void menuSelected(MenuEvent e) {
+				int curFps = Config.getMaxFps();
+				boolean matched = false;
+				for (int i = 0; i < fpsValues.length; i++) {
+					if (curFps == fpsValues[i]) {
+						fpsItems[i].setSelected(true);
+						matched = true;
+						break;
+					}
+				}
+				if (!matched) {
+					configureFpsItem.setText(curFps <= 0 ? "Custom" : "Custom (" + curFps + " FPS)");
+					configureFpsItem.setSelected(true);
+				} else {
+					configureFpsItem.setText("Custom");
+				}
+			}
+			public void menuDeselected(MenuEvent e) {}
+			public void menuCanceled(MenuEvent e) {}
+		});
 		menuControls.add(menuFrameRate);
 
-		JMenu menuEmulationSpeed = new JMenu("Emulation Speed");
-		ButtonGroup speedGroup = new ButtonGroup();
-		double currentSpeed = Config.getSpeedMultiplier();
-		double[] speedValues = { 1.0, 1.5, 2.0, 4.0, 8.0, 0.5 };
-		String[] speedLabels = { "Normal (1.0x)", "1.5x", "2.0x", "4.0x", "8.0x", "Slow Motion (0.5x)" };
-		for (int i = 0; i < speedValues.length; i++) {
-			final double speedVal = speedValues[i];
-			final String label = speedLabels[i];
-			JRadioButtonMenuItem speedItem = new JRadioButtonMenuItem(label, Math.abs(currentSpeed - speedVal) < 0.01);
-			speedItem.addActionListener(new ActionListener() {
+		final JMenu menuEmulationSpeed = new JMenu("Emulation Speed");
+		final ButtonGroup speedGroup = new ButtonGroup();
+		final double[] mainSpeeds = { 0.50, 1.00, 2.00, 5.00, 10.00 };
+		final JRadioButtonMenuItem[] speedItems = new JRadioButtonMenuItem[mainSpeeds.length];
+
+		for (int i = 0; i < mainSpeeds.length; i++) {
+			final double speedVal = mainSpeeds[i];
+			final String label = String.format(java.util.Locale.US, "%.2fx", speedVal);
+			speedItems[i] = new JRadioButtonMenuItem(label);
+			speedItems[i].addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					Config.setSpeedMultiplier(speedVal);
 					Common.setStatusBar("Emulation Speed: " + label);
 				}
 			});
-			speedGroup.add(speedItem);
-			menuEmulationSpeed.add(speedItem);
+			speedGroup.add(speedItems[i]);
+			menuEmulationSpeed.add(speedItems[i]);
 		}
+		menuEmulationSpeed.addSeparator();
+		final JRadioButtonMenuItem configureSpeedItem = new JRadioButtonMenuItem("Custom");
+		configureSpeedItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingEmulationSpeedDialog dialog = new SwingEmulationSpeedDialog(Main.this);
+				dialog.setVisible(true);
+			}
+		});
+		speedGroup.add(configureSpeedItem);
+		menuEmulationSpeed.add(configureSpeedItem);
+
+		menuEmulationSpeed.addMenuListener(new MenuListener() {
+			public void menuSelected(MenuEvent e) {
+				double curSpeed = Config.getSpeedMultiplier();
+				boolean matched = false;
+				for (int i = 0; i < mainSpeeds.length; i++) {
+					if (Math.abs(curSpeed - mainSpeeds[i]) < 0.001) {
+						speedItems[i].setSelected(true);
+						matched = true;
+						break;
+					}
+				}
+				if (!matched) {
+					configureSpeedItem.setText(String.format(java.util.Locale.US, "Custom (%.2fx)", curSpeed));
+					configureSpeedItem.setSelected(true);
+				} else {
+					configureSpeedItem.setText("Custom");
+				}
+			}
+			public void menuDeselected(MenuEvent e) {}
+			public void menuCanceled(MenuEvent e) {}
+		});
 		menuControls.add(menuEmulationSpeed);
 
 		JMenuItem menuNetworkCapture = new JMenuItem("Network Capture");
