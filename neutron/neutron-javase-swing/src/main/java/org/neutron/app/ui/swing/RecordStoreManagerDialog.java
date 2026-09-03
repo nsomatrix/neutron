@@ -206,7 +206,6 @@ public class RecordStoreManagerDialog extends JFrame {
 		logScrollPane.setAutoscrolls(true);
 
 		JTabbedPane viewPanel = new JTabbedPane();
-		// viewPanel.addTab("Records view", new JLabel("Records view"));
 		viewPanel.addTab("Log view", logScrollPane);
 
 		getContentPane().add(headerPanel, BorderLayout.NORTH);

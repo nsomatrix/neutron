@@ -51,10 +51,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.awt.Image;
-import nanoxml.XMLElement;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.Iterator;                                                            
 import java.util.List;                                                                
 import java.util.NoSuchElementException;                                              
 import java.util.Timer;                                                               
@@ -148,8 +146,6 @@ public class Main extends JFrame {
 
 	private MIDletUrlPanel midletUrlPanel = null;
 
-	private JFileChooser saveForWebChooser;
-
 	private JFileChooser fileChooser = null;
 
 	private JFileChooser captureFileChooser = null;
@@ -240,6 +236,10 @@ public class Main extends JFrame {
 	private Timer statusBarHideTimer;
 
 	private java.awt.event.AWTEventListener awtEventListener;
+
+	private boolean awtListenerAttached = false;
+
+	private java.util.Map<String, ImageIcon> menuIconCache = new java.util.HashMap<String, ImageIcon>();
 
 
 
@@ -980,19 +980,27 @@ public class Main extends JFrame {
 										final SwingLibraryExplorerDialog.GameInfo game = (SwingLibraryExplorerDialog.GameInfo) games.get(j);
 										JMenuItem gameItem = new JMenuItem(game.name);
 										if (game.iconCachePath != null) {
-											File iconFile = new File(game.iconCachePath);
-											if (iconFile.exists()) {
-												try {
-													ImageIcon icon = new ImageIcon(iconFile.getAbsolutePath());
-													if (icon.getIconWidth() != 16 || icon.getIconHeight() != 16) {
-														Image img = icon.getImage();
-														Image scaled = img.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
-														icon = new ImageIcon(scaled);
+											ImageIcon cachedIcon = menuIconCache.get(game.iconCachePath);
+											if (cachedIcon == null) {
+												File iconFile = new File(game.iconCachePath);
+												if (iconFile.exists()) {
+													try {
+														ImageIcon icon = new ImageIcon(iconFile.getAbsolutePath());
+														if (icon.getIconWidth() != 16 || icon.getIconHeight() != 16) {
+															Image img = icon.getImage();
+															Image scaled = img.getScaledInstance(16, 16, Image.SCALE_SMOOTH);
+															cachedIcon = new ImageIcon(scaled);
+														} else {
+															cachedIcon = icon;
+														}
+														menuIconCache.put(game.iconCachePath, cachedIcon);
+													} catch (Exception ex) {
+														// ignore icon load errors
 													}
-													gameItem.setIcon(icon);
-												} catch (Exception ex) {
-													// ignore icon load errors
 												}
+											}
+											if (cachedIcon != null) {
+												gameItem.setIcon(cachedIcon);
 											}
 										}
 										gameItem.addActionListener(new ActionListener() {
@@ -1017,10 +1025,10 @@ public class Main extends JFrame {
 		});
 		menuFile.add(menuConnectedDirs);
 
-		JMenuItem menuItemTmp = new JMenuItem("Terminate Process");
-		menuItemTmp.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
-		menuItemTmp.addActionListener(menuCloseMidletListener);
-		menuFile.add(menuItemTmp);
+		JMenuItem menuTerminateProcess = new JMenuItem("Terminate Process");
+		menuTerminateProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
+		menuTerminateProcess.addActionListener(menuCloseMidletListener);
+		menuFile.add(menuTerminateProcess);
 
 		menuFile.addSeparator();
 
@@ -1617,7 +1625,7 @@ public class Main extends JFrame {
 			}
 		});
 
-		// Global listener to track mouse activity to reset 30s inactivity timer
+		// Global listener to track mouse activity to reset 30s inactivity timer in fullscreen
 		awtEventListener = new java.awt.event.AWTEventListener() {
 			public void eventDispatched(java.awt.AWTEvent event) {
 				if (event instanceof java.awt.event.MouseEvent) {
@@ -1625,11 +1633,6 @@ public class Main extends JFrame {
 				}
 			}
 		};
-		try {
-			java.awt.Toolkit.getDefaultToolkit().addAWTEventListener(awtEventListener, java.awt.AWTEvent.MOUSE_EVENT_MASK | java.awt.AWTEvent.MOUSE_MOTION_EVENT_MASK);
-		} catch (SecurityException ex) {
-			// fallback
-		}
 
 		// Periodic checker to auto-hide menu bar after 30 seconds of inactivity
 		menuTimer = new Timer(true);
@@ -1686,8 +1689,23 @@ public class Main extends JFrame {
 		}
 	}
 
+	private void updateAwtEventListener(boolean enable) {
+		try {
+			if (enable && !awtListenerAttached && awtEventListener != null) {
+				java.awt.Toolkit.getDefaultToolkit().addAWTEventListener(awtEventListener, java.awt.AWTEvent.MOUSE_EVENT_MASK | java.awt.AWTEvent.MOUSE_MOTION_EVENT_MASK);
+				awtListenerAttached = true;
+			} else if (!enable && awtListenerAttached && awtEventListener != null) {
+				java.awt.Toolkit.getDefaultToolkit().removeAWTEventListener(awtEventListener);
+				awtListenerAttached = false;
+			}
+		} catch (SecurityException ex) {
+			// ignore
+		}
+	}
+
 	public void setFullscreenMode(final boolean enabled) {
 		Config.setFullscreen(enabled);
+		updateAwtEventListener(enabled);
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				if (menuFullscreen != null) {
@@ -1726,13 +1744,7 @@ public class Main extends JFrame {
 
 	@Override
 	public void dispose() {
-		if (awtEventListener != null) {
-			try {
-				java.awt.Toolkit.getDefaultToolkit().removeAWTEventListener(awtEventListener);
-			} catch (SecurityException ex) {
-				// ignore
-			}
-		}
+		updateAwtEventListener(false);
 		if (menuTimer != null) {
 			menuTimer.cancel();
 		}
@@ -1818,18 +1830,18 @@ public class Main extends JFrame {
 
 	protected void updateThemeSelection() {
 		if (menuTheme == null) return;
-		String currentTheme = Config.getTheme();
+		String currentThemeStr = Config.getTheme();
+		EmulatorTheme activeTheme = EmulatorTheme.fromString(currentThemeStr);
 		for (int i = 0; i < menuTheme.getItemCount(); i++) {
 			JMenuItem item = menuTheme.getItem(i);
 			if (item instanceof JRadioButtonMenuItem) {
-				if (item.getText().equals(currentTheme)) {
+				if (item.getText().equalsIgnoreCase(activeTheme.getDisplayName())) {
 					item.setSelected(true);
 					break;
 				}
 			}
 		}
 	}
-
 
 	protected void updateFilterSelection() {
 		if (menuFilter == null) {
@@ -1839,7 +1851,7 @@ public class Main extends JFrame {
 		for (int i = 0; i < menuFilter.getItemCount(); i++) {
 			JMenuItem item = menuFilter.getItem(i);
 			if (item instanceof JRadioButtonMenuItem) {
-				if (item.getText().equals(currentFilter)) {
+				if (item.getText().equalsIgnoreCase(currentFilter)) {
 					item.setSelected(true);
 					break;
 				}

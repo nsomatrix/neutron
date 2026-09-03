@@ -57,15 +57,18 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final boolean tests = false;
+	private static final ThreadLocal<DateFormat> dateFormatThreadLocal = new ThreadLocal<DateFormat>() {
+		@Override
+		protected DateFormat initialValue() {
+			return new SimpleDateFormat("HH:mm:ss.SSS ");
+		}
+	};
 
 	private boolean isShown;
 
 	private LogTextArea logArea;
 
 	private Vector logLinesQueue = new Vector();
-
-	private int testEventCounter = 0;
 
 	private class SwingLogUpdater implements Runnable {
 
@@ -150,20 +153,6 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 			menuBar.add(j5Menu);
 		}
 
-		if (tests) {
-			JMenu testMenu = new JMenu("Tests");
-			JMenuItem testLog = new JMenuItem("Log 10 events");
-			testLog.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					for (int i = 0; i < 10; i++) {
-						log(testEventCounter++ + " " + new Date() + "\n\t data tests.......\n");
-					}
-				}
-			});
-			testMenu.add(testLog);
-			menuBar.add(testMenu);
-		}
-
 		setJMenuBar(menuBar);
 		getRootPane().putClientProperty("flatlaf.menuBarEmbedded", Boolean.FALSE);
 
@@ -188,7 +177,7 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 
 	public void setVisible(boolean b) {
 		super.setVisible(b);
-		isShown = true;
+		isShown = b;
 		if (isShown) {
 			SwingUtilities.invokeLater(new SwingLogUpdater());
 		}
@@ -216,8 +205,7 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 	}
 
 	private String formatEventTime(long eventTime) {
-		DateFormat format = new SimpleDateFormat("HH:mm:ss.SSS ");
-		return format.format(new Date(eventTime));
+		return dateFormatThreadLocal.get().format(new Date(eventTime));
 	}
 
 	public void append(LoggingEvent event) {
