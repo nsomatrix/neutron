@@ -33,8 +33,8 @@ public class SwingSleepUI {
 
     private static State currentState = State.INACTIVE;
     private static long transitionStartTime = 0;
-    private static final long FADE_IN_DURATION = 250;  // 250ms smooth fade-in
-    private static final long FADE_OUT_DURATION = 200; // 200ms smooth fade-out
+    private static final long FADE_IN_DURATION = 400;  // 400ms smooth cinematic fade-in
+    private static final long FADE_OUT_DURATION = 350; // 350ms smooth fade-out
     private static float currentAlpha = 0.0f;
 
     private static BufferedImage cachedSnapshot = null;
@@ -60,6 +60,11 @@ public class SwingSleepUI {
         g2.dispose();
 
         cachedBlurredSnapshot = generateFastBlur(cachedSnapshot);
+
+        // Reset transition clock when snapshot calculation completes so fade-in starts at t=0
+        if (currentState == State.ENTERING) {
+            transitionStartTime = System.currentTimeMillis();
+        }
     }
 
     public static boolean hasSnapshot() {
