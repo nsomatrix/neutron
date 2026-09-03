@@ -300,72 +300,49 @@ public class SwingSleepUI {
             new Color(4, 6, 12, 80),   // Mid soft shade
             new Color(2, 3, 6, 150)    // Edge gentle vignette
         };
-        // 4. Center Content (Logo, Branding, Pulsing Wake Prompt)
+        // 4. Center Content (Branding Title, System Uptime & Pulsing Wake Prompt)
         drawSleepCenterContent(g2, width, height);
 
         g2.setComposite(oldComp);
     }
 
-    private static BufferedImage appLogo = null;
-    private static boolean logoLoaded = false;
+    private static String getFormattedUptime() {
+        try {
+            long uptimeMs = java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime();
+            long seconds = uptimeMs / 1000;
+            long minutes = seconds / 60;
+            long hours = minutes / 60;
+            long days = hours / 24;
 
-    private static synchronized BufferedImage getAppLogo() {
-        if (!logoLoaded) {
-            try {
-                java.net.URL logoUrl = SwingSleepUI.class.getResource("/org/neutron/icon.png");
-                if (logoUrl != null) {
-                    appLogo = javax.imageio.ImageIO.read(logoUrl);
-                }
-            } catch (Exception ignored) {
+            if (days > 0) {
+                return String.format("%dd %02dh %02dm", days, hours % 24, minutes % 60);
+            } else if (hours > 0) {
+                return String.format("%02dh %02dm %02ds", hours, minutes % 60, seconds % 60);
+            } else {
+                return String.format("%02dm %02ds", minutes, seconds % 60);
             }
-            logoLoaded = true;
+        } catch (Throwable t) {
+            return "00m 00s";
         }
-        return appLogo;
     }
 
     private static void drawSleepCenterContent(Graphics2D g2, int width, int height) {
         int centerX = width / 2;
         int centerY = height / 2;
 
-        int minDim = Math.min(width, height);
-        int logoSize = Math.min(64, Math.max(32, minDim / 5));
-        int cardPad = 12;
-        int cardSize = logoSize + cardPad * 2;
-        int cardX = centerX - cardSize / 2;
-        int cardY = centerY - cardSize / 2 - 18;
-
-        // 1. Glassmorphic Card Container for Logo
-        g2.setColor(new Color(255, 255, 255, 18));
-        g2.fillRoundRect(cardX, cardY, cardSize, cardSize, 22, 22);
-        g2.setColor(new Color(255, 255, 255, 45));
-        g2.drawRoundRect(cardX, cardY, cardSize, cardSize, 22, 22);
-
-        // 2. Draw App Logo or Fallback Emblem
-        BufferedImage logo = getAppLogo();
-        if (logo != null) {
-            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g2.drawImage(logo, cardX + cardPad, cardY + cardPad, logoSize, logoSize, null);
-        } else {
-            g2.setColor(new Color(255, 255, 255, 220));
-            g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, logoSize / 2));
-            FontMetrics fmEm = g2.getFontMetrics();
-            String em = "N";
-            g2.drawString(em, centerX - fmEm.stringWidth(em) / 2, cardY + cardPad + logoSize - 8);
-        }
-
-        // 3. Branding Title
-        g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        // 1. Branding Title
+        g2.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         FontMetrics fmTitle = g2.getFontMetrics();
         String title = "NEUTRON";
         int titleX = centerX - fmTitle.stringWidth(title) / 2;
-        int titleY = cardY + cardSize + 22;
+        int titleY = centerY - 20;
 
-        g2.setColor(new Color(0, 0, 0, 100));
+        g2.setColor(new Color(0, 0, 0, 120));
         g2.drawString(title, titleX + 1, titleY + 1);
-        g2.setColor(new Color(245, 247, 250, 230));
+        g2.setColor(new Color(245, 247, 250, 235));
         g2.drawString(title, titleX, titleY);
 
-        // 4. Pulsing "TAP ANYWHERE TO WAKE" Text
+        // 2. Pulsing "TAP ANYWHERE TO WAKE" Text
         long time = System.currentTimeMillis();
         float pulseAlpha = (float) (0.55 + 0.45 * Math.sin(time / 350.0));
         int alphaVal = Math.min(255, Math.max(0, (int) (230 * pulseAlpha)));
@@ -374,11 +351,45 @@ public class SwingSleepUI {
         FontMetrics fmWake = g2.getFontMetrics();
         String wakeText = "TAP ANYWHERE TO WAKE";
         int wakeX = centerX - fmWake.stringWidth(wakeText) / 2;
-        int wakeY = titleY + 22;
+        int wakeY = titleY + 24;
 
         g2.setColor(new Color(0, 0, 0, (int) (120 * pulseAlpha)));
         g2.drawString(wakeText, wakeX + 1, wakeY + 1);
         g2.setColor(new Color(200, 220, 255, alphaVal));
         g2.drawString(wakeText, wakeX, wakeY);
+
+        // 3. System Runtime Glass Pill (Matching SwingNetworkOverlay Design)
+        String timeStr = getFormattedUptime();
+        Font pillFont = new Font(Font.SANS_SERIF, Font.BOLD, 10);
+        g2.setFont(pillFont);
+        FontMetrics fmPill = g2.getFontMetrics();
+
+        int textWidth = fmPill.stringWidth(timeStr);
+        int dotSize = 6;
+        int dotGap = 6;
+        int paddingX = 12;
+        int capsuleWidth = textWidth + dotSize + dotGap + (paddingX * 2);
+        int capsuleHeight = 22;
+
+        int pillX = centerX - capsuleWidth / 2;
+        int pillY = wakeY + 18;
+
+        // Glass Pill Fill & Border
+        g2.setColor(new Color(15, 18, 26, 170));
+        g2.fillRoundRect(pillX, pillY, capsuleWidth, capsuleHeight, capsuleHeight, capsuleHeight);
+        g2.setColor(new Color(255, 255, 255, 38));
+        g2.drawRoundRect(pillX, pillY, capsuleWidth, capsuleHeight, capsuleHeight, capsuleHeight);
+
+        // Active Pulse Dot (Green)
+        int dotX = pillX + paddingX;
+        int dotY = pillY + (capsuleHeight - dotSize) / 2;
+        g2.setColor(new Color(46, 204, 113));
+        g2.fillOval(dotX, dotY, dotSize, dotSize);
+
+        // Time String (No explicit UPTIME label)
+        int textX = dotX + dotSize + dotGap;
+        int textY = pillY + (capsuleHeight + fmPill.getAscent() - fmPill.getDescent()) / 2;
+        g2.setColor(new Color(220, 230, 245, 230));
+        g2.drawString(timeStr, textX, textY);
     }
 }
