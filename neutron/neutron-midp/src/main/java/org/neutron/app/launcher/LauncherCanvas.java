@@ -27,11 +27,6 @@ public class LauncherCanvas extends Canvas {
     private int lastSelectedTapIndex = -1;
     private long lastTapTime = 0;
 
-    // Animation variables
-    private Thread animThread;
-    private boolean animating = false;
-    private double animFrame = 0;
-
     public LauncherCanvas(Launcher launcher) {
         this.launcher = launcher;
         setFullScreenMode(true);
@@ -46,31 +41,10 @@ public class LauncherCanvas extends Canvas {
     }
 
     protected void showNotify() {
-        // Start the animation thread when the canvas is shown
-        animating = true;
-        animThread = new Thread(new Runnable() {
-            public void run() {
-                while (animating) {
-                    animFrame += 0.05;
-                    repaint();
-                    try {
-                        Thread.sleep(30); // ~33 FPS for smooth animations
-                    } catch (InterruptedException e) {
-                        break;
-                    }
-                }
-            }
-        }, "NeutronLauncherAnim");
-        animThread.start();
+        repaint();
     }
 
     protected void hideNotify() {
-        // Stop the animation thread completely to free up all CPU when games are running
-        animating = false;
-        if (animThread != null) {
-            animThread.interrupt();
-            animThread = null;
-        }
     }
 
     // Helper to blend two colors
@@ -121,22 +95,9 @@ public class LauncherCanvas extends Canvas {
         double luminance = (0.299 * bgR + 0.587 * bgG + 0.114 * bgB) / 255.0;
         boolean isDark = (luminance < 0.5);
 
-        // Calculate dynamic gradient colors
-        int grad1, grad2;
-        if (isDark) {
-            grad1 = blend(bgColor, selectBg, 0.15f); // subtle tint of highlight color at the top
-            grad2 = adjustBrightness(bgColor, 0.75f); // deeper shade at the bottom
-        } else {
-            grad1 = adjustBrightness(bgColor, 1.05f); // softer light color at the top
-            grad2 = adjustBrightness(bgColor, 0.92f); // slightly darker light color at the bottom
-        }
-
-        // Draw dynamic theme gradient background
-        drawBackgroundGradient(g, w, h, grad1, grad2);
-
-        // Draw elegant theme-matching grid pattern
-        int gridColor = isDark ? adjustBrightness(bgColor, 1.15f) : adjustBrightness(bgColor, 0.94f);
-        drawBackgroundGrid(g, w, h, gridColor);
+        // Draw solid flat background matching active theme
+        g.setColor(bgColor);
+        g.fillRect(0, 0, w, h);
 
         // Draw Header
         int headerHeight = drawHeader(g, w, fgColor, selectBg);
@@ -144,45 +105,13 @@ public class LauncherCanvas extends Canvas {
         // Draw Content Area
         Vector entries = Launcher.midletEntries;
         if (entries == null || entries.size() == 0) {
-            drawEmptyState(g, w, h, headerHeight, bgColor, fgColor, selectBg);
+            drawEmptyState(g, w, h, headerHeight, bgColor, fgColor, selectBg, isDark);
         } else {
             drawMIDletList(g, entries, w, h, headerHeight, bgColor, fgColor, selectBg);
         }
 
         // Draw Launch Button at the bottom
         drawLaunchButton(g, w, h, bgColor, fgColor, selectBg, selectFg);
-    }
-
-    private void drawBackgroundGradient(Graphics g, int w, int h, int c1, int c2) {
-        int r1 = (c1 >> 16) & 0xFF;
-        int g1 = (c1 >> 8) & 0xFF;
-        int b1 = c1 & 0xFF;
-
-        int r2 = (c2 >> 16) & 0xFF;
-        int g2 = (c2 >> 8) & 0xFF;
-        int b2 = c2 & 0xFF;
-
-        int step = 2;
-        for (int y = 0; y < h; y += step) {
-            int r = r1 + (r2 - r1) * y / h;
-            int gr = g1 + (g2 - g1) * y / h;
-            int b = b1 + (b2 - b1) * y / h;
-            g.setColor((r << 16) | (gr << 8) | b);
-            g.fillRect(0, y, w, step + 1);
-        }
-    }
-
-    private void drawBackgroundGrid(Graphics g, int w, int h, int gridColor) {
-        g.setColor(gridColor);
-        int gap = 30;
-        // Vertical lines
-        for (int x = gap; x < w; x += gap) {
-            g.drawLine(x, 0, x, h);
-        }
-        // Horizontal lines
-        for (int y = gap; y < h; y += gap) {
-            g.drawLine(0, y, w, y);
-        }
     }
 
     private int drawHeader(Graphics g, int w, int fgColor, int accentColor) {
@@ -196,72 +125,141 @@ public class LauncherCanvas extends Canvas {
         g.setColor(accentColor);
         g.drawString("E M U L A T O R", w / 2, 28, Graphics.HCENTER | Graphics.TOP);
 
-        // Accent line
-        g.setColor(accentColor);
-        g.fillRect(15, 42, w - 30, 2);
-
-        return 48;
+        return 44;
     }
 
-    private void drawEmptyState(Graphics g, int w, int h, int startY, int bgColor, int fgColor, int selectBg) {
-        int cx = w / 2;
-        int cy = startY + (h - startY - 50) / 2 - 20;
+    private void drawEmptyState(Graphics g, int w, int h, int startY, int bgColor, int fgColor, int selectBg, boolean isDark) {
+        int availableH = h - startY - 20;
+        
+        // Glass Card Container Dimensions
+        int cardW = Math.min(w - 40, 360);
+        int cardH = Math.min(availableH - 24, 230);
+        int cardX = (w - cardW) / 2;
+        int cardY = startY + (availableH - cardH) / 2;
 
-        // Draw orbital Atomic/Neutron Model (Dynamic & theme-integrated vector structure)
+        // Layered theme blend colors for depth
+        int cardBgColor = blend(bgColor, fgColor, isDark ? 0.06f : 0.04f);
+        int cardBorderColor = blend(bgColor, fgColor, isDark ? 0.16f : 0.14f);
+        int cardGlowColor = blend(cardBgColor, selectBg, 0.10f);
+
+        // Subtle outer glass shadow / glow
+        g.setColor(cardGlowColor);
+        g.fillRoundRect(cardX - 2, cardY - 2, cardW + 4, cardH + 4, 16, 16);
+
+        // Card Fill
+        g.setColor(cardBgColor);
+        g.fillRoundRect(cardX, cardY, cardW, cardH, 14, 14);
+
+        // Glass Border
+        g.setColor(cardBorderColor);
+        g.drawRoundRect(cardX, cardY, cardW, cardH, 14, 14);
+
+        // Vector Gaming Console Icon
+        int iconCenterX = cardX + cardW / 2;
+        int iconCenterY = cardY + 48;
         
-        // 1. Draw outer orbit ring
-        g.setColor(blend(bgColor, selectBg, 0.2f));
-        g.drawArc(cx - 45, cy - 45, 90, 90, 0, 360);
+        // Handheld Console Body
+        int frameW = 58;
+        int frameH = 34;
+        int frameX = iconCenterX - frameW / 2;
+        int frameY = iconCenterY - frameH / 2;
+
+        // Console Outer Body (theme accent blend)
+        g.setColor(blend(bgColor, selectBg, 0.25f));
+        g.fillRoundRect(frameX, frameY, frameW, frameH, 10, 10);
+        g.setColor(blend(bgColor, selectBg, 0.40f));
+        g.drawRoundRect(frameX, frameY, frameW, frameH, 10, 10);
+
+        // Center Screen Bezel
+        int screenW = 24;
+        int screenH = 18;
+        int screenX = iconCenterX - screenW / 2;
+        int screenY = iconCenterY - screenH / 2;
         
-        // 2. Draw two intersecting elliptical orbits
-        g.setColor(blend(bgColor, selectBg, 0.5f));
-        g.drawArc(cx - 50, cy - 22, 100, 44, 0, 360); // horizontal ellipse
-        g.drawArc(cx - 22, cy - 50, 44, 100, 0, 360); // vertical ellipse
-        
-        // 3. Draw glowing nucleus core (pulsating dynamically)
-        double pulse = Math.sin(animFrame * 2.0);
-        int pulseOffset = (int) (pulse * 3.0);
-        
-        g.setColor(blend(bgColor, selectBg, 0.3f));
-        g.fillArc(cx - 18 - pulseOffset / 2, cy - 18 - pulseOffset / 2, 36 + pulseOffset, 36 + pulseOffset, 0, 360); // outer core glow
-        
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.08f : 0.95f));
+        g.fillRoundRect(screenX, screenY, screenW, screenH, 4, 4);
+        g.setColor(blend(bgColor, selectBg, 0.30f));
+        g.drawRoundRect(screenX, screenY, screenW, screenH, 4, 4);
+
+        // Play Triangle Icon inside Console Screen
         g.setColor(selectBg);
-        g.fillArc(cx - 11, cy - 11, 22, 22, 0, 360); // nucleus center
-        
-        g.setColor(fgColor);
-        g.fillArc(cx - 4, cy - 4, 8, 8, 0, 360); // bright center nucleus highlight
-        
-        // 4. Draw orbiting electrons moving dynamically along the elliptical paths
-        g.setColor(fgColor);
-        
-        // Horizontal orbit calculations (rx=50, ry=22)
-        int hx1 = cx + (int) (50 * Math.cos(animFrame));
-        int hy1 = cy + (int) (22 * Math.sin(animFrame));
-        int hx2 = cx + (int) (50 * Math.cos(animFrame + Math.PI));
-        int hy2 = cy + (int) (22 * Math.sin(animFrame + Math.PI));
-        
-        g.fillArc(hx1 - 3, hy1 - 3, 6, 6, 0, 360);
-        g.fillArc(hx2 - 3, hy2 - 3, 6, 6, 0, 360);
-        
-        // Vertical orbit calculations (rx=22, ry=50) (moves in reverse direction)
-        int vx1 = cx + (int) (22 * Math.cos(-animFrame));
-        int vy1 = cy + (int) (50 * Math.sin(-animFrame));
-        int vx2 = cx + (int) (22 * Math.cos(-animFrame + Math.PI));
-        int vy2 = cy + (int) (50 * Math.sin(-animFrame + Math.PI));
-        
-        g.fillArc(vx1 - 3, vy1 - 3, 6, 6, 0, 360);
-        g.fillArc(vx2 - 3, vy2 - 3, 6, 6, 0, 360);
+        int triX = screenX + 9;
+        int triY = screenY + 4;
+        g.fillTriangle(triX, triY, triX + 8, triY + 5, triX, triY + 10);
 
-        // Title and subtitles
-        int textY = cy + 65;
+        // D-Pad (Left side)
+        int dpadX = frameX + 9;
+        int dpadY = iconCenterY;
+        g.setColor(fgColor);
+        g.fillRect(dpadX - 4, dpadY - 1, 9, 3); // Horizontal arm
+        g.fillRect(dpadX - 1, dpadY - 4, 3, 9); // Vertical arm
+
+        // Action Buttons (Right side - A/B diamond arrangement)
+        int btnX = frameX + frameW - 9;
+        int btnY = iconCenterY;
+        g.setColor(selectBg);
+        g.fillArc(btnX - 2, btnY - 5, 4, 4, 0, 360); // Top button
+        g.fillArc(btnX + 1, btnY - 2, 4, 4, 0, 360); // Right button
+        g.fillArc(btnX - 5, btnY - 2, 4, 4, 0, 360); // Left button
+        g.fillArc(btnX - 2, btnY + 1, 4, 4, 0, 360); // Bottom button
+
+        // Typography Hierarchy
+        int textY = iconCenterY + frameH / 2 + 16;
+
+        // Main Drop Header
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
         g.setColor(fgColor);
-        g.drawString("No MIDlets Loaded", w / 2, textY, Graphics.HCENTER | Graphics.TOP);
+        g.drawString("Drop J2ME App Here", iconCenterX, textY, Graphics.HCENTER | Graphics.TOP);
 
+        // Subtitle Instructions
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL));
-        g.setColor(blend(bgColor, fgColor, 0.6f));
-        g.drawString("Open a JAD/JAR from File menu", w / 2, textY + 18, Graphics.HCENTER | Graphics.TOP);
-        g.drawString("Or drag & drop files here", w / 2, textY + 32, Graphics.HCENTER | Graphics.TOP);
+        g.setColor(blend(bgColor, fgColor, 0.60f));
+        g.drawString("Drag & Drop JAR/JAD Files to Launch", iconCenterX, textY + 20, Graphics.HCENTER | Graphics.TOP);
+        
+        g.setColor(blend(bgColor, fgColor, 0.45f));
+        g.drawString("Use Run Menu to Browse", iconCenterX, textY + 35, Graphics.HCENTER | Graphics.TOP);
+
+        // Engine Status Badges / Pills (Bottom of Card)
+        int pillY = cardY + cardH - 32;
+        
+        drawStatusPill(g, iconCenterX - 72, pillY, "Neutron Engine", selectBg, bgColor, fgColor, isDark);
+        drawStatusPillWithDot(g, iconCenterX + 28, pillY, "Ready", selectBg, bgColor, fgColor, isDark);
+    }
+
+    private void drawStatusPill(Graphics g, int x, int y, String label, int accentColor, int bgColor, int fgColor, boolean isDark) {
+        Font font = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
+        g.setFont(font);
+        int strW = font.stringWidth(label);
+        int pillW = strW + 14;
+        int pillH = 18;
+
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.10f : 0.06f));
+        g.fillRoundRect(x, y, pillW, pillH, 8, 8);
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.20f : 0.15f));
+        g.drawRoundRect(x, y, pillW, pillH, 8, 8);
+
+        g.setColor(blend(bgColor, fgColor, 0.65f));
+        g.drawString(label, x + 7, y + (pillH - font.getHeight()) / 2 + 1, Graphics.LEFT | Graphics.TOP);
+    }
+
+    private void drawStatusPillWithDot(Graphics g, int x, int y, String label, int accentColor, int bgColor, int fgColor, boolean isDark) {
+        Font font = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
+        g.setFont(font);
+        int strW = font.stringWidth(label);
+        int pillW = strW + 24;
+        int pillH = 18;
+
+        g.setColor(blend(bgColor, accentColor, 0.12f));
+        g.fillRoundRect(x, y, pillW, pillH, 8, 8);
+        g.setColor(blend(bgColor, accentColor, 0.28f));
+        g.drawRoundRect(x, y, pillW, pillH, 8, 8);
+
+        // Vibrant status green dot
+        g.setColor(0x00E676);
+        g.fillArc(x + 7, y + 5, 7, 7, 0, 360);
+
+        g.setColor(fgColor);
+        g.drawString(label, x + 18, y + (pillH - font.getHeight()) / 2 + 1, Graphics.LEFT | Graphics.TOP);
     }
 
     private void drawMIDletList(Graphics g, Vector entries, int w, int h, int startY, int bgColor, int fgColor, int selectBg) {
