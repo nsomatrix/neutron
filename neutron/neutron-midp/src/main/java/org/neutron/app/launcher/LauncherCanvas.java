@@ -135,22 +135,17 @@ public class LauncherCanvas extends Canvas {
         int cardX = (w - cardW) / 2;
         int cardY = startY + (availableH - cardH) / 2;
 
-        // Layered theme blend colors for depth
+        // Subtle theme-matched flat card fill & crisp border
         int cardBgColor = blend(bgColor, fgColor, isDark ? 0.06f : 0.04f);
         int cardBorderColor = blend(bgColor, fgColor, isDark ? 0.16f : 0.14f);
-        int cardGlowColor = blend(cardBgColor, selectBg, 0.10f);
 
-        // Subtle outer glass shadow / glow
-        g.setColor(cardGlowColor);
-        g.fillRoundRect(cardX - 2, cardY - 2, cardW + 4, cardH + 4, 16, 16);
-
-        // Card Fill
+        // Single Flat Card Fill
         g.setColor(cardBgColor);
-        g.fillRoundRect(cardX, cardY, cardW, cardH, 14, 14);
+        g.fillRoundRect(cardX, cardY, cardW, cardH, 12, 12);
 
-        // Glass Border
+        // Crisp Single Border Overlay
         g.setColor(cardBorderColor);
-        g.drawRoundRect(cardX, cardY, cardW, cardH, 14, 14);
+        g.drawRoundRect(cardX, cardY, cardW, cardH, 12, 12);
 
         // Vector Gaming Console Icon
         int iconCenterX = cardX + cardW / 2;
