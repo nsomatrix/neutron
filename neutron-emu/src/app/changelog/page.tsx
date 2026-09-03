@@ -18,9 +18,21 @@ interface Release {
 
 const releases: Release[] = [
   {
+    version: "1.1.0",
+    date: "2026-09-04",
+    tag: "latest",
+    changes: [
+      { type: "changed", description: "Released updated application binaries (neutron-1.1.0.jar & neutron-core-1.1.0.jar)" },
+      { type: "added", description: "Refactored network persistence system with Airplane Mode toggle" },
+      { type: "added", description: "Implemented input event hooks and interactive Sequencer engine" },
+      { type: "added", description: "Modernized performance controls dialogs with dynamic frame rate limiting" },
+      { type: "added", description: "Integrated Snapshot Manager backup and restore architecture" }
+    ],
+  },
+  {
     version: "1.0.0",
     date: "2026-07-20",
-    tag: "latest",
+    tag: "stable",
     changes: [
       { type: "added", description: "Initial release of the modern Java ME (J2ME) Emulator" },
       { type: "added", description: "CLDC 1.1 and MIDP 2.0 compliant core runtime execution engine" },

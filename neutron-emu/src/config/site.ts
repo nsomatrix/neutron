@@ -46,7 +46,7 @@ export const siteConfig = {
 
   announcement: {
     enabled: false,
-    message: "Neutron v1.0.0 is now available — the modern Java ME emulator.",
+    message: "Neutron v1.1.0 is now available — the modern Java ME emulator.",
     link: "/changelog",
     linkText: "Read more →",
   },

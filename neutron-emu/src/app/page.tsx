@@ -114,7 +114,7 @@ export default function HomePage() {
               >
                 <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 <span>
-                  Neutron v1.0 is now available
+                  Neutron v1.1 is now available
                 </span>
                 <ChevronRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 shrink-0" />
               </Link>
