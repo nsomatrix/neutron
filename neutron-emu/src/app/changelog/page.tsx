@@ -28,7 +28,7 @@ const releases: Release[] = [
       { type: "added", description: "Updated high-resolution official Neutron atomic brand emblem across window headers, dialogs, and dock" },
       { type: "added", description: "Authoritative runtime status bar tracking with emerald green state indicators" },
       { type: "changed", description: "Optimized direct-mapped RGB color cache and zero-allocation graphics rendering pipeline" },
-      { type: "fixed", description: "Resolved Snapshot Manager order-of-initialization for restored midlet suites" }
+      { type: "changed", description: "Enhanced Snapshot Manager initialization sequence for restored midlet suites" }
     ],
   },
   {
