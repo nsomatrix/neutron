@@ -36,6 +36,7 @@ public class SwingSleepUI {
     private static final long FADE_IN_DURATION = 400;  // 400ms smooth cinematic fade-in
     private static final long FADE_OUT_DURATION = 350; // 350ms smooth fade-out
     private static volatile float currentAlpha = 0.0f;
+    private static final Color DOT_GREEN = new Color(46, 204, 113); // Industry standard emerald green matching statusbar and network overlay ping
 
     private static BufferedImage cachedSnapshot = null;
     private static BufferedImage cachedBlurredSnapshot = null;
@@ -379,10 +380,10 @@ public class SwingSleepUI {
         g2.setColor(new Color(255, 255, 255, 38));
         g2.drawRoundRect(pillX, pillY, capsuleWidth, capsuleHeight, capsuleHeight, capsuleHeight);
 
-        // Active Pulse Dot (Silver gray)
+        // Active Pulse Dot (Emerald green matching statusbar and network overlay ping)
         int dotX = pillX + paddingX;
         int dotY = pillY + (capsuleHeight - dotSize) / 2;
-        g2.setColor(new Color(200, 200, 200));
+        g2.setColor(DOT_GREEN);
         g2.fillOval(dotX, dotY, dotSize, dotSize);
 
         // Time String (No explicit UPTIME label)
