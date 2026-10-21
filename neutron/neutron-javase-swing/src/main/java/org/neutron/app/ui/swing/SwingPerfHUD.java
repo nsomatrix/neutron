@@ -3,6 +3,7 @@ package org.neutron.app.ui.swing;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import org.neutron.app.Config;
@@ -69,9 +70,24 @@ public class SwingPerfHUD {
 
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		// HUD design
-		int cardWidth = 155;
-		int cardHeight = 95;
+		// Format text strings first to dynamically measure exact content width
+		String speedStr = (speed == (long) speed) ? String.format("%d.0x", (long) speed) : String.format("%.1fx", speed);
+		String line1 = "FPS: " + currentFps;
+		String line2 = "Speed: " + speedStr;
+		String line3 = "JVM-RAM: " + usedMem + "MB / " + maxMem + "MB";
+		String line4 = "Threads: " + activeThreads;
+
+		g2d.setFont(HUD_FONT);
+		FontMetrics fm = g2d.getFontMetrics(HUD_FONT);
+		int maxTextWidth = Math.max(Math.max(fm.stringWidth(line1), fm.stringWidth(line2)),
+		                            Math.max(fm.stringWidth(line3), fm.stringWidth(line4)));
+
+		// Dynamic HUD dimensions with balanced padding
+		int paddingX = 12;
+		int paddingY = 10;
+		int lineSpacing = fm.getHeight() + 3;
+		int cardWidth = maxTextWidth + (paddingX * 2);
+		int cardHeight = (lineSpacing * 4) + paddingY;
 		int margin = 10;
 		int x = margin;
 		int y = margin;
@@ -88,21 +104,21 @@ public class SwingPerfHUD {
 
 		// Draw text
 		g2d.setComposite(TEXT_COMPOSITE);
-		g2d.setFont(HUD_FONT);
 
-		String speedStr = (speed == (long) speed) ? String.format("%d.0x", (long) speed) : String.format("%.1fx", speed);
+		int textX = x + paddingX;
+		int startY = y + paddingY + fm.getAscent();
 
 		g2d.setColor(GREEN_COLOR);
-		g2d.drawString("FPS: " + currentFps, x + 12, y + 20);
+		g2d.drawString(line1, textX, startY);
 
 		g2d.setColor(BLUE_COLOR);
-		g2d.drawString("Speed: " + speedStr, x + 12, y + 38);
+		g2d.drawString(line2, textX, startY + lineSpacing);
 
 		g2d.setColor(ORANGE_COLOR); // Orange
-		g2d.drawString("JVM-RAM: " + usedMem + "MB / " + maxMem + "MB", x + 12, y + 56);
+		g2d.drawString(line3, textX, startY + (lineSpacing * 2));
 
 		g2d.setColor(PURPLE_COLOR); // Purple
-		g2d.drawString("Threads: " + activeThreads, x + 12, y + 74);
+		g2d.drawString(line4, textX, startY + (lineSpacing * 3));
 
 		// Restore graphics state
 		g2d.setComposite(origComposite);
