@@ -18,9 +18,23 @@ interface Release {
 
 const releases: Release[] = [
   {
+    version: "1.3.0",
+    date: "2026-10-22",
+    tag: "latest",
+    changes: [
+      { type: "changed", description: "Released updated application binaries (neutron-1.3.0.jar & neutron-core-1.3.0.jar)" },
+      { type: "changed", description: "Streamlined Performance HUD with dynamic autoscaling badge and clean live FPS readout" },
+      { type: "added", description: "Integrated cross-platform vector 2D fullscreen menu button replacing Unicode glyphs" },
+      { type: "added", description: "Updated high-resolution official Neutron atomic brand emblem across window headers, dialogs, and dock" },
+      { type: "added", description: "Authoritative runtime status bar tracking with emerald green state indicators" },
+      { type: "changed", description: "Optimized direct-mapped RGB color cache and zero-allocation graphics rendering pipeline" },
+      { type: "fixed", description: "Resolved Snapshot Manager order-of-initialization for restored midlet suites" }
+    ],
+  },
+  {
     version: "1.1.0",
     date: "2026-09-04",
-    tag: "latest",
+    tag: "stable",
     changes: [
       { type: "changed", description: "Released updated application binaries (neutron-1.1.0.jar & neutron-core-1.1.0.jar)" },
       { type: "added", description: "Refactored network persistence system with Airplane Mode toggle" },

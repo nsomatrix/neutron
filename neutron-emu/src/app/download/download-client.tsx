@@ -28,11 +28,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import logoImg from "@/assets/ntn.png";
 
-const EXPRESS_JAR_SHA256 = "c839ebf5c0dc29a7c96cf7e66b67c609b127abc5a0ba01596b78b2fa42aa2e41";
-const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.1.0/neutron-1.1.0.jar";
+const EXPRESS_JAR_SHA256 = "021132d419f195bf6fd441b6e4119b74b8ce8f17ff6edcf57897605e6a833361";
+const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.3.0/neutron-1.3.0.jar";
 
-const CORE_JAR_SHA256 = "3b95b9bcee36417acf1ee0b0e7f977ff704e2a6ec552039b0c83504f34c7776b";
-const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.1.0/neutron-core-1.1.0.jar";
+const CORE_JAR_SHA256 = "953175da4f620a59733d7461b6e448c6b5cfc747d5d8e6b15f8036d4780140e3";
+const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.3.0/neutron-core-1.3.0.jar";
 
 interface DownloadButtonProps {
   href: string;
@@ -311,7 +311,7 @@ export default function DownloadPageClient() {
           <div className="flex justify-center gap-2">
             <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-3 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400 animate-pulse" />
-              v1.1.0 Stable
+              v1.3.0 Stable
             </Badge>
             <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary px-3 py-1 text-xs font-semibold rounded-full">
               Universal Cross-Platform
@@ -369,7 +369,7 @@ export default function DownloadPageClient() {
               <div className="flex flex-col items-center justify-center gap-4 w-full lg:w-auto shrink-0">
                 <InteractiveDownloadButton
                   href={EXPRESS_DOWNLOAD_URL}
-                  downloadName="neutron-1.1.0.jar"
+                  downloadName="neutron-1.3.0.jar"
                   className="shadow-primary/20 bg-primary hover:bg-primary/95 text-primary-foreground"
                 />
 
@@ -470,7 +470,7 @@ export default function DownloadPageClient() {
               <div className="flex flex-col items-center justify-center gap-4 w-full lg:w-auto shrink-0">
                 <InteractiveDownloadButton
                   href={CORE_DOWNLOAD_URL}
-                  downloadName="neutron-core-1.1.0.jar"
+                  downloadName="neutron-core-1.3.0.jar"
                   className="border border-cyan-accent/50 bg-cyan-accent/5 hover:bg-cyan-accent/15 text-cyan-accent hover:border-cyan-accent hover:shadow-lg hover:shadow-cyan-accent/20 transition-all duration-300"
                 />
 
