@@ -162,7 +162,7 @@ public class SwingAboutDialog extends SwingDialogPanel {
 			accent = UIManager.getColor("Link.foreground");
 		}
 		if (accent == null) {
-			accent = new Color(0, 102, 204);
+			accent = new Color(180, 180, 180);
 		}
 
 		Color borderCol = UIManager.getColor("Separator.foreground");

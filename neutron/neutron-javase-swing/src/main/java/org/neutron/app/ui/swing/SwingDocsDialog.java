@@ -80,7 +80,7 @@ public class SwingDocsDialog extends SwingDialogPanel {
 			accent = UIManager.getColor("Link.foreground");
 		}
 		if (accent == null) {
-			accent = new Color(0, 102, 204); // Fallback blue
+			accent = new Color(180, 180, 180); // Fallback monochrome gray
 		}
 
 		Color borderCol = UIManager.getColor("Separator.foreground");

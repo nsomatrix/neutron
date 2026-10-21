@@ -354,7 +354,7 @@ public class SwingSleepUI {
 
         g2.setColor(new Color(0, 0, 0, (int) (120 * pulseAlpha)));
         g2.drawString(wakeText, wakeX + 1, wakeY + 1);
-        g2.setColor(new Color(200, 220, 255, alphaVal));
+        g2.setColor(new Color(225, 225, 225, alphaVal));
         g2.drawString(wakeText, wakeX, wakeY);
 
         // 3. System Runtime Glass Pill (Matching SwingNetworkOverlay Design)
@@ -379,16 +379,16 @@ public class SwingSleepUI {
         g2.setColor(new Color(255, 255, 255, 38));
         g2.drawRoundRect(pillX, pillY, capsuleWidth, capsuleHeight, capsuleHeight, capsuleHeight);
 
-        // Active Pulse Dot (Green)
+        // Active Pulse Dot (Silver gray)
         int dotX = pillX + paddingX;
         int dotY = pillY + (capsuleHeight - dotSize) / 2;
-        g2.setColor(new Color(46, 204, 113));
+        g2.setColor(new Color(200, 200, 200));
         g2.fillOval(dotX, dotY, dotSize, dotSize);
 
         // Time String (No explicit UPTIME label)
         int textX = dotX + dotSize + dotGap;
         int textY = pillY + (capsuleHeight + fmPill.getAscent() - fmPill.getDescent()) / 2;
-        g2.setColor(new Color(220, 230, 245, 230));
+        g2.setColor(new Color(225, 225, 225, 230));
         g2.drawString(timeStr, textX, textY);
     }
 }

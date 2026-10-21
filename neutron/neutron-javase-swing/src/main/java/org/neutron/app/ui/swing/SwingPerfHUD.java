@@ -21,10 +21,10 @@ public class SwingPerfHUD {
 
 	private static final Color BG_COLOR = new Color(25, 25, 25);
 	private static final Color BORDER_COLOR = new Color(150, 150, 150);
-	private static final Color GREEN_COLOR = new Color(80, 220, 100);
-	private static final Color BLUE_COLOR = new Color(100, 200, 255);
-	private static final Color ORANGE_COLOR = new Color(255, 180, 50);
-	private static final Color PURPLE_COLOR = new Color(220, 100, 220);
+	private static final Color GREEN_COLOR = new Color(235, 235, 235);
+	private static final Color BLUE_COLOR = new Color(195, 195, 195);
+	private static final Color ORANGE_COLOR = new Color(155, 155, 155);
+	private static final Color PURPLE_COLOR = new Color(120, 120, 120);
 
 	private static final Font HUD_FONT = new Font("Monospaced", Font.BOLD, 11);
 

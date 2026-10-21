@@ -170,20 +170,23 @@ public class SwingStatusBar extends JPanel {
 		} else if (type == MessageType.TRANSIENT) {
 			spinnerComponent.stop();
 			statusDotComponent.setVisible(true);
-			boolean isRunning = persistentMessage.startsWith("Running");
-			statusDotComponent.setMode(isRunning ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
+			statusDotComponent.repaint();
 			activeTransient = true;
 			transitionToText(processedText, true);
 		} else { // PERSISTENT
 			persistentMessage = processedText;
-			boolean isRunning = persistentMessage.startsWith("Running");
-			statusDotComponent.setMode(isRunning ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
+			statusDotComponent.repaint();
 			if (!activeTransient) {
 				spinnerComponent.stop();
 				statusDotComponent.setVisible(true);
 				transitionToText(persistentMessage, false);
 			}
 		}
+	}
+
+	public void setGameRunning(boolean running) {
+		statusDotComponent.setMode(running ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
+		statusDotComponent.repaint();
 	}
 
 	public String getText() {
@@ -193,7 +196,6 @@ public class SwingStatusBar extends JPanel {
 	public JPanel getRightPanel() {
 		return rightPanel;
 	}
-
 
 	public void setOnCoordinateBadgeClick(Runnable r) {
 		coordinateLabel.setClickAction(r);
@@ -484,20 +486,33 @@ public class SwingStatusBar extends JPanel {
 		private static final Stroke HALO_STROKE = new BasicStroke(1.0f);
 
 		public enum Mode {
+			AUTO,
 			IDLE,
 			RUNNING
 		}
 
-		private Mode mode = Mode.IDLE;
+		private Mode explicitMode = Mode.AUTO;
 
 		public StatusDotComponent() {
 			setPreferredSize(new Dimension(14, 14));
 		}
 
 		public void setMode(Mode mode) {
-			if (this.mode != mode) {
-				this.mode = mode;
+			if (this.explicitMode != mode) {
+				this.explicitMode = mode;
 				repaint();
+			}
+		}
+
+		public boolean isCurrentlyRunning() {
+			if (explicitMode == Mode.RUNNING) return true;
+			if (explicitMode == Mode.IDLE) return false;
+			// Authoritative runtime bridge query:
+			try {
+				javax.microedition.midlet.MIDlet current = org.neutron.MIDletBridge.getCurrentMIDlet();
+				return current != null && !(current instanceof org.neutron.app.launcher.Launcher);
+			} catch (Throwable t) {
+				return false;
 			}
 		}
 
@@ -513,11 +528,12 @@ public class SwingStatusBar extends JPanel {
 			double y = (getHeight() - dotSize) / 2.0;
 
 			boolean dark = isDarkTheme();
+			boolean isRunning = isCurrentlyRunning();
 
-			if (mode == Mode.RUNNING) {
-				// Clean modern sage green (GitHub / VS Code design standard)
-				Color activeGreen = dark ? new Color(63, 185, 80) : new Color(45, 164, 78);
-				Color subtleHalo = new Color(activeGreen.getRed(), activeGreen.getGreen(), activeGreen.getBlue(), dark ? 45 : 35);
+			if (isRunning) {
+				// Industry standard status green (emerald) with subtle ambient ring
+				Color activePip = new Color(46, 204, 113); // #2ecc71
+				Color subtleHalo = new Color(46, 204, 113, dark ? 45 : 30);
 
 				// Subtle crisp static ambient halo
 				double haloSize = 9.0;
@@ -528,13 +544,13 @@ public class SwingStatusBar extends JPanel {
 				g2.draw(new java.awt.geom.Ellipse2D.Double(hx, hy, haloSize, haloSize));
 
 				// Solid clean center pip
-				g2.setColor(activeGreen);
+				g2.setColor(activePip);
 				g2.fill(new java.awt.geom.Ellipse2D.Double(x, y, dotSize, dotSize));
 			} else {
 				// Muted neutral standby indicator (clean hollow ring)
 				Color idleColor = UIManager.getColor("Label.disabledForeground");
 				if (idleColor == null) {
-					idleColor = dark ? new Color(130, 130, 130) : new Color(160, 160, 160);
+					idleColor = dark ? new Color(110, 110, 110) : new Color(170, 170, 170);
 				}
 				g2.setColor(idleColor);
 				g2.setStroke(RING_STROKE);

@@ -22,9 +22,6 @@ public class LauncherCanvas extends Canvas {
     private static final int LAUNCH_BTN_HEIGHT = 38;
     private static final int DOUBLE_TAP_TIMEOUT_MS = 500;
 
-    // Color Constants
-    private static final int STATUS_DOT_GREEN = 0x00E676;
-
     private final Launcher launcher;
     private int selectedIndex = 0;
     
@@ -83,8 +80,6 @@ public class LauncherCanvas extends Canvas {
         Display d = Display.getDisplay(launcher);
         int bgColor = d.getColor(Display.COLOR_BACKGROUND);
         int fgColor = d.getColor(Display.COLOR_FOREGROUND);
-        int selectBg = d.getColor(Display.COLOR_HIGHLIGHTED_BACKGROUND);
-        int selectFg = d.getColor(Display.COLOR_HIGHLIGHTED_FOREGROUND);
 
         // Decompose background to compute luminance for dark/light mode detection
         int bgR = (bgColor >> 16) & 0xFF;
@@ -98,35 +93,35 @@ public class LauncherCanvas extends Canvas {
         g.fillRect(0, 0, w, h);
 
         // Draw Header
-        int headerHeight = drawHeader(g, w, fgColor, selectBg);
+        int headerHeight = drawHeader(g, w, bgColor, fgColor);
 
         // Draw Content Area
         Vector entries = Launcher.midletEntries;
         if (entries == null || entries.size() == 0) {
-            drawEmptyState(g, w, h, headerHeight, bgColor, fgColor, selectBg, isDark);
+            drawEmptyState(g, w, h, headerHeight, bgColor, fgColor, isDark);
         } else {
-            drawMIDletList(g, entries, w, h, headerHeight, bgColor, fgColor, selectBg);
+            drawMIDletList(g, entries, w, h, headerHeight, bgColor, fgColor, isDark);
         }
 
         // Draw Launch Button at the bottom
-        drawLaunchButton(g, w, h, bgColor, fgColor, selectBg, selectFg);
+        drawLaunchButton(g, w, h, bgColor, fgColor, isDark);
     }
 
-    private int drawHeader(Graphics g, int w, int fgColor, int accentColor) {
+    private int drawHeader(Graphics g, int w, int bgColor, int fgColor) {
         // Logo
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_LARGE));
         g.setColor(fgColor);
         g.drawString("N E U T R O N", w / 2, 8, Graphics.HCENTER | Graphics.TOP);
 
-        // Subtitle
+        // Subtitle in clean monochrome muted gray
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL));
-        g.setColor(accentColor);
+        g.setColor(blend(bgColor, fgColor, 0.50f));
         g.drawString("E M U L A T O R", w / 2, 28, Graphics.HCENTER | Graphics.TOP);
 
         return HEADER_HEIGHT;
     }
 
-    private void drawEmptyState(Graphics g, int w, int h, int startY, int bgColor, int fgColor, int selectBg, boolean isDark) {
+    private void drawEmptyState(Graphics g, int w, int h, int startY, int bgColor, int fgColor, boolean isDark) {
         int availableH = h - startY - 20;
         
         // Glass Card Container Dimensions
@@ -157,10 +152,10 @@ public class LauncherCanvas extends Canvas {
         int frameX = iconCenterX - frameW / 2;
         int frameY = iconCenterY - frameH / 2;
 
-        // Console Outer Body (theme accent blend)
-        g.setColor(blend(bgColor, selectBg, 0.25f));
+        // Console Outer Body (monochrome blend)
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.12f : 0.08f));
         g.fillRoundRect(frameX, frameY, frameW, frameH, 10, 10);
-        g.setColor(blend(bgColor, selectBg, 0.40f));
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.25f : 0.20f));
         g.drawRoundRect(frameX, frameY, frameW, frameH, 10, 10);
 
         // Center Screen Bezel
@@ -171,11 +166,11 @@ public class LauncherCanvas extends Canvas {
         
         g.setColor(blend(bgColor, fgColor, isDark ? 0.08f : 0.95f));
         g.fillRoundRect(screenX, screenY, screenW, screenH, 4, 4);
-        g.setColor(blend(bgColor, selectBg, 0.30f));
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.20f : 0.16f));
         g.drawRoundRect(screenX, screenY, screenW, screenH, 4, 4);
 
         // Play Triangle Icon inside Console Screen
-        g.setColor(selectBg);
+        g.setColor(blend(bgColor, fgColor, 0.60f));
         int triX = screenX + 9;
         int triY = screenY + 4;
         g.fillTriangle(triX, triY, triX + 8, triY + 5, triX, triY + 10);
@@ -190,7 +185,7 @@ public class LauncherCanvas extends Canvas {
         // Action Buttons (Right side - A/B diamond arrangement)
         int btnX = frameX + frameW - 9;
         int btnY = iconCenterY;
-        g.setColor(selectBg);
+        g.setColor(blend(bgColor, fgColor, 0.35f));
         g.fillArc(btnX - 2, btnY - 5, 4, 4, 0, 360); // Top button
         g.fillArc(btnX + 1, btnY - 2, 4, 4, 0, 360); // Right button
         g.fillArc(btnX - 5, btnY - 2, 4, 4, 0, 360); // Left button
@@ -212,7 +207,7 @@ public class LauncherCanvas extends Canvas {
         g.setColor(blend(bgColor, fgColor, 0.45f));
         g.drawString("Use Run Menu to Browse", iconCenterX, textY + 35, Graphics.HCENTER | Graphics.TOP);
 
-        // 100% Dynamic Engine Status Badges / Pills (Bottom of Card)
+        // Dynamic Engine Status Badges / Pills (Bottom of Card)
         Font pillFont = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL);
         String label1 = "Neutron Engine";
         String label2 = "Ready";
@@ -226,7 +221,7 @@ public class LauncherCanvas extends Canvas {
         int pillY = cardY + cardH - 32;
 
         drawStatusPill(g, startPillX, pillY, pill1W, label1, pillFont, bgColor, fgColor, isDark);
-        drawStatusPillWithDot(g, startPillX + pill1W + pillGap, pillY, pill2W, label2, pillFont, selectBg, bgColor, fgColor, isDark);
+        drawStatusPillWithDot(g, startPillX + pill1W + pillGap, pillY, pill2W, label2, pillFont, bgColor, fgColor, isDark);
     }
 
     private void drawStatusPill(Graphics g, int x, int y, int pillW, String label, Font font, int bgColor, int fgColor, boolean isDark) {
@@ -242,16 +237,16 @@ public class LauncherCanvas extends Canvas {
         g.drawString(label, x + 7, y + (pillH - font.getHeight()) / 2 + 1, Graphics.LEFT | Graphics.TOP);
     }
 
-    private void drawStatusPillWithDot(Graphics g, int x, int y, int pillW, String label, Font font, int accentColor, int bgColor, int fgColor, boolean isDark) {
+    private void drawStatusPillWithDot(Graphics g, int x, int y, int pillW, String label, Font font, int bgColor, int fgColor, boolean isDark) {
         int pillH = 18;
 
-        g.setColor(blend(bgColor, accentColor, 0.12f));
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.10f : 0.06f));
         g.fillRoundRect(x, y, pillW, pillH, 8, 8);
-        g.setColor(blend(bgColor, accentColor, 0.28f));
+        g.setColor(blend(bgColor, fgColor, isDark ? 0.22f : 0.16f));
         g.drawRoundRect(x, y, pillW, pillH, 8, 8);
 
-        // Vibrant status green dot
-        g.setColor(STATUS_DOT_GREEN);
+        // Neutral monochrome status pip
+        g.setColor(blend(bgColor, fgColor, 0.70f));
         g.fillArc(x + 7, y + 5, 7, 7, 0, 360);
 
         g.setFont(font);
@@ -259,7 +254,7 @@ public class LauncherCanvas extends Canvas {
         g.drawString(label, x + 18, y + (pillH - font.getHeight()) / 2 + 1, Graphics.LEFT | Graphics.TOP);
     }
 
-    private void drawMIDletList(Graphics g, Vector entries, int w, int h, int startY, int bgColor, int fgColor, int selectBg) {
+    private void drawMIDletList(Graphics g, Vector entries, int w, int h, int startY, int bgColor, int fgColor, boolean isDark) {
         int listStartY = startY + 10;
         int itemH = LIST_ITEM_HEIGHT;
         int gap = LIST_ITEM_GAP;
@@ -289,19 +284,18 @@ public class LauncherCanvas extends Canvas {
             int itemY = listStartY + i * (itemH + gap);
             boolean isSelected = (entryIdx == selectedIndex);
 
-            // Dynamic card colors matching the active theme
+            // Clean monochrome card colors
             if (isSelected) {
-                // Glow selection background
-                g.setColor(blend(bgColor, selectBg, 0.20f));
+                // Subtle elevated card fill & crisp border
+                g.setColor(blend(bgColor, fgColor, isDark ? 0.14f : 0.08f));
                 g.fillRoundRect(padding, itemY, w - padding * 2, itemH, 8, 8);
-                // Active accent border
-                g.setColor(selectBg);
+                g.setColor(blend(bgColor, fgColor, isDark ? 0.38f : 0.28f));
                 g.drawRoundRect(padding, itemY, w - padding * 2, itemH, 8, 8);
             } else {
                 // Subtle card background based on foreground contrast
-                g.setColor(blend(bgColor, fgColor, 0.06f));
+                g.setColor(blend(bgColor, fgColor, isDark ? 0.05f : 0.03f));
                 g.fillRoundRect(padding, itemY, w - padding * 2, itemH, 8, 8);
-                g.setColor(blend(bgColor, fgColor, 0.12f));
+                g.setColor(blend(bgColor, fgColor, isDark ? 0.12f : 0.08f));
                 g.drawRoundRect(padding, itemY, w - padding * 2, itemH, 8, 8);
             }
 
@@ -311,14 +305,14 @@ public class LauncherCanvas extends Canvas {
             int iconY = itemY + (itemH - iconSize) / 2;
             
             if (isSelected) {
-                g.setColor(selectBg);
+                g.setColor(blend(bgColor, fgColor, isDark ? 0.25f : 0.18f));
             } else {
-                g.setColor(blend(bgColor, fgColor, 0.22f));
+                g.setColor(blend(bgColor, fgColor, isDark ? 0.12f : 0.08f));
             }
             g.fillRoundRect(iconX, iconY, iconSize, iconSize, 6, 6);
             
             // Draw minimalist play icon inside card icon
-            g.setColor(isSelected ? bgColor : fgColor);
+            g.setColor(isSelected ? fgColor : blend(bgColor, fgColor, 0.50f));
             int triX = iconX + 10;
             int triY = iconY + 8;
             g.fillTriangle(triX, triY, triX + 9, triY + 5, triX, triY + 10);
@@ -330,7 +324,7 @@ public class LauncherCanvas extends Canvas {
 
             // Arrow Chevron
             int arrowX = w - padding - 16;
-            g.setColor(isSelected ? selectBg : blend(bgColor, fgColor, 0.35f));
+            g.setColor(isSelected ? fgColor : blend(bgColor, fgColor, 0.35f));
             g.drawLine(arrowX, itemY + 17, arrowX + 4, itemY + 21);
             g.drawLine(arrowX + 4, itemY + 21, arrowX, itemY + 25);
         }
@@ -345,12 +339,12 @@ public class LauncherCanvas extends Canvas {
 
             int thumbH = scrollbarH * maxVisibleItems / entries.size();
             int thumbY = scrollbarY + scrollOffset * (scrollbarH - thumbH) / (entries.size() - maxVisibleItems);
-            g.setColor(selectBg);
+            g.setColor(blend(bgColor, fgColor, 0.35f));
             g.fillRect(scrollbarX, thumbY, 4, thumbH);
         }
     }
 
-    private void drawLaunchButton(Graphics g, int w, int h, int bgColor, int fgColor, int selectBg, int selectFg) {
+    private void drawLaunchButton(Graphics g, int w, int h, int bgColor, int fgColor, boolean isDark) {
         boolean hasMidlets = (Launcher.midletEntries != null && Launcher.midletEntries.size() > 0);
         if (!hasMidlets) {
             return;
@@ -361,12 +355,18 @@ public class LauncherCanvas extends Canvas {
         btnX = 12;
         btnY = h - btnH - 12;
 
-        // Theme accent background, selection foreground text
-        g.setColor(selectBg);
+        // Clean monochrome action button (charcoal graphite in dark mode, crisp black in light mode)
+        int btnBg = isDark ? blend(bgColor, fgColor, 0.18f) : blend(bgColor, fgColor, 0.88f);
+        int btnBorder = blend(bgColor, fgColor, isDark ? 0.35f : 0.25f);
+        int btnText = isDark ? fgColor : bgColor;
+
+        g.setColor(btnBg);
         g.fillRoundRect(btnX, btnY, btnW, btnH, 8, 8);
+        g.setColor(btnBorder);
+        g.drawRoundRect(btnX, btnY, btnW, btnH, 8, 8);
         
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
-        g.setColor(selectFg);
+        g.setColor(btnText);
         g.drawString("LAUNCH APP", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
     }
 

@@ -21,12 +21,13 @@ public class SwingNetworkOverlay {
 	private static final AlphaComposite TEXT_COMPOSITE = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
 
 	private static final Color BG_COLOR = new Color(20, 20, 20);
-	private static final Color RX_COLOR = new Color(46, 204, 113);
-	private static final Color TX_COLOR = new Color(52, 152, 219);
+	private static final Color RX_COLOR = new Color(220, 220, 220);
+	private static final Color TX_COLOR = new Color(170, 170, 170);
 	private static final Color SEPARATOR_COLOR = new Color(255, 255, 255, 40);
-	private static final Color PING_GRAY = new Color(149, 165, 166);
-	private static final Color PING_YELLOW = new Color(241, 196, 15);
-	private static final Color PING_RED = new Color(231, 76, 60);
+	private static final Color PING_GREEN = new Color(46, 204, 113);   // Industry standard emerald green (<100ms)
+	private static final Color PING_YELLOW = new Color(241, 196, 15);  // Industry standard amber/yellow (100-250ms)
+	private static final Color PING_RED = new Color(231, 76, 60);      // Industry standard crimson red (>250ms)
+	private static final Color PING_GRAY = new Color(127, 140, 141);   // Neutral muted slate (disconnected / n/a)
 	private static final Color PING_TEXT_COLOR = new Color(220, 220, 220);
 
 	private static final Font OVERLAY_FONT = new Font("SansSerif", Font.BOLD, 10);
@@ -136,7 +137,7 @@ public class SwingNetworkOverlay {
 			if (ping < 0) {
 				pingColor = PING_GRAY;
 			} else if (ping < 100) {
-				pingColor = RX_COLOR;
+				pingColor = PING_GREEN;
 			} else if (ping < 250) {
 				pingColor = PING_YELLOW;
 			} else {

@@ -481,7 +481,7 @@ public class Display {
 			
 			if (background == null) background = java.awt.Color.WHITE;
 			if (foreground == null) foreground = java.awt.Color.BLACK;
-			if (selectBg == null) selectBg = java.awt.Color.BLUE;
+			if (selectBg == null) selectBg = new java.awt.Color(60, 60, 60);
 			if (selectFg == null) selectFg = java.awt.Color.WHITE;
 
 			switch (colorSpecifier) {

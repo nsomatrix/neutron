@@ -1533,6 +1533,9 @@ public class Main extends JFrame {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
 						updateResizeButtonVisibility();
+						if (statusBar != null) {
+							statusBar.setGameRunning(gameRunning);
+						}
 					}
 				});
 			}
