@@ -219,8 +219,8 @@ public class LauncherCanvas extends Canvas {
         g.setColor(blend(bgColor, fgColor, isDark ? 0.22f : 0.16f));
         g.drawRoundRect(x, y, pillW, pillH, 8, 8);
 
-        // Neutral monochrome status pip
-        g.setColor(blend(bgColor, fgColor, 0.70f));
+        // Industry-standard status green (emerald #2ecc71) matching statusbar & network overlay
+        g.setColor(0x2ecc71);
         g.fillArc(x + 7, y + 5, 7, 7, 0, 360);
 
         g.setFont(font);
