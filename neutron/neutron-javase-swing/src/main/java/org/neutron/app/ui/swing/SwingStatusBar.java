@@ -1,5 +1,6 @@
 package org.neutron.app.ui.swing;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -11,6 +12,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -106,7 +108,7 @@ public class SwingStatusBar extends JPanel {
 			messageLabel.setFont(smallFont);
 		}
 
-		// Register configuration change listener to dynamically trigger Braille spinner on settings update
+		// Register configuration change listener to dynamically trigger activity spinner on settings update
 		org.neutron.app.Config.addConfigChangeListener(new org.neutron.app.ConfigChangeListener() {
 			public void onConfigChanged(final String key, final Object value) {
 				if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
@@ -359,7 +361,7 @@ public class SwingStatusBar extends JPanel {
 		}
 	}
 
-	private boolean isDarkTheme() {
+	private static boolean isDarkTheme() {
 		try {
 			Class<?> flatLafClass = Class.forName("com.formdev.flatlaf.FlatLaf");
 			java.lang.reflect.Method isDarkMethod = flatLafClass.getMethod("isLafDark");
@@ -406,49 +408,27 @@ public class SwingStatusBar extends JPanel {
 	private static class SpinnerComponent extends JComponent {
 		private static final long serialVersionUID = 1L;
 
-		// 10-frame Unicode Braille pattern dots sequence (0x2800 offset bitmasks)
-		private static final int[] BRAILLE_MASKS = {
-			0x0B, // ⠋ (dots 1, 2, 4)
-			0x19, // ⠙ (dots 1, 4, 5)
-			0x39, // ⠹ (dots 1, 4, 5, 6)
-			0x38, // ⠸ (dots 4, 5, 6)
-			0x3C, // ⠼ (dots 3, 4, 5, 6)
-			0x34, // ⠴ (dots 3, 5, 6)
-			0x26, // ⠦ (dots 2, 3, 6)
-			0x27, // ⠧ (dots 1, 2, 3, 6)
-			0x07, // ⠇ (dots 1, 2, 3)
-			0x0F  // ⠏ (dots 1, 2, 3, 4)
-		};
+		private static final Stroke TRACK_STROKE = new BasicStroke(1.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
+		private static final Stroke ARC_STROKE = new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 
-		// Bit indices for 8 dots in standard Braille 2x4 matrix:
-		// Row 0: Dot 1 (bit 0), Dot 4 (bit 3)
-		// Row 1: Dot 2 (bit 1), Dot 5 (bit 4)
-		// Row 2: Dot 3 (bit 2), Dot 6 (bit 5)
-		// Row 3: Dot 7 (bit 6), Dot 8 (bit 7)
-		private static final int[][] DOT_BITS = {
-			{0, 3}, // Row 0
-			{1, 4}, // Row 1
-			{2, 5}, // Row 2
-			{6, 7}  // Row 3
-		};
-
-		private int frameIndex = 0;
+		private int angle = 0;
 		private final Timer timer;
 
 		public SpinnerComponent() {
-			setPreferredSize(new Dimension(18, 18));
+			setPreferredSize(new Dimension(16, 16));
 			setVisible(false);
 
-			timer = new Timer(50, new ActionListener() {
+			// Silky smooth ~30 FPS circular animation rotation
+			timer = new Timer(33, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					frameIndex = (frameIndex + 1) % BRAILLE_MASKS.length;
+					angle = (angle + 12) % 360;
 					repaint();
 				}
 			});
 		}
 
 		public void start() {
-			frameIndex = 0;
+			angle = 0;
 			timer.start();
 			setVisible(true);
 			revalidate();
@@ -472,53 +452,26 @@ public class SwingStatusBar extends JPanel {
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-			int w = getWidth();
-			int h = getHeight();
+			int size = 11;
+			double x = (getWidth() - size) / 2.0;
+			double y = (getHeight() - size) / 2.0;
 
-			Color accent = UIManager.getColor("ProgressBar.foreground");
-			if (accent == null) {
-				accent = UIManager.getColor("Component.accentColor");
+			// Modern monochrome palette: refined charcoal/black in light mode, elegant silver gray in dark mode
+			Color spinnerColor = UIManager.getColor("Label.foreground");
+			if (spinnerColor == null) {
+				spinnerColor = isDarkTheme() ? new Color(185, 185, 185) : new Color(45, 45, 45);
 			}
-			if (accent == null) {
-				accent = new Color(52, 152, 219); // Sleek modern blue
-			}
 
-			int currentMask = BRAILLE_MASKS[frameIndex];
+			// 1. Subtle circular track ring
+			Color trackColor = isDarkTheme() ? new Color(255, 255, 255, 30) : new Color(0, 0, 0, 25);
+			g2.setColor(trackColor);
+			g2.setStroke(TRACK_STROKE);
+			g2.draw(new java.awt.geom.Ellipse2D.Double(x, y, size, size));
 
-			// Braille dot matrix grid layout: 2 columns, 4 rows
-			double colWidth = 4.5;
-			double rowHeight = 3.2;
-			double startX = (w - colWidth) / 2.0;
-			double startY = (h - (3 * rowHeight)) / 2.0;
-
-			double dotRadius = 1.1;
-			double dotDiameter = dotRadius * 2.0;
-
-			for (int r = 0; r < 4; r++) {
-				for (int c = 0; c < 2; c++) {
-					int bit = DOT_BITS[r][c];
-					boolean active = (currentMask & (1 << bit)) != 0;
-
-					double dx = startX + (c * colWidth);
-					double dy = startY + (r * rowHeight);
-
-					if (active) {
-						// Clean solid active dot (non-glowing)
-						g2.setColor(accent);
-						g2.fill(new java.awt.geom.Ellipse2D.Double(dx - dotRadius, dy - dotRadius, dotDiameter, dotDiameter));
-					} else {
-						// Subtly visible inactive dot matrix background
-						Color inactiveColor;
-						if (accent.getRed() + accent.getGreen() + accent.getBlue() > 384) {
-							inactiveColor = new Color(255, 255, 255, 30);
-						} else {
-							inactiveColor = new Color(0, 0, 0, 35);
-						}
-						g2.setColor(inactiveColor);
-						g2.fill(new java.awt.geom.Ellipse2D.Double(dx - (dotRadius * 0.8), dy - (dotRadius * 0.8), dotDiameter * 0.8, dotDiameter * 0.8));
-					}
-				}
-			}
+			// 2. Active sweeping rotating arc (90-degree arc)
+			g2.setColor(spinnerColor);
+			g2.setStroke(ARC_STROKE);
+			g2.draw(new java.awt.geom.Arc2D.Double(x, y, size, size, -angle, 90, java.awt.geom.Arc2D.OPEN));
 
 			g2.dispose();
 		}
