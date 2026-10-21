@@ -86,10 +86,13 @@ public class MRUList implements XMLItem {
 	}
 
 	public void setListener(MRUListListener l) {
-		if (this.listener != null) {
-			throw new IllegalArgumentException();
-		}
 		this.listener = l;
+		if (this.listener != null && !items.empty()) {
+			for (ListIterator iter = items.listIterator(items.size()); iter.hasPrevious();) {
+				XMLItem element = (XMLItem) iter.previous();
+				fireListener(element);
+			}
+		}
 	}
 
 	public int getMaxCapacity() {
