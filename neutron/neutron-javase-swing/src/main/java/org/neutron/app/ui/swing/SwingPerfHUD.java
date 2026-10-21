@@ -57,7 +57,6 @@ public class SwingPerfHUD {
 
 		// Get stats
 		double speed = Config.getSpeedMultiplier();
-		int maxFps = Config.getMaxFps();
 		long usedMem = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024L / 1024L;
 		long maxMem = Runtime.getRuntime().maxMemory() / 1024L / 1024L;
 		int activeThreads = Thread.activeCount();
@@ -71,7 +70,7 @@ public class SwingPerfHUD {
 		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		// HUD design
-		int cardWidth = 180;
+		int cardWidth = 155;
 		int cardHeight = 95;
 		int margin = 10;
 		int x = margin;
@@ -91,13 +90,12 @@ public class SwingPerfHUD {
 		g2d.setComposite(TEXT_COMPOSITE);
 		g2d.setFont(HUD_FONT);
 
-		String fpsStr = maxFps > 0 ? maxFps + " capped" : "Unlimited";
 		String speedStr = (speed == (long) speed) ? String.format("%d.0x", (long) speed) : String.format("%.1fx", speed);
 
-		g2d.setColor(GREEN_COLOR); // Neon green
-		g2d.drawString("FPS: " + currentFps + " (" + fpsStr + ")", x + 12, y + 20);
+		g2d.setColor(GREEN_COLOR);
+		g2d.drawString("FPS: " + currentFps, x + 12, y + 20);
 
-		g2d.setColor(BLUE_COLOR); // Neon blue
+		g2d.setColor(BLUE_COLOR);
 		g2d.drawString("Speed: " + speedStr, x + 12, y + 38);
 
 		g2d.setColor(ORANGE_COLOR); // Orange
