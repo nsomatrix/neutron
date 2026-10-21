@@ -53,6 +53,10 @@ public class J2SEImmutableImage extends javax.microedition.lcdui.Image {
 
     public int getHeight() {
         if (height == -1) {
+            if (img instanceof java.awt.image.BufferedImage) {
+                height = ((java.awt.image.BufferedImage) img).getHeight();
+                return height;
+            }
             ImageObserver observer = new ImageObserver() {
                 public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
                     if ((infoflags & ImageObserver.WIDTH) != 0) {
@@ -93,6 +97,10 @@ public class J2SEImmutableImage extends javax.microedition.lcdui.Image {
 
     public int getWidth() {
         if (width == -1) {
+            if (img instanceof java.awt.image.BufferedImage) {
+                width = ((java.awt.image.BufferedImage) img).getWidth();
+                return width;
+            }
             ImageObserver observer = new ImageObserver() {
                 public boolean imageUpdate(Image img, int infoflags, int x, int y, int width, int height) {
                     if ((infoflags & ImageObserver.HEIGHT) != 0) {
@@ -145,6 +153,11 @@ public class J2SEImmutableImage extends javax.microedition.lcdui.Image {
         } else {
             if (offset + scanlength * (height - 1) + width > argb.length)
                 throw new ArrayIndexOutOfBoundsException();
+        }
+
+        if (img instanceof java.awt.image.BufferedImage) {
+            ((java.awt.image.BufferedImage) img).getRGB(x, y, width, height, argb, offset, scanlength);
+            return;
         }
 
         try {

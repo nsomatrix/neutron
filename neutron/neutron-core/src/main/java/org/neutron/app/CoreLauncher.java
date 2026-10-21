@@ -15,28 +15,58 @@ public class CoreLauncher {
             tempDir.mkdirs();
             File payloadJar = new File(tempDir, "neutron-core-payload.jar");
 
-            InputStream is = CoreLauncher.class.getResourceAsStream("/payload.jar.xz");
-            if (is == null) {
+            URL payloadResource = CoreLauncher.class.getResource("/payload.jar.xz");
+            if (payloadResource == null) {
                 System.err.println("Error: Compressed payload stream /payload.jar.xz not found!");
                 System.exit(1);
             }
 
-            File tempFile = File.createTempFile("neutron-payload-", ".tmp", tempDir);
-            XZInputStream xzIn = new XZInputStream(is);
-            FileOutputStream fos = new FileOutputStream(tempFile);
-            byte[] buffer = new byte[32768];
-            int n;
-            while ((n = xzIn.read(buffer)) != -1) {
-                fos.write(buffer, 0, n);
-            }
-            fos.close();
-            xzIn.close();
-            is.close();
+            java.net.URLConnection conn = payloadResource.openConnection();
+            long resourceLength = conn.getContentLengthLong();
+            long resourceModified = conn.getLastModified();
+            File stampFile = new File(tempDir, "payload.stamp");
+            String currentStamp = resourceLength + ":" + resourceModified;
 
-            if (payloadJar.exists()) {
-                payloadJar.delete();
+            boolean cacheValid = false;
+            if (payloadJar.exists() && payloadJar.length() > 0 && stampFile.exists()) {
+                try {
+                    byte[] b = new byte[(int) stampFile.length()];
+                    java.io.FileInputStream fis = new java.io.FileInputStream(stampFile);
+                    int read = fis.read(b);
+                    fis.close();
+                    if (read > 0 && currentStamp.equals(new String(b, 0, read).trim())) {
+                        cacheValid = true;
+                    }
+                } catch (Exception ignore) {
+                }
             }
-            tempFile.renameTo(payloadJar);
+
+            if (!cacheValid) {
+                InputStream is = conn.getInputStream();
+                File tempFile = File.createTempFile("neutron-payload-", ".tmp", tempDir);
+                XZInputStream xzIn = new XZInputStream(is);
+                FileOutputStream fos = new FileOutputStream(tempFile);
+                byte[] buffer = new byte[32768];
+                int n;
+                while ((n = xzIn.read(buffer)) != -1) {
+                    fos.write(buffer, 0, n);
+                }
+                fos.close();
+                xzIn.close();
+                is.close();
+
+                if (payloadJar.exists()) {
+                    payloadJar.delete();
+                }
+                tempFile.renameTo(payloadJar);
+
+                try {
+                    FileOutputStream stampFos = new FileOutputStream(stampFile);
+                    stampFos.write(currentStamp.getBytes());
+                    stampFos.close();
+                } catch (Exception ignore) {
+                }
+            }
 
             URLClassLoader classLoader = new URLClassLoader(new URL[]{payloadJar.toURI().toURL()}, CoreLauncher.class.getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);

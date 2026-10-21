@@ -46,12 +46,10 @@ public class File {
     }
     
     public static int copy(java.lang.String source, java.lang.String dest) {
-        System.out.println("public static int copy(java.lang.String source, java.lang.String dest)");
         return 1;
     }
     
     public static int debugWrite(java.lang.String fileName, java.lang.String infoString) {
-        System.out.println("public static int debugWrite(java.lang.String fileName, java.lang.String infoString)");
         return 1;
     }
     
@@ -69,7 +67,6 @@ public class File {
     }
     
     public static boolean isDirectory(java.lang.String pathName) {
-        System.out.println("public static boolean isDirectory(java.lang.String pathName)");
         return false;
     }
     
@@ -80,7 +77,6 @@ public class File {
     }
     
     public static java.lang.String[] list(java.lang.String pathName) {
-        System.out.println(" public static java.lang.String[] list(java.lang.String pathName)");
         return null;
     }
     
@@ -128,7 +124,6 @@ public class File {
     }
     
     public static int rename(java.lang.String source, java.lang.String dest) {
-        System.out.println("public static int rename(java.lang.String source, java.lang.String dest)");
         return 1;
     }
     
@@ -144,7 +139,6 @@ public class File {
     }
     
     public static void truncate(int fileDescriptor, int size) {
-        System.out.println("public static void truncate(int fileDescriptor, int size)");
     }
     
     public int write(int fileDescriptor, byte[] buf, int offset, int numBytes) {

@@ -28,6 +28,7 @@
 package org.neutron.device.j2se;
 
 import java.awt.Color;
+import java.awt.FontMetrics;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.util.HashMap;
@@ -41,9 +42,18 @@ import org.neutron.device.j2se.J2SEGraphicsSurface;
 
 public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
 
-    // TODO use IntHashMap
-    private static HashMap colorCache = new HashMap();
-    
+    private static final int COLOR_CACHE_SIZE = 4096;
+    private static final int COLOR_CACHE_MASK = COLOR_CACHE_SIZE - 1;
+    private static final int[] colorCacheKeys = new int[COLOR_CACHE_SIZE];
+    private static final Color[] colorCacheValues = new Color[COLOR_CACHE_SIZE];
+    private static final boolean[] colorCachePresent = new boolean[COLOR_CACHE_SIZE];
+
+    private int lastColorRGB = -1;
+    private Color lastColor = null;
+
+    private final int[] triX = new int[3];
+    private final int[] triY = new int[3];
+
     private J2SEGraphicsSurface graphicsSurface;
     
     private java.awt.Graphics2D g;
@@ -97,19 +107,27 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
 
     public void setColor(int RGB) {
         color = RGB;
-        
-        Color awtColor = (Color) colorCache.get(new Integer(RGB));
-        if (awtColor == null) {
-            if (colorCache.size() > 4096) {
-                colorCache.clear();
-            }
+        if (RGB == lastColorRGB && lastColor != null) {
+            g.setColor(lastColor);
+            return;
+        }
+
+        int slot = (RGB ^ (RGB >>> 16)) & COLOR_CACHE_MASK;
+        Color awtColor;
+        if (colorCachePresent[slot] && colorCacheKeys[slot] == RGB) {
+            awtColor = colorCacheValues[slot];
+        } else {
             if (filter != null) {
                 awtColor = new Color(filter.filterRGB(0, 0, color));
             } else {
                 awtColor = new Color(RGB);
             }
-            colorCache.put(new Integer(RGB), awtColor);
+            colorCacheKeys[slot] = RGB;
+            colorCacheValues[slot] = awtColor;
+            colorCachePresent[slot] = true;
         }
+        lastColorRGB = RGB;
+        lastColor = awtColor;
         g.setColor(awtColor);
     }
 
@@ -219,21 +237,28 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
             anchor = javax.microedition.lcdui.Graphics.TOP | javax.microedition.lcdui.Graphics.LEFT;
         }
 
+        FontMetrics fm = g.getFontMetrics();
         if ((anchor & javax.microedition.lcdui.Graphics.TOP) != 0) {
-            newy += g.getFontMetrics().getAscent();
+            newy += fm.getAscent();
         } else if ((anchor & javax.microedition.lcdui.Graphics.BOTTOM) != 0) {
-            newy -= g.getFontMetrics().getDescent();
+            newy -= fm.getDescent();
         }
+        int strWidth = -1;
         if ((anchor & javax.microedition.lcdui.Graphics.HCENTER) != 0) {
-            newx -= g.getFontMetrics().stringWidth(str) / 2;
+            strWidth = fm.stringWidth(str);
+            newx -= strWidth / 2;
         } else if ((anchor & javax.microedition.lcdui.Graphics.RIGHT) != 0) {
-            newx -= g.getFontMetrics().stringWidth(str);
+            strWidth = fm.stringWidth(str);
+            newx -= strWidth;
         }
 
         g.drawString(str, newx, newy);
 
         if ((currentFont.getStyle() & javax.microedition.lcdui.Font.STYLE_UNDERLINED) != 0) {
-            g.drawLine(newx, newy + 1, newx + g.getFontMetrics().stringWidth(str), newy + 1);
+            if (strWidth < 0) {
+                strWidth = fm.stringWidth(str);
+            }
+            g.drawLine(newx, newy + 1, newx + strWidth, newy + 1);
         }
     }
 
@@ -284,62 +309,11 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
             img = ((J2SEImmutableImage) src).getImage();
         }
 
-        java.awt.geom.AffineTransform t = new java.awt.geom.AffineTransform();
-
         int dW = width, dH = height;
-        switch (transform) {
-        case Sprite.TRANS_NONE: {
-            break;
-        }
-        case Sprite.TRANS_ROT90: {
-            t.translate((double) height, 0);
-            t.rotate(Math.PI / 2);
+        if (transform == Sprite.TRANS_ROT90 || transform == Sprite.TRANS_ROT270 
+                || transform == Sprite.TRANS_MIRROR_ROT90 || transform == Sprite.TRANS_MIRROR_ROT270) {
             dW = height;
             dH = width;
-            break;
-        }
-        case Sprite.TRANS_ROT180: {
-            t.translate(width, height);
-            t.rotate(Math.PI);
-            break;
-        }
-        case Sprite.TRANS_ROT270: {
-            t.translate(0, width);
-            t.rotate(Math.PI * 3 / 2);
-            dW = height;
-            dH = width;
-            break;
-        }
-        case Sprite.TRANS_MIRROR: {
-            t.translate(width, 0);
-            t.scale(-1, 1);
-            break;
-        }
-        case Sprite.TRANS_MIRROR_ROT90: {
-            t.translate((double) height, 0);
-            t.rotate(Math.PI / 2);
-            t.translate((double) width, 0);
-            t.scale(-1, 1);
-            dW = height;
-            dH = width;
-            break;
-        }
-        case Sprite.TRANS_MIRROR_ROT180: {
-            t.translate(width, 0);
-            t.scale(-1, 1);
-            t.translate(width, height);
-            t.rotate(Math.PI);
-            break;
-        }
-        case Sprite.TRANS_MIRROR_ROT270: {
-            t.rotate(Math.PI * 3 / 2);
-            t.scale(-1, 1);
-            dW = height;
-            dH = width;
-            break;
-        }
-        default:
-            throw new IllegalArgumentException("Bad transform");
         }
 
         // process anchor and correct x and y _dest
@@ -389,6 +363,57 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
         if (badAnchor)
             throw new IllegalArgumentException("Bad Anchor");
 
+        // FAST-PATH: Direct draw without AffineTransform allocations when untransformed
+        if (transform == Sprite.TRANS_NONE) {
+            g.drawImage(img, x_dst, y_dst, x_dst + width, y_dst + height, x_src, y_src, x_src + width, y_src + height, null);
+            return;
+        }
+
+        java.awt.geom.AffineTransform t = new java.awt.geom.AffineTransform();
+        switch (transform) {
+        case Sprite.TRANS_ROT90: {
+            t.translate((double) height, 0);
+            t.rotate(Math.PI / 2);
+            break;
+        }
+        case Sprite.TRANS_ROT180: {
+            t.translate(width, height);
+            t.rotate(Math.PI);
+            break;
+        }
+        case Sprite.TRANS_ROT270: {
+            t.translate(0, width);
+            t.rotate(Math.PI * 3 / 2);
+            break;
+        }
+        case Sprite.TRANS_MIRROR: {
+            t.translate(width, 0);
+            t.scale(-1, 1);
+            break;
+        }
+        case Sprite.TRANS_MIRROR_ROT90: {
+            t.translate((double) height, 0);
+            t.rotate(Math.PI / 2);
+            t.translate((double) width, 0);
+            t.scale(-1, 1);
+            break;
+        }
+        case Sprite.TRANS_MIRROR_ROT180: {
+            t.translate(width, 0);
+            t.scale(-1, 1);
+            t.translate(width, height);
+            t.rotate(Math.PI);
+            break;
+        }
+        case Sprite.TRANS_MIRROR_ROT270: {
+            t.rotate(Math.PI * 3 / 2);
+            t.scale(-1, 1);
+            break;
+        }
+        default:
+            throw new IllegalArgumentException("Bad transform");
+        }
+
         java.awt.geom.AffineTransform savedT = g.getTransform();
 
         g.translate(x_dst, y_dst);
@@ -415,30 +440,33 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
                 || (scanlength >= 0 && scanlength * (height - 1) + width - 1 >= l))
             throw new ArrayIndexOutOfBoundsException();
         
-        // make sure that the coordinates are within the clipping rect
-        Rectangle targetRect = new Rectangle(x, y, width, height);
-        Rectangle finalRect = clip.intersection(targetRect);
+        // Zero-allocation coordinate clipping
+        int x0 = Math.max(x, clip.x);
+        int y0 = Math.max(y, clip.y);
+        int x1 = Math.min(x + width, clip.x + clip.width);
+        int y1 = Math.min(y + height, clip.y + clip.height);
+        if (x0 >= x1 || y0 >= y1) {
+            return;
+        }
 
         int[] imageData = graphicsSurface.getImageData();
-        
         int surfaceWidth = graphicsSurface.getImage().getWidth();
-        
-        int imageDataStart = y * surfaceWidth;
-        int rgbStart = offset;
-        for (int row = finalRect.y - y; row < finalRect.getMaxY() - y; ++row) {
+
+        int imageDataStart = y0 * surfaceWidth;
+        int rgbStart = offset + (y0 - y) * scanlength;
+        int rowLen = x1 - x0;
+        int colOffset = x0 - x;
+
+        for (int r = y0; r < y1; ++r) {
             if (processAlpha) {
-                for (int col = finalRect.x - x; col < (finalRect.getMaxX() - x) && (y + row) < clip.getMaxY(); ++col) {
-                    // if exceeding surface width, go to next line
-                    if (col + x > surfaceWidth - 1)
-                        break;
-                    else if (imageDataStart + col + x < imageData.length) {
-                        blendPixel(imageData, imageDataStart + x + col, rgbData[rgbStart + col]);
-                    } else {
-                        return;
+                for (int col = 0; col < rowLen; ++col) {
+                    int dstIdx = imageDataStart + x0 + col;
+                    if (dstIdx < imageData.length) {
+                        blendPixel(imageData, dstIdx, rgbData[rgbStart + colOffset + col]);
                     }
                 }
             } else {
-                System.arraycopy(rgbData, rgbStart, imageData, imageDataStart, width);
+                System.arraycopy(rgbData, rgbStart + colOffset, imageData, imageDataStart + x0, rowLen);
             }
             imageDataStart += surfaceWidth;
             rgbStart += scanlength;
@@ -446,16 +474,14 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
     }
     
     public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
-        int[] xPoints = new int[3];
-        int[] yPoints = new int[3];
-        xPoints[0] = x1;
-        xPoints[1] = x2;
-        xPoints[2] = x3;
-        yPoints[0] = y1;
-        yPoints[1] = y2;
-        yPoints[2] = y3;
+        triX[0] = x1;
+        triX[1] = x2;
+        triX[2] = x3;
+        triY[0] = y1;
+        triY[1] = y2;
+        triY[2] = y3;
 
-        g.fillPolygon(xPoints, yPoints, 3);
+        g.fillPolygon(triX, triY, 3);
     }
 
     public void copyArea(int x_src, int y_src, int width, int height, int x_dest, int y_dest, int anchor) {

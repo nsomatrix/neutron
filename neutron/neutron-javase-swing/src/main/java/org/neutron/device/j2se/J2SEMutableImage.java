@@ -41,6 +41,8 @@ public class J2SEMutableImage extends MutableImage
 	private int[] pixels;
 
 
+	private static final AffineTransform IDENTITY_TRANSFORM = new AffineTransform();
+
 	public J2SEMutableImage(int width, int height, boolean withAlpha, int fillColor)
 	{
 		graphicsSurface = new J2SEGraphicsSurface(width, height, withAlpha, fillColor);
@@ -50,7 +52,7 @@ public class J2SEMutableImage extends MutableImage
 	public javax.microedition.lcdui.Graphics getGraphics()
 	{
         Graphics2D g = graphicsSurface.getGraphics();
-        g.setTransform(new AffineTransform());
+        g.setTransform(IDENTITY_TRANSFORM);
         g.setClip(0, 0, getWidth(), getHeight());
         J2SEDisplayGraphics displayGraphics = new J2SEDisplayGraphics(graphicsSurface);
 		displayGraphics.setColor(0x00000000);
@@ -86,18 +88,7 @@ public class J2SEMutableImage extends MutableImage
 
 	public int[] getData()
 	{
-		if (grabber == null) {
-			pixels = new int[getWidth() * getHeight()];
-			grabber = new PixelGrabber(graphicsSurface.getImage(), 0, 0, getWidth(), getHeight(), pixels, 0, getWidth());
-		}
-
-		try {
-			grabber.grabPixels();
-		} catch (InterruptedException e) {
-			Logger.error(e);
-		}
-
-		return pixels;
+		return graphicsSurface.getImageData();
 	}
 
     public void getRGB(int []argb, int offset, int scanlength,
@@ -121,10 +112,10 @@ public class J2SEMutableImage extends MutableImage
                 throw new ArrayIndexOutOfBoundsException();
         }
 
-        try {
-            (new PixelGrabber(graphicsSurface.getImage(), x, y, width, height, argb, offset, scanlength)).grabPixels();
-        } catch (InterruptedException e) {
-            Logger.error(e);
+        int[] srcData = graphicsSurface.getImageData();
+        int surfaceWidth = graphicsSurface.getImage().getWidth();
+        for (int row = 0; row < height; row++) {
+            System.arraycopy(srcData, (y + row) * surfaceWidth + x, argb, offset + row * scanlength, width);
         }
     }
 

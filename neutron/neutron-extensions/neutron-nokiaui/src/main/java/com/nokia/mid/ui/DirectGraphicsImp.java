@@ -118,7 +118,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param argbColor
      */
     public void drawPolygon(int xPoints[], int xOffset, int yPoints[], int yOffset, int nPoints, int argbColor) {
-        System.out.println("public void drawPolygon(int xPoints[], int xOffset, int yPoints[], int yOffset, int nPoints, int argbColor)");
     }
     
     /** Not supported
@@ -131,7 +130,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param argbColor
      */
     public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor) {
-        System.out.println("public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor)");
     }
     
     /** Not supported
@@ -143,7 +141,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param argbColor
      */
     public void fillPolygon(int xPoints[], int xOffset, int yPoints[], int yOffset, int nPoints, int argbColor) {
-        System.out.println("public void fillPolygon(int xPoints[], int xOffset, int yPoints[], int yOffset, int nPoints, int argbColor)");
     }
     
     /** Not supported
@@ -156,7 +153,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param argbColor
      */
     public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor) {
-        System.out.println("public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor)");
     }
     
     //manipulations are not supported!
@@ -173,7 +169,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param format
      */
     public void drawPixels(byte[] pix, byte[] alpha, int off, int scanlen, int x, int y, int width, int height, int manipulation, int format) {
-        System.out.println("public void drawPixels(byte[] pix, byte[] alpha, int off, int scanlen, int x, int y, int width, int height, int manipulation, int format)");
         if (pix == null) {
             throw new NullPointerException();
         }
@@ -270,7 +265,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param format
      */
     public void drawPixels(int pix[], boolean trans, int off, int scanlen, int x, int y, int width, int height, int manipulation, int format) {
-        System.out.println("public void drawPixels(int pix[], boolean trans, int off, int scanlen, int x, int y, int width, int height, int manipulation, int format)");
         throw new IllegalArgumentException();
     }
     
@@ -286,7 +280,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param format
      */
     public void getPixels(byte pix[], byte alpha[], int offset, int scanlen, int x, int y, int width, int height, int format) {
-        System.out.println("public void getPixels(byte pix[], byte alpha[], int offset, int scanlen, int x, int y, int width, int height, int format)");
         throw new IllegalArgumentException();
     }
     
@@ -301,7 +294,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param format
      */
     public void getPixels(short pix[], int offset, int scanlen, int x, int y, int width, int height, int format) {
-        System.out.println("public void getPixels(short pix[], int offset, int scanlen, int x, int y, int width, int height, int format)");
         throw new IllegalArgumentException();
     }
     
@@ -316,7 +308,6 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param format
      */
     public void getPixels(int pix[], int offset, int scanlen, int x, int y, int width, int height, int format) {
-        System.out.println("public void getPixels(int pix[], int offset, int scanlen, int x, int y, int width, int height, int format");
         throw new IllegalArgumentException();
     }
     

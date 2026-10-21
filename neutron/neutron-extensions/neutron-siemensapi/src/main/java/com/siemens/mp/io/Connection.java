@@ -26,7 +26,6 @@ public class Connection extends com.siemens.mp.misc.NativeMem {
     ConnectionListener listener;
     /** Creates a new instance of Connection */
     public Connection(String connectTo) {
-       System.out.println("Connectiong to: "+connectTo);
     }
     
     public ConnectionListener getListener() 

@@ -255,8 +255,14 @@ public class TiledLayer extends Layer {
 	        int imgRows = img.getHeight() / tH;
 	                
 	        for (int r = r0; r < rMax; r++, y += tH) {
+	            if (y + tH <= cY || y >= cY + cH) {
+	                continue;
+	            }
 	            x = x0;
 	            for (int c = c0; c < cMax; c++, x += tW) {
+	                if (x + tW <= cX || x >= cX + cW) {
+	                    continue;
+	                }
 	                int tile = getCell(c, r);
 	                if (tile < 0)
 	                    tile = getAnimatedTile(tile);

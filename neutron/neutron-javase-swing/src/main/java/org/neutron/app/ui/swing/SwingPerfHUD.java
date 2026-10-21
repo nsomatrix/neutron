@@ -15,6 +15,19 @@ public class SwingPerfHUD {
 
 	private static boolean enabled = false;
 
+	private static final AlphaComposite BG_COMPOSITE = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f);
+	private static final AlphaComposite BORDER_COMPOSITE = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f);
+	private static final AlphaComposite TEXT_COMPOSITE = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f);
+
+	private static final Color BG_COLOR = new Color(25, 25, 25);
+	private static final Color BORDER_COLOR = new Color(150, 150, 150);
+	private static final Color GREEN_COLOR = new Color(80, 220, 100);
+	private static final Color BLUE_COLOR = new Color(100, 200, 255);
+	private static final Color ORANGE_COLOR = new Color(255, 180, 50);
+	private static final Color PURPLE_COLOR = new Color(220, 100, 220);
+
+	private static final Font HUD_FONT = new Font("Monospaced", Font.BOLD, 11);
+
 	public static boolean isEnabled() {
 		return enabled;
 	}
@@ -65,32 +78,32 @@ public class SwingPerfHUD {
 		int y = margin;
 
 		// Draw semi-transparent card background
-		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.75f));
-		g2d.setColor(new Color(25, 25, 25));
+		g2d.setComposite(BG_COMPOSITE);
+		g2d.setColor(BG_COLOR);
 		g2d.fillRoundRect(x, y, cardWidth, cardHeight, 10, 10);
 
 		// Draw thin border
-		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.4f));
-		g2d.setColor(new Color(150, 150, 150));
+		g2d.setComposite(BORDER_COMPOSITE);
+		g2d.setColor(BORDER_COLOR);
 		g2d.drawRoundRect(x, y, cardWidth, cardHeight, 10, 10);
 
 		// Draw text
-		g2d.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0f));
-		g2d.setFont(new Font("Monospaced", Font.BOLD, 11));
+		g2d.setComposite(TEXT_COMPOSITE);
+		g2d.setFont(HUD_FONT);
 
 		String fpsStr = maxFps > 0 ? maxFps + " capped" : "Unlimited";
-		String speedStr = String.format("%.1fx", speed);
+		String speedStr = (speed == (long) speed) ? String.format("%d.0x", (long) speed) : String.format("%.1fx", speed);
 
-		g2d.setColor(new Color(80, 220, 100)); // Neon green
+		g2d.setColor(GREEN_COLOR); // Neon green
 		g2d.drawString("FPS: " + currentFps + " (" + fpsStr + ")", x + 12, y + 20);
 
-		g2d.setColor(new Color(100, 200, 255)); // Neon blue
+		g2d.setColor(BLUE_COLOR); // Neon blue
 		g2d.drawString("Speed: " + speedStr, x + 12, y + 38);
 
-		g2d.setColor(new Color(255, 180, 50)); // Orange
+		g2d.setColor(ORANGE_COLOR); // Orange
 		g2d.drawString("JVM-RAM: " + usedMem + "MB / " + maxMem + "MB", x + 12, y + 56);
 
-		g2d.setColor(new Color(220, 100, 220)); // Purple
+		g2d.setColor(PURPLE_COLOR); // Purple
 		g2d.drawString("Threads: " + activeThreads, x + 12, y + 74);
 
 		// Restore graphics state

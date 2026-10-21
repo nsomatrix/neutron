@@ -55,8 +55,6 @@ public class TiledBackground extends GraphicObject{
     }
     
     public TiledBackground(Image tilePixels, Image tileMask, byte[] map, int widthInTiles, int heightInTiles) {
-        System.out.println("public TiledBackground(Image tilePixels, Image tileMask, byte[] map, int "+widthInTiles+", int "+heightInTiles+")");
-        
         this.map=map;
         this.heightInTiles=heightInTiles;
         this.widthInTiles=widthInTiles;

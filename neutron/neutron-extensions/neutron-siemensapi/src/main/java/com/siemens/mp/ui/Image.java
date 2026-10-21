@@ -31,27 +31,21 @@ import javax.microedition.lcdui.Graphics;
  */
 public class Image {
     public Image(byte[] imageData) {
-        System.out.println("public Image(byte[] imageData)");
     }
     
     public Image(byte[] bytes, int imageWidth, int imageHeight) {
-        System.out.println("public Image(byte[] bytes, int imageWidth, int imageHeight)");
     }
     
     public Image(byte[] bytes, int imageWidth, int imageHeight, boolean transparent) {
-        System.out.println("public Image(byte[] bytes, int imageWidth, int imageHeight, boolean transparent)");
     }
     
     public Image(Image image) {
-        System.out.println("public Image(Image image)");
     }
     
     public Image(int imageWidth, int imageHeight) {
-        System.out.println("public Image(int imageWidth, int imageHeight)");
     }
     
     public Image(String name, boolean doScale) {
-        System.out.println("public Image(String name, boolean doScale)");
     }
     
     
@@ -87,7 +81,6 @@ public class Image {
         return ret;
     }
     public static javax.microedition.lcdui.Image createImageWithoutScaling(String name) throws java.io.IOException{
-        System.out.println("public static javax.microedition.lcdui.Image createImageWithoutScaling(String name)");
         return javax.microedition.lcdui.Image.createImage(name);
     }
     
@@ -114,17 +107,14 @@ public class Image {
     }
     
     public int getHeight() {
-        System.out.println("public int getHeight()");
         return 0;
     }
     
     public static Image getNativeImage(javax.microedition.lcdui.Image img) {
-        System.out.println("public static Image getNativeImage(javax.microedition.lcdui.Image img)");
         return null;
     }
     
     public int getWidth() {
-        System.out.println("public int getWidth()");
         return 0;
     }
     

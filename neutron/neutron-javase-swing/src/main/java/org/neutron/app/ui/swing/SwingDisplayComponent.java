@@ -80,6 +80,15 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	private BufferedImage adjustedCacheImage;
 	private int[] adjustedCacheData;
 
+	private static final java.awt.Color SCANLINE_COLOR = new java.awt.Color(0, 0, 0, 45);
+	private static final java.awt.Color LCD_GRID_COLOR = new java.awt.Color(0, 0, 0, 30);
+
+	private float cachedGamma = Float.NaN;
+	private int[] cachedGammaLut = null;
+
+	private int cachedSharpness = Integer.MIN_VALUE;
+	private java.awt.image.ConvolveOp cachedConvolveOp = null;
+
 	private BufferedImage convolvedCacheImage;
 
 	private BufferedImage ghostingCacheImage;
@@ -441,12 +450,18 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 		int[] gammaLut = null;
 		if (Math.abs(gamma - 1.0f) > 0.01f) {
-			gammaLut = new int[256];
-			for (int i = 0; i < 256; i++) {
-				gammaLut[i] = (int) (255.0 * Math.pow(i / 255.0, 1.0 / gamma));
-				if (gammaLut[i] > 255) gammaLut[i] = 255;
-				if (gammaLut[i] < 0) gammaLut[i] = 0;
+			if (cachedGammaLut == null || Math.abs(gamma - cachedGamma) > 0.001f) {
+				cachedGammaLut = new int[256];
+				double invGamma = 1.0 / gamma;
+				for (int i = 0; i < 256; i++) {
+					int val = (int) (255.0 * Math.pow(i / 255.0, invGamma) + 0.5);
+					if (val > 255) val = 255;
+					else if (val < 0) val = 0;
+					cachedGammaLut[i] = val;
+				}
+				cachedGamma = gamma;
 			}
+			gammaLut = cachedGammaLut;
 		}
 
 		for (int i = 0; i < length; i++) {
@@ -553,29 +568,32 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 							convolvedCacheImage = new BufferedImage(w, h, currentImg.getType());
 						}
 						
-						float amt = sharpness / 100.0f;
-						java.awt.image.Kernel kernel;
-						if (sharpness > 0) {
-							float[] sharpenKernel = {
-								0f, -amt, 0f,
-								-amt, 1f + 4f * amt, -amt,
-								0f, -amt, 0f
-							};
-							kernel = new java.awt.image.Kernel(3, 3, sharpenKernel);
-						} else {
-							float blurAmt = -sharpness / 100.0f;
-							float edge = blurAmt / 9.0f;
-							float center = 1.0f - 8.0f * edge;
-							float[] blurKernel = {
-								edge, edge, edge,
-								edge, center, edge,
-								edge, edge, edge
-							};
-							kernel = new java.awt.image.Kernel(3, 3, blurKernel);
+						if (sharpness != cachedSharpness || cachedConvolveOp == null) {
+							float amt = sharpness / 100.0f;
+							java.awt.image.Kernel kernel;
+							if (sharpness > 0) {
+								float[] sharpenKernel = {
+									0f, -amt, 0f,
+									-amt, 1f + 4f * amt, -amt,
+									0f, -amt, 0f
+								};
+								kernel = new java.awt.image.Kernel(3, 3, sharpenKernel);
+							} else {
+								float blurAmt = -sharpness / 100.0f;
+								float edge = blurAmt / 9.0f;
+								float center = 1.0f - 8.0f * edge;
+								float[] blurKernel = {
+									edge, edge, edge,
+									edge, center, edge,
+									edge, edge, edge
+								};
+								kernel = new java.awt.image.Kernel(3, 3, blurKernel);
+							}
+							cachedConvolveOp = new java.awt.image.ConvolveOp(kernel, java.awt.image.ConvolveOp.EDGE_NO_OP, null);
+							cachedSharpness = sharpness;
 						}
 						
-						java.awt.image.ConvolveOp convolve = new java.awt.image.ConvolveOp(kernel, java.awt.image.ConvolveOp.EDGE_NO_OP, null);
-						convolve.filter(currentImg, convolvedCacheImage);
+						cachedConvolveOp.filter(currentImg, convolvedCacheImage);
 						currentImg = convolvedCacheImage;
 					}
 
@@ -608,7 +626,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
 						
-						g2d.setColor(new java.awt.Color(0, 0, 0, 45));
+						g2d.setColor(SCANLINE_COLOR);
 						for (int y = 0; y < getHeight(); y += 2) {
 							g2d.drawLine(0, y, getWidth(), y);
 						}
@@ -616,7 +634,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
 						g2d.drawImage(currentImg, 0, 0, getWidth(), getHeight(), null);
 						
-						g2d.setColor(new java.awt.Color(0, 0, 0, 30));
+						g2d.setColor(LCD_GRID_COLOR);
 						for (int y = 0; y < getHeight(); y += 3) {
 							g2d.drawLine(0, y, getWidth(), y);
 						}

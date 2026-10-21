@@ -33,7 +33,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -68,9 +67,6 @@ public class FileRecordStoreManager implements RecordStoreManager {
 
 	private ExtendedRecordListener recordListener = null;
 
-	/* The context to be used when accessing files in Webstart */
-	private AccessControlContext acc;
-
 	static {
 		replaceChars.add(":");
 		replaceChars.add("*");
@@ -94,7 +90,6 @@ public class FileRecordStoreManager implements RecordStoreManager {
 
 	public void init(Neutron emulator) {
 		this.emulator = emulator;
-		this.acc = AccessController.getContext();
 	}
 
 	public String getName() {
@@ -112,12 +107,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 	static String recordStoreName2FileName(String recordStoreName) {
 		for (Iterator iterator = replaceChars.iterator(); iterator.hasNext();) {
 			String c = (String) iterator.next();
-			String newValue = escapeCharacter(c);
-			if (c.equals("\\")) {
-				c = "\\\\";
-			}
-			c = "[" + c + "]";
-			recordStoreName = recordStoreName.replaceAll(c, newValue);
+			recordStoreName = recordStoreName.replace(c, escapeCharacter(c));
 		}
 		return recordStoreName + RECORD_STORE_SUFFIX;
 	}
@@ -125,11 +115,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 	static String fileName2RecordStoreName(String fileName) {
 		for (Iterator iterator = replaceChars.iterator(); iterator.hasNext();) {
 			String c = (String) iterator.next();
-			String newValue = escapeCharacter(c);
-			if (c.equals("\\")) {
-				c = "\\\\";
-			}
-			fileName = fileName.replaceAll(newValue, c);
+			fileName = fileName.replace(escapeCharacter(c), c);
 		}
 		return fileName.substring(0, fileName.length() - RECORD_STORE_SUFFIX.length());
 	}
@@ -156,7 +142,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 					fireRecordStoreListener(ExtendedRecordListener.RECORDSTORE_DELETE, recordStoreName);
 					return null;
 				}
-			}, acc);
+			});
 		} catch (PrivilegedActionException e) {
 			Logger.error("Unable remove file " + storeFile, e);
 			throw new RecordStoreException();
@@ -196,7 +182,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 				public Object run() {
 					return getSuiteFolder().list(filter);
 				}
-			}, acc);
+			});
 		} catch (PrivilegedActionException e) {
 			Logger.error("Unable to access storeFiles", e);
 			return null;
@@ -252,7 +238,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 				public Object run() throws FileNotFoundException {
 					return loadFromDiskSecure(recordStoreFile);
 				}
-			}, acc);
+			});
 		} catch (PrivilegedActionException e) {
 			if (e.getCause() instanceof FileNotFoundException) {
 				throw (FileNotFoundException) e.getCause();
@@ -287,7 +273,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 					saveToDiskSecure(recordStoreFile, recordStore);
 					return null;
 				}
-			}, acc);
+			});
 		} catch (PrivilegedActionException e) {
 			if (e.getCause() instanceof RecordStoreException) {
 				throw (RecordStoreException) e.getCause();

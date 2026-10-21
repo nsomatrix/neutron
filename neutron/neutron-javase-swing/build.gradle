@@ -12,6 +12,10 @@ dependencies {
 
 mainClassName = 'org.neutron.app.Main'
 
+applicationDefaultJvmArgs = [
+    '-Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine'
+]
+
 jar {
     dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar'
     manifest {
