@@ -479,43 +479,24 @@ public class SwingStatusBar extends JPanel {
 
 	private static class StatusDotComponent extends JComponent {
 		private static final long serialVersionUID = 1L;
-		
+
+		private static final Stroke RING_STROKE = new BasicStroke(1.2f);
+		private static final Stroke HALO_STROKE = new BasicStroke(1.0f);
+
 		public enum Mode {
 			IDLE,
 			RUNNING
 		}
-		
+
 		private Mode mode = Mode.IDLE;
-		private float pulseAlpha = 0.0f;
-		private float pulseTime = 0.0f;
-		private final Timer pulseTimer;
 
 		public StatusDotComponent() {
-			setPreferredSize(new Dimension(16, 16));
-			
-			pulseTimer = new Timer(30, new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					pulseTime += 0.05f;
-					if (pulseTime >= (float) (Math.PI * 2)) {
-						pulseTime = 0.0f;
-					}
-					pulseAlpha = (float) ((Math.sin(pulseTime) + 1.0) / 2.0);
-					repaint();
-				}
-			});
+			setPreferredSize(new Dimension(14, 14));
 		}
 
 		public void setMode(Mode mode) {
 			if (this.mode != mode) {
 				this.mode = mode;
-				if (mode == Mode.RUNNING) {
-					pulseTime = 0.0f;
-					pulseAlpha = 0.0f;
-					pulseTimer.start();
-				} else {
-					pulseTimer.stop();
-					pulseAlpha = 0.0f;
-				}
 				repaint();
 			}
 		}
@@ -525,34 +506,39 @@ public class SwingStatusBar extends JPanel {
 			super.paintComponent(g);
 			Graphics2D g2 = (Graphics2D) g.create();
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-			int w = getWidth();
-			int h = getHeight();
-			int size = 6;
-			int x = (w - size) / 2;
-			int y = (h - size) / 2;
+			double dotSize = 6.0;
+			double x = (getWidth() - dotSize) / 2.0;
+			double y = (getHeight() - dotSize) / 2.0;
+
+			boolean dark = isDarkTheme();
 
 			if (mode == Mode.RUNNING) {
-				Color baseGreen = new Color(46, 204, 113); // Emerald Green
-				
-				float currentGlowRadius = size + (pulseAlpha * 6.0f);
-				int glowSize = Math.round(currentGlowRadius);
-				int gx = (w - glowSize) / 2;
-				int gy = (h - glowSize) / 2;
-				
-				int alpha = Math.round((1.0f - pulseAlpha) * 120);
-				g2.setColor(new Color(baseGreen.getRed(), baseGreen.getGreen(), baseGreen.getBlue(), alpha));
-				g2.fillOval(gx, gy, glowSize, glowSize);
-				
-				g2.setColor(baseGreen);
-				g2.fillOval(x, y, size, size);
+				// Clean modern sage green (GitHub / VS Code design standard)
+				Color activeGreen = dark ? new Color(63, 185, 80) : new Color(45, 164, 78);
+				Color subtleHalo = new Color(activeGreen.getRed(), activeGreen.getGreen(), activeGreen.getBlue(), dark ? 45 : 35);
+
+				// Subtle crisp static ambient halo
+				double haloSize = 9.0;
+				double hx = (getWidth() - haloSize) / 2.0;
+				double hy = (getHeight() - haloSize) / 2.0;
+				g2.setColor(subtleHalo);
+				g2.setStroke(HALO_STROKE);
+				g2.draw(new java.awt.geom.Ellipse2D.Double(hx, hy, haloSize, haloSize));
+
+				// Solid clean center pip
+				g2.setColor(activeGreen);
+				g2.fill(new java.awt.geom.Ellipse2D.Double(x, y, dotSize, dotSize));
 			} else {
-				Color accent = UIManager.getColor("ProgressBar.foreground");
-				if (accent == null) {
-					accent = new Color(52, 152, 219); // Fallback: sleek blue
+				// Muted neutral standby indicator (clean hollow ring)
+				Color idleColor = UIManager.getColor("Label.disabledForeground");
+				if (idleColor == null) {
+					idleColor = dark ? new Color(130, 130, 130) : new Color(160, 160, 160);
 				}
-				g2.setColor(accent);
-				g2.fillOval(x, y, size, size);
+				g2.setColor(idleColor);
+				g2.setStroke(RING_STROKE);
+				g2.draw(new java.awt.geom.Ellipse2D.Double(x, y, dotSize, dotSize));
 			}
 
 			g2.dispose();
