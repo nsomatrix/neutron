@@ -1627,28 +1627,43 @@ public class Main extends JFrame {
 		devicePanel.setTransferHandler(new DropTransferHandler());
 
 		// Floating Menu Button setup
-		floatingMenuButton = new JButton("☰") {
+		floatingMenuButton = new JButton("") {
 			@Override
 			protected void paintComponent(java.awt.Graphics g) {
 				java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
 				g2.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
-				// Shadow
+				g2.setRenderingHint(java.awt.RenderingHints.KEY_STROKE_CONTROL, java.awt.RenderingHints.VALUE_STROKE_PURE);
+
+				// Drop Shadow
 				g2.setColor(new java.awt.Color(0, 0, 0, 40));
 				g2.fillOval(1, 1, getWidth() - 2, getHeight() - 2);
-				// Background
+
+				// Button Circular Background
 				if (getModel().isPressed()) {
-					g2.setColor(new java.awt.Color(80, 80, 80, 200));
+					g2.setColor(new java.awt.Color(50, 50, 50, 220));
 				} else if (getModel().isRollover()) {
-					g2.setColor(new java.awt.Color(110, 110, 110, 200));
+					g2.setColor(new java.awt.Color(80, 80, 80, 210));
 				} else {
-					g2.setColor(new java.awt.Color(130, 130, 130, 160));
+					g2.setColor(new java.awt.Color(40, 40, 40, 190));
 				}
 				g2.fillOval(2, 2, getWidth() - 4, getHeight() - 4);
-				// Border
-				g2.setColor(new java.awt.Color(255, 255, 255, 120));
+
+				// Subtle crisp 1px border
+				g2.setColor(new java.awt.Color(255, 255, 255, 60));
 				g2.drawOval(2, 2, getWidth() - 4, getHeight() - 4);
+
+				// Clean cross-platform 2D vector hamburger icon (3 bars)
+				// Never relies on Unicode font glyphs that render as empty boxes on Windows
+				g2.setColor(java.awt.Color.WHITE);
+				g2.setStroke(new java.awt.BasicStroke(2.0f, java.awt.BasicStroke.CAP_ROUND, java.awt.BasicStroke.JOIN_ROUND));
+				int barLeft = 10;
+				int barRight = getWidth() - 10;
+				int cy = getHeight() / 2;
+				g2.drawLine(barLeft, cy - 4, barRight, cy - 4);
+				g2.drawLine(barLeft, cy, barRight, cy);
+				g2.drawLine(barLeft, cy + 4, barRight, cy + 4);
+
 				g2.dispose();
-				super.paintComponent(g);
 			}
 		};
 		floatingMenuButton.setFocusable(false);
@@ -1658,8 +1673,6 @@ public class Main extends JFrame {
 		floatingMenuButton.setBorderPainted(false);
 		floatingMenuButton.setFocusPainted(false);
 		floatingMenuButton.setOpaque(false);
-		floatingMenuButton.setForeground(java.awt.Color.WHITE);
-		floatingMenuButton.setFont(new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16));
 		getLayeredPane().add(floatingMenuButton, JLayeredPane.PALETTE_LAYER);
 		floatingMenuButton.setVisible(false);
 
@@ -1767,6 +1780,7 @@ public class Main extends JFrame {
 						statusBar.setVisible(false);
 					}
 					if (floatingMenuButton != null) {
+						updateFloatingButtonBounds();
 						floatingMenuButton.setVisible(true);
 					}
 				} else {
