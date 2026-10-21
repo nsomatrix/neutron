@@ -12,11 +12,8 @@
 
 - **J2ME MIDP/CLDC Emulator**: Emulate MIDlets in a pure Java SE environment.
 - **Extension & API Support**: Support for Nokia UI, Siemens API, and various JSR extensions (JSR-75, JSR-82, JSR-120, JSR-135).
-- **Multiple Target Environments**:
-  - Standalone Desktop Java Application (Swing / SWT)
-  - Java Applet & WebStart support
-  - Android integration support
-- **Web UI (`neutron-emu`)**: Modern Next.js interface for managing and running emulator sessions.
+- **Standalone Desktop Java Application**: High-performance Swing-based desktop emulator with modern FlatLaf UI and compact `neutron-core` launcher.
+- **Documentation & Web Hub (`neutron-emu`)**: Modern Next.js interface and documentation portal.
 
 ---
 

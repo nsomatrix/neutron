@@ -1,1 +1,0 @@
-rm ${datadir}/Java
