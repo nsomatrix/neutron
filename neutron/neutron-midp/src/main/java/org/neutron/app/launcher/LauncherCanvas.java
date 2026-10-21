@@ -10,12 +10,13 @@ import javax.microedition.lcdui.Canvas;
 import javax.microedition.lcdui.Display;
 import javax.microedition.lcdui.Font;
 import javax.microedition.lcdui.Graphics;
+import javax.microedition.lcdui.Image;
 import org.neutron.MIDletEntry;
 
 public class LauncherCanvas extends Canvas {
 
     // Layout Constants
-    private static final int HEADER_HEIGHT = 44;
+    private static final int HEADER_HEIGHT = 36;
     private static final int LIST_ITEM_HEIGHT = 44;
     private static final int LIST_ITEM_GAP = 8;
     private static final int LIST_PADDING = 12;
@@ -24,6 +25,9 @@ public class LauncherCanvas extends Canvas {
 
     private final Launcher launcher;
     private int selectedIndex = 0;
+    
+    // Logo assets
+    private Image logo48;
     
     // Scroll offset for lists larger than screen height
     private int scrollOffset = 0;
@@ -38,6 +42,15 @@ public class LauncherCanvas extends Canvas {
     public LauncherCanvas(Launcher launcher) {
         this.launcher = launcher;
         setFullScreenMode(true);
+        loadLogoImages();
+    }
+
+    private void loadLogoImages() {
+        try {
+            logo48 = Image.createImage("/org/neutron/app/launcher/logo_48.png");
+        } catch (Throwable t) {
+            logo48 = null;
+        }
     }
 
     public MIDletEntry getSelectedMidletEntry() {
@@ -108,15 +121,10 @@ public class LauncherCanvas extends Canvas {
     }
 
     private int drawHeader(Graphics g, int w, int bgColor, int fgColor) {
-        // Logo
+        // Clean, minimalist centered title
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_LARGE));
         g.setColor(fgColor);
-        g.drawString("N E U T R O N", w / 2, 8, Graphics.HCENTER | Graphics.TOP);
-
-        // Subtitle in clean monochrome muted gray
-        g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_SMALL));
-        g.setColor(blend(bgColor, fgColor, 0.50f));
-        g.drawString("E M U L A T O R", w / 2, 28, Graphics.HCENTER | Graphics.TOP);
+        g.drawString("N E U T R O N", w / 2, 10, Graphics.HCENTER | Graphics.TOP);
 
         return HEADER_HEIGHT;
     }
@@ -142,57 +150,23 @@ public class LauncherCanvas extends Canvas {
         g.setColor(cardBorderColor);
         g.drawRoundRect(cardX, cardY, cardW, cardH, 12, 12);
 
-        // Vector Gaming Console Icon
+        // Official Neutron Emulator Brand Emblem
         int iconCenterX = cardX + cardW / 2;
         int iconCenterY = cardY + 48;
         
-        // Handheld Console Body
-        int frameW = 58;
-        int frameH = 34;
-        int frameX = iconCenterX - frameW / 2;
-        int frameY = iconCenterY - frameH / 2;
-
-        // Console Outer Body (monochrome blend)
-        g.setColor(blend(bgColor, fgColor, isDark ? 0.12f : 0.08f));
-        g.fillRoundRect(frameX, frameY, frameW, frameH, 10, 10);
-        g.setColor(blend(bgColor, fgColor, isDark ? 0.25f : 0.20f));
-        g.drawRoundRect(frameX, frameY, frameW, frameH, 10, 10);
-
-        // Center Screen Bezel
-        int screenW = 24;
-        int screenH = 18;
-        int screenX = iconCenterX - screenW / 2;
-        int screenY = iconCenterY - screenH / 2;
-        
-        g.setColor(blend(bgColor, fgColor, isDark ? 0.08f : 0.95f));
-        g.fillRoundRect(screenX, screenY, screenW, screenH, 4, 4);
-        g.setColor(blend(bgColor, fgColor, isDark ? 0.20f : 0.16f));
-        g.drawRoundRect(screenX, screenY, screenW, screenH, 4, 4);
-
-        // Play Triangle Icon inside Console Screen
-        g.setColor(blend(bgColor, fgColor, 0.60f));
-        int triX = screenX + 9;
-        int triY = screenY + 4;
-        g.fillTriangle(triX, triY, triX + 8, triY + 5, triX, triY + 10);
-
-        // D-Pad (Left side)
-        int dpadX = frameX + 9;
-        int dpadY = iconCenterY;
-        g.setColor(fgColor);
-        g.fillRect(dpadX - 4, dpadY - 1, 9, 3); // Horizontal arm
-        g.fillRect(dpadX - 1, dpadY - 4, 3, 9); // Vertical arm
-
-        // Action Buttons (Right side - A/B diamond arrangement)
-        int btnX = frameX + frameW - 9;
-        int btnY = iconCenterY;
-        g.setColor(blend(bgColor, fgColor, 0.35f));
-        g.fillArc(btnX - 2, btnY - 5, 4, 4, 0, 360); // Top button
-        g.fillArc(btnX + 1, btnY - 2, 4, 4, 0, 360); // Right button
-        g.fillArc(btnX - 5, btnY - 2, 4, 4, 0, 360); // Left button
-        g.fillArc(btnX - 2, btnY + 1, 4, 4, 0, 360); // Bottom button
+        if (logo48 != null) {
+            // Draw official high-res Neutron atomic emblem
+            g.drawImage(logo48, iconCenterX, iconCenterY, Graphics.HCENTER | Graphics.VCENTER);
+        } else {
+            // Minimalist atomic fallback icon
+            g.setColor(blend(bgColor, fgColor, isDark ? 0.20f : 0.16f));
+            g.drawArc(iconCenterX - 18, iconCenterY - 18, 36, 36, 0, 360);
+            g.setColor(fgColor);
+            g.fillArc(iconCenterX - 5, iconCenterY - 5, 10, 10, 0, 360);
+        }
 
         // Typography Hierarchy
-        int textY = iconCenterY + frameH / 2 + 16;
+        int textY = iconCenterY + 32;
 
         // Main Drop Header
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
