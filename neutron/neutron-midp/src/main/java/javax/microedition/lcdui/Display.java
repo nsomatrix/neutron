@@ -556,13 +556,13 @@ public class Display {
 					}
 
 					if (nextDisplayable instanceof Alert) {
+						Alert alert = (Alert) nextDisplayable;
 						nextDisplayable.showNotify(Display.this);
 						nextDisplayable.repaint();
-						if (Alert.nextDisplayable == null) { // setCurrent(Alert);
-							Alert.nextDisplayable = current;
+						if (alert.nextDisplayable == null) { // setCurrent(Alert);
+							alert.nextDisplayable = current;
 						}
 						current = nextDisplayable;
-						Alert alert = (Alert) nextDisplayable;
 						if (alert.getTimeout() != Alert.FOREVER) {
 							timer.schedule(new AlertTimeout(alert), alert.getTimeout());
 						}
@@ -604,7 +604,7 @@ public class Display {
 			throw new IllegalArgumentException("nextDisplayable");
 		}
 
-		Alert.nextDisplayable = nextDisplayable;
+		alert.nextDisplayable = nextDisplayable;
 
 		setCurrent(alert);
 	}

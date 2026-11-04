@@ -203,28 +203,23 @@ public class TextField extends Item
 	
 	public void insert(String src, int position) 
 	{
-		if (!InputMethod.validate(src, constraints)) {
-            throw new IllegalArgumentException();
-        }
-		if (field.length() + src.length() > maxSize) {
+		if (src == null) {
+			throw new NullPointerException();
+		}
+		if (position < 0 || position > field.length()) {
+			throw new StringIndexOutOfBoundsException(position);
+		}
+		String current = getString();
+		if (current == null) {
+			current = "";
+		}
+		if (current.length() + src.length() > maxSize) {
 			throw new IllegalArgumentException();
 		}
-		String newtext = "";
-		if (position > 0) {
-			if (ui.getClass().getName().equals("org.neutron.android.device.ui.AndroidTextFieldUI")) {
-				newtext = ((TextFieldUI) ui).getString();
-			} else {
-				newtext = getString().substring(0, position);
-			}
+		String newtext = current.substring(0, position) + src + current.substring(position);
+		if (!InputMethod.validate(newtext, constraints)) {
+			throw new IllegalArgumentException();
 		}
-		newtext += src;
-		if (position < field.length()) {
-			if (ui.getClass().getName().equals("org.neutron.android.device.ui.AndroidTextFieldUI")) {
-				newtext += ((TextFieldUI) ui).getString().substring(position + 1);
-			} else {
-				newtext += getString().substring(position + 1);
-			}
-		}	
 		if (ui.getClass().getName().equals("org.neutron.android.device.ui.AndroidTextFieldUI")) {
 			((TextFieldUI) ui).setString(newtext);
 		} else {

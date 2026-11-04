@@ -27,8 +27,9 @@ import java.io.InputStream;
 import java.util.Hashtable;
 import java.util.Vector;
 
+import javax.microedition.midlet.MIDlet;
+
 import org.neutron.MIDletBridge;
-import org.neutron.device.DeviceFactory;
 
 /**
  *
@@ -36,13 +37,25 @@ import org.neutron.device.DeviceFactory;
  * @version
  */
 public class File {
-    static Vector files=new Vector();
-    static Hashtable data=new Hashtable();
+    static Vector files = new Vector();
+    static Hashtable data = new Hashtable();
+
+    static class OpenFileHandle {
+        String fileName;
+        int seek;
+
+        OpenFileHandle(String fileName) {
+            this.fileName = fileName;
+            this.seek = 0;
+        }
+    }
     
     public int close(int fileDescriptor) {
-        //System.out.println("public int close(int fileDescriptor)"+files.elementAt(fileDescriptor));
-        files.setElementAt(null, fileDescriptor);
-        return 1;
+        if (fileDescriptor >= 0 && fileDescriptor < files.size() && files.elementAt(fileDescriptor) != null) {
+            files.setElementAt(null, fileDescriptor);
+            return 1;
+        }
+        return -1;
     }
     
     public static int copy(java.lang.String source, java.lang.String dest) {
@@ -54,16 +67,28 @@ public class File {
     }
     
     public static int delete(java.lang.String fileName) {
-        //System.out.println("public static int delete(java.lang.String "+fileName+") ");
-        data.remove(fileName);
+        if (fileName != null) {
+            data.remove(fileName.intern());
+            data.remove(fileName);
+        }
         return 1;
     }
     
     public static int exists(java.lang.String fileName) {
-        //System.out.println("public static int exists(java.lang.String "+fileName+") "+data.containsKey(fileName));
-        if (data.containsKey(fileName.intern())||
-        MIDletBridge.getCurrentMIDlet().getClass().getResourceAsStream(fileName)!=null
-        ) return 1; else return -1;
+        if (fileName == null) return -1;
+        if (data.containsKey(fileName.intern()) || data.containsKey(fileName)) {
+            return 1;
+        }
+        MIDlet current = MIDletBridge.getCurrentMIDlet();
+        if (current != null) {
+            try (InputStream is = current.getClass().getResourceAsStream(fileName)) {
+                if (is != null) {
+                    return 1;
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return -1;
     }
     
     public static boolean isDirectory(java.lang.String pathName) {
@@ -71,55 +96,81 @@ public class File {
     }
     
     public int length(int fileDescriptor) {
-        //System.out.println("public int length(int fileDescriptor)");
-        return ((FileInfo)data.get(files.elementAt(fileDescriptor))).data.length;
-        
+        if (fileDescriptor < 0 || fileDescriptor >= files.size()) return -1;
+        OpenFileHandle handle = (OpenFileHandle) files.elementAt(fileDescriptor);
+        if (handle == null) return -1;
+        byte[] bytes = (byte[]) data.get(handle.fileName);
+        if (bytes == null) return 0;
+        return bytes.length;
     }
     
     public static java.lang.String[] list(java.lang.String pathName) {
         return null;
     }
     
-    public int open(java.lang.String fileName){
-        //System.out.println("public int open(java.lang.String "+fileName+")");
-        
-        
-        files.addElement(fileName.intern());
-        byte[] s=new byte[0];
-        if (!data.containsKey(fileName)) {
-            data.put(fileName.intern(), new FileInfo(s));
-            try {
-                InputStream is=MIDletBridge.getCurrentMIDlet().getClass().getResourceAsStream(fileName);
-
-                if(is!=null) {
-                    BufferedInputStream bis=new BufferedInputStream(is);
-                    
-                    int l;
-                    byte[] b=new byte[1024];
-                    while((l=bis.read(b))!=-1) {
-                        byte[] t=new byte[l+s.length];
-                        System.arraycopy(s, 0, t, 0, s.length);
-                        System.arraycopy(b, 0, t, s.length, l);
-                        s=t;
+    public int open(java.lang.String fileName) {
+        if (fileName == null) return -1;
+        String key = fileName.intern();
+        if (!data.containsKey(key)) {
+            byte[] s = new byte[0];
+            MIDlet current = MIDletBridge.getCurrentMIDlet();
+            if (current != null) {
+                try (InputStream is = current.getClass().getResourceAsStream(fileName)) {
+                    if (is != null) {
+                        try (BufferedInputStream bis = new BufferedInputStream(is)) {
+                            int l;
+                            byte[] b = new byte[1024];
+                            while ((l = bis.read(b)) != -1) {
+                                byte[] t = new byte[l + s.length];
+                                System.arraycopy(s, 0, t, 0, s.length);
+                                System.arraycopy(b, 0, t, s.length, l);
+                                s = t;
+                            }
+                        }
                     }
-                    data.put(fileName.intern(), new FileInfo(s));
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
-            catch (Exception e) {
-                e.printStackTrace();
+            data.put(key, s);
+        }
+
+        OpenFileHandle handle = new OpenFileHandle(key);
+        int fd = -1;
+        for (int i = 0; i < files.size(); i++) {
+            if (files.elementAt(i) == null) {
+                fd = i;
+                files.setElementAt(handle, i);
+                break;
             }
         }
-        return files.indexOf(fileName);
+        if (fd == -1) {
+            fd = files.size();
+            files.addElement(handle);
+        }
+        return fd;
     }
     
     public int read(int fileDescriptor, byte[] buf, int offset, int numBytes) {
-        //System.out.println("public int read(int fileDescriptor, byte[] buf, int offset, int numBytes)"+files.elementAt(fileDescriptor));
-        FileInfo f=((FileInfo)data.get(files.elementAt(fileDescriptor)));
-        
-        if(numBytes>(f.data.length-f.seek)) numBytes= f.data.length-f.seek;
-        
-        System.arraycopy(f.data, f.seek, buf, offset, numBytes);
-        f.seek+=numBytes;
+        if (fileDescriptor < 0 || fileDescriptor >= files.size() || buf == null || offset < 0 || numBytes < 0) {
+            return -1;
+        }
+        OpenFileHandle handle = (OpenFileHandle) files.elementAt(fileDescriptor);
+        if (handle == null) {
+            return -1;
+        }
+        byte[] fileBytes = (byte[]) data.get(handle.fileName);
+        if (fileBytes == null) {
+            return 0;
+        }
+        if (handle.seek >= fileBytes.length) {
+            return 0;
+        }
+        if (numBytes > (fileBytes.length - handle.seek)) {
+            numBytes = fileBytes.length - handle.seek;
+        }
+        System.arraycopy(fileBytes, handle.seek, buf, offset, numBytes);
+        handle.seek += numBytes;
         return numBytes;
     }
     
@@ -128,13 +179,18 @@ public class File {
     }
     
     public int seek(int fileDescriptor, int seekpos) {
-        //System.out.println("public int seek(int fileDescriptor, int seekpos)");
-        ((FileInfo)data.get(files.elementAt(fileDescriptor))).seek=seekpos;
+        if (fileDescriptor < 0 || fileDescriptor >= files.size() || seekpos < 0) {
+            return -1;
+        }
+        OpenFileHandle handle = (OpenFileHandle) files.elementAt(fileDescriptor);
+        if (handle == null) {
+            return -1;
+        }
+        handle.seek = seekpos;
         return 1;
     }
     
     public static int spaceAvailable() {
-        //System.out.println("public static int spaceAvailable()");
         return 1000000;
     }
     
@@ -142,35 +198,25 @@ public class File {
     }
     
     public int write(int fileDescriptor, byte[] buf, int offset, int numBytes) {
-        //System.out.println("public int write(int fileDescriptor, byte[] buf, int offset, int numBytes)"+files.elementAt(fileDescriptor));
-        FileInfo f=((FileInfo)data.get(files.elementAt(fileDescriptor)));
-        
-        if(numBytes>(f.data.length+f.seek)) {
-            byte[] t=new byte[f.data.length+numBytes];
-            System.arraycopy(f.data, 0, t, 0, f.data.length);
-            f.data=t;
+        if (fileDescriptor < 0 || fileDescriptor >= files.size() || buf == null || offset < 0 || numBytes < 0) {
+            return -1;
         }
-        
-        System.arraycopy(buf,offset,f.data,f.seek,numBytes);
-        f.seek+=numBytes;
-        
-        /*for (int i=0;i<f.data.length;i++)
-        {
-            System.out.print((char)f.data[i]);
+        OpenFileHandle handle = (OpenFileHandle) files.elementAt(fileDescriptor);
+        if (handle == null) {
+            return -1;
         }
-        System.out.println();*/
-        
+        byte[] fileBytes = (byte[]) data.get(handle.fileName);
+        if (fileBytes == null) {
+            fileBytes = new byte[0];
+        }
+        if ((handle.seek + numBytes) > fileBytes.length) {
+            byte[] t = new byte[handle.seek + numBytes];
+            System.arraycopy(fileBytes, 0, t, 0, fileBytes.length);
+            fileBytes = t;
+        }
+        System.arraycopy(buf, offset, fileBytes, handle.seek, numBytes);
+        handle.seek += numBytes;
+        data.put(handle.fileName, fileBytes);
         return 1;
-    }
-    
-    
-    class FileInfo {
-        byte[] data;
-        int seek;
-        
-        FileInfo(byte[] data) {
-            this.data=data;
-            this.seek=0;
-        }
     }
 }

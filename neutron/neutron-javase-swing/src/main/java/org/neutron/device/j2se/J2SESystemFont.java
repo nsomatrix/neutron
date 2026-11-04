@@ -55,6 +55,10 @@ public class J2SESystemFont implements J2SEFont {
 		this.initialized = false;
 	}
 
+	public String getStyle() {
+		return style;
+	}
+
 	public void setAntialiasing(boolean antialiasing) {
 		if (this.antialiasing != antialiasing) {
 			this.antialiasing = antialiasing;

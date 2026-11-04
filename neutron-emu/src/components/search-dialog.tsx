@@ -23,12 +23,19 @@ export function SearchDialog() {
       .catch(() => {});
   }, []);
 
+  const openSearch = useCallback(() => {
+    setQuery("");
+    setResults([]);
+    setSelectedIndex(0);
+    setOpen(true);
+  }, []);
+
   // Keyboard shortcut
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        setOpen(true);
+        openSearch();
       }
       if (e.key === "Escape") {
         setOpen(false);
@@ -36,15 +43,13 @@ export function SearchDialog() {
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [openSearch]);
 
   // Focus input when open
   useEffect(() => {
     if (open) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-      setQuery("");
-      setResults([]);
-      setSelectedIndex(0);
+      const timer = setTimeout(() => inputRef.current?.focus(), 50);
+      return () => clearTimeout(timer);
     }
   }, [open]);
 
@@ -119,7 +124,7 @@ export function SearchDialog() {
     <>
       {/* Trigger button */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={openSearch}
         className="flex h-9 items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground md:w-64"
         aria-label="Search documentation"
         id="search-trigger"

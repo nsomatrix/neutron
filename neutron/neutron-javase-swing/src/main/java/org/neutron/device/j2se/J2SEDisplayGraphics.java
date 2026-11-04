@@ -72,31 +72,48 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
     public J2SEDisplayGraphics(J2SEGraphicsSurface graphicsSurface) {
     	this.graphicsSurface = graphicsSurface;
     	
-        this.g = graphicsSurface.getGraphics();
-        this.clip = this.g.getClipBounds();
-
-        Device device = DeviceFactory.getDevice();
-        J2SEFontManager fontManager = (J2SEFontManager) device.getFontManager();
-
-        J2SEFont tmpFont = (J2SEFont) fontManager.getFont(currentFont);
-        this.g.setFont(tmpFont.getFont());
-        if (fontManager.getAntialiasing()) {
-            this.g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        } else {
-            this.g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+        this.g = graphicsSurface != null ? graphicsSurface.getGraphics() : null;
+        if (this.g != null) {
+            this.clip = this.g.getClipBounds();
+        }
+        if (this.clip == null) {
+            if (graphicsSurface != null && graphicsSurface.getImage() != null) {
+                this.clip = new Rectangle(0, 0, graphicsSurface.getImage().getWidth(), graphicsSurface.getImage().getHeight());
+            } else {
+                this.clip = new Rectangle(0, 0, 0, 0);
+            }
         }
 
-        J2SEDeviceDisplay display = (J2SEDeviceDisplay) device.getDeviceDisplay();
-        if (display.isColor()) {
-            if (display.backgroundColor.getRed() != 255 || display.backgroundColor.getGreen() != 255 || display.backgroundColor.getBlue() != 255 ||
-                    display.foregroundColor.getRed() != 0 || display.foregroundColor.getGreen() != 0 || display.foregroundColor.getBlue() != 0) {
-                this.filter = new RGBImageFilter();
+        Device device = DeviceFactory.getDevice();
+        if (device != null) {
+            J2SEFontManager fontManager = (J2SEFontManager) device.getFontManager();
+            if (fontManager != null) {
+                J2SEFont tmpFont = (J2SEFont) fontManager.getFont(currentFont);
+                if (tmpFont != null) {
+                    this.g.setFont(tmpFont.getFont());
+                }
+                if (fontManager.getAntialiasing()) {
+                    this.g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                } else {
+                    this.g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+                }
             }
-        } else {
-            if (display.numColors() == 2) {
-                this.filter = new BWImageFilter();
-            } else {
-                this.filter = new GrayImageFilter();
+
+            J2SEDeviceDisplay display = (J2SEDeviceDisplay) device.getDeviceDisplay();
+            if (display != null) {
+                if (display.isColor()) {
+                    if (display.backgroundColor != null && display.foregroundColor != null &&
+                            (display.backgroundColor.getRed() != 255 || display.backgroundColor.getGreen() != 255 || display.backgroundColor.getBlue() != 255 ||
+                            display.foregroundColor.getRed() != 0 || display.foregroundColor.getGreen() != 0 || display.foregroundColor.getBlue() != 0)) {
+                        this.filter = new RGBImageFilter();
+                    }
+                } else {
+                    if (display.numColors() == 2) {
+                        this.filter = new BWImageFilter();
+                    } else {
+                        this.filter = new GrayImageFilter();
+                    }
+                }
             }
         }
     }
@@ -112,23 +129,31 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
             return;
         }
 
-        int slot = (RGB ^ (RGB >>> 16)) & COLOR_CACHE_MASK;
         Color awtColor;
-        if (colorCachePresent[slot] && colorCacheKeys[slot] == RGB) {
-            awtColor = colorCacheValues[slot];
+        if (filter != null) {
+            awtColor = new Color(filter.filterRGB(0, 0, color));
         } else {
-            if (filter != null) {
-                awtColor = new Color(filter.filterRGB(0, 0, color));
+            int slot = (RGB ^ (RGB >>> 16)) & COLOR_CACHE_MASK;
+            if (colorCachePresent[slot] && colorCacheKeys[slot] == RGB) {
+                awtColor = colorCacheValues[slot];
             } else {
                 awtColor = new Color(RGB);
+                colorCacheKeys[slot] = RGB;
+                colorCacheValues[slot] = awtColor;
+                colorCachePresent[slot] = true;
             }
-            colorCacheKeys[slot] = RGB;
-            colorCacheValues[slot] = awtColor;
-            colorCachePresent[slot] = true;
         }
         lastColorRGB = RGB;
         lastColor = awtColor;
         g.setColor(awtColor);
+    }
+
+    java.awt.Graphics2D getAwtGraphics() {
+        return g;
+    }
+
+    void setFilter(java.awt.image.RGBImageFilter filter) {
+        this.filter = filter;
     }
 
     public javax.microedition.lcdui.Font getFont() {
@@ -158,14 +183,21 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
     public void clipRect(int x, int y, int width, int height) {
         g.clipRect(x, y, width, height);
         clip = g.getClipBounds();
+        if (clip == null) {
+            clip = new Rectangle(0, 0, 0, 0);
+        }
     }
 
     public void setClip(int x, int y, int width, int height) {
         g.setClip(x, y, width, height);
-        clip.x = x;
-        clip.y = y;
-        clip.width = width;
-        clip.height = height;
+        if (clip == null) {
+            clip = new Rectangle(x, y, width, height);
+        } else {
+            clip.x = x;
+            clip.y = y;
+            clip.width = width;
+            clip.height = height;
+        }
     }
 
     public int getClipX() {
@@ -334,10 +366,10 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
             if ((anchor & VCENTER) != 0)
                 badAnchor = true;
             else {
-                y_dst -= dH - 1;
+                y_dst -= dH;
             }
         } else if ((anchor & VCENTER) != 0) {
-            y_dst -= (dH - 1) >>> 1;
+            y_dst -= dH / 2;
         } else {
             // no vertical anchor
             badAnchor = true;
@@ -351,10 +383,10 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
             if ((anchor & HCENTER) != 0)
                 badAnchor = true;
             else {
-                x_dst -= dW - 1;
+                x_dst -= dW;
             }
         } else if ((anchor & HCENTER) != 0) {
-            x_dst -= (dW - 1) >>> 1;
+            x_dst -= dW / 2;
         } else {
             // no horizontal anchor
             badAnchor = true;
@@ -436,8 +468,9 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
 
         int l = rgbData.length;
 
-        if (width < 0 || height < 0 || offset < 0 || offset >= l || (scanlength < 0 && scanlength * (height - 1) < 0)
-                || (scanlength >= 0 && scanlength * (height - 1) + width - 1 >= l))
+        if (width < 0 || height < 0 || offset < 0 || offset >= l
+                || (scanlength >= 0 && offset + (height - 1) * scanlength + width - 1 >= l)
+                || (scanlength < 0 && (offset + (height - 1) * scanlength < 0 || offset + width - 1 >= l)))
             throw new ArrayIndexOutOfBoundsException();
         
         // Zero-allocation coordinate clipping

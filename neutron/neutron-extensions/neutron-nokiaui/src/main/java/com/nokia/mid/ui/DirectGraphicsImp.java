@@ -56,11 +56,14 @@ public class DirectGraphicsImp implements DirectGraphics{
         }
         int transform;
         switch (manipulation) {
+            case 0:
+                transform = Sprite.TRANS_NONE;
+                break;
             case FLIP_HORIZONTAL:
-                transform = Sprite.TRANS_MIRROR_ROT180;
+                transform = Sprite.TRANS_MIRROR;
                 break;
             case FLIP_VERTICAL:
-                transform = Sprite.TRANS_MIRROR;
+                transform = Sprite.TRANS_MIRROR_ROT180;
                 break;
             case ROTATE_90:
                 transform = Sprite.TRANS_ROT90;
@@ -71,6 +74,27 @@ public class DirectGraphicsImp implements DirectGraphics{
             case ROTATE_270:
                 transform = Sprite.TRANS_ROT270;
                 break;
+            case (FLIP_HORIZONTAL | ROTATE_90):
+                transform = Sprite.TRANS_MIRROR_ROT90;
+                break;
+            case (FLIP_HORIZONTAL | ROTATE_180):
+                transform = Sprite.TRANS_MIRROR_ROT180;
+                break;
+            case (FLIP_HORIZONTAL | ROTATE_270):
+                transform = Sprite.TRANS_MIRROR_ROT270;
+                break;
+            case (FLIP_VERTICAL | ROTATE_90):
+                transform = Sprite.TRANS_MIRROR_ROT270;
+                break;
+            case (FLIP_VERTICAL | ROTATE_180):
+                transform = Sprite.TRANS_MIRROR;
+                break;
+            case (FLIP_VERTICAL | ROTATE_270):
+                transform = Sprite.TRANS_MIRROR_ROT90;
+                break;
+            case (FLIP_HORIZONTAL | FLIP_VERTICAL):
+                transform = Sprite.TRANS_ROT180;
+                break;
             default:
                 transform = -1;
         }
@@ -79,10 +103,10 @@ public class DirectGraphicsImp implements DirectGraphics{
         } else {
             graphics.drawRegion(
                     img, 
-                    x + graphics.getTranslateX(), y + graphics.getTranslateY(), 
+                    0, 0, 
                     img.getWidth(), img.getHeight(), 
                     transform, 
-                    x + graphics.getTranslateX(), y + graphics.getTranslateY(), anchor);
+                    x, y, anchor);
             return;
         }
     }

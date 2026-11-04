@@ -80,10 +80,15 @@ public class DatagramImpl implements Datagram {
 				throw new BufferOverflowException();
 			}
 			buffer[offset++] = (byte) b;
+			int currentLen = offset - originalOffset;
+			if (currentLen > packet.getLength()) {
+				packet.setLength(currentLen);
+			}
 		}
 
 		public void reset() {
 			offset = originalOffset;
+			packet.setLength(0);
 		}
 	}
 
@@ -127,7 +132,10 @@ public class DatagramImpl implements Datagram {
 	}
 
 	public String getAddress() {
-		return Connection.PROTOCOL + packet.getAddress().getCanonicalHostName() + ":" + packet.getPort();
+		if (packet.getAddress() == null) {
+			return null;
+		}
+		return Connection.PROTOCOL + packet.getAddress().getHostAddress() + ":" + packet.getPort();
 	}
 
 	public byte[] getData() {
@@ -145,8 +153,8 @@ public class DatagramImpl implements Datagram {
 	public void reset() {
 		try {
 			os.reset();
-			dis.reset();
-		} catch (IOException e) {
+			dis = new DataInputStream(new ByteArrayInputStream(packet.getData(), packet.getOffset(), packet.getData().length - packet.getOffset()));
+		} catch (Exception e) {
 			// just print it
 			e.printStackTrace();
 		}
@@ -154,7 +162,9 @@ public class DatagramImpl implements Datagram {
 
 	public void setAddress(String address) throws IOException {
 		if (address == null) {
-			throw new NullPointerException("address cannot be null");
+			packet.setAddress(null);
+			packet.setPort(0);
+			return;
 		}
 		if (!address.startsWith(Connection.PROTOCOL)) {
 			throw new IllegalArgumentException("Invalid Protocol " + address);
@@ -177,6 +187,7 @@ public class DatagramImpl implements Datagram {
 
 	public void setData(byte[] buffer, int offset, int len) {
 		packet.setData(buffer, offset, len);
+		initialiseInOut();
 	}
 
 	public void setLength(int len) {

@@ -36,7 +36,7 @@ public class ServerSocketConnection implements
 	private ServerSocket serverSocket;
 	
 	public ServerSocketConnection() throws IOException {
-		serverSocket = new ServerSocket();
+		this(0);
 	}
 
 	public ServerSocketConnection(int port) throws IOException {
@@ -44,8 +44,12 @@ public class ServerSocketConnection implements
 	}
 
 	public String getLocalAddress() throws IOException {
-		InetAddress localHost = InetAddress.getLocalHost();
-		return localHost.getHostAddress();
+		try {
+			InetAddress localHost = InetAddress.getLocalHost();
+			return localHost.getHostAddress();
+		} catch (Exception e) {
+			return InetAddress.getLoopbackAddress().getHostAddress();
+		}
 	}
 
 	public int getLocalPort() throws IOException {

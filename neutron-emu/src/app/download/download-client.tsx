@@ -13,7 +13,6 @@ import {
   Check,
   ShieldCheck,
   HelpCircle,
-  ExternalLink,
   Cpu,
   ChevronDown,
   Info,

@@ -140,8 +140,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 			return null;
 		}
 
-		// return cn.getURL().getQuery();
-		return null;
+		return cn.getURL().getQuery();
 	}
 
 	public int getPort() {

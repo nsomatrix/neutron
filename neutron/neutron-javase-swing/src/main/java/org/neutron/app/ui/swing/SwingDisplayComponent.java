@@ -387,14 +387,24 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		return new Dimension(device.getDeviceDisplay().getFullWidth(), device.getDeviceDisplay().getFullHeight());
 	}
 
-	private BufferedImage getScale2xImage(BufferedImage src, int[] srcData) {
+	static int getCompatibleImageType(BufferedImage img) {
+		int type = img.getType();
+		if (type == BufferedImage.TYPE_CUSTOM) {
+			return (img.getColorModel() != null && img.getColorModel().hasAlpha())
+					? BufferedImage.TYPE_INT_ARGB
+					: BufferedImage.TYPE_INT_RGB;
+		}
+		return type;
+	}
+
+	BufferedImage getScale2xImage(BufferedImage src, int[] srcData) {
 		int width = src.getWidth();
 		int height = src.getHeight();
 		int destWidth = width * 2;
 		int destHeight = height * 2;
 
 		if (scale2xCacheImage == null || scale2xCacheImage.getWidth() != destWidth || scale2xCacheImage.getHeight() != destHeight) {
-			scale2xCacheImage = new BufferedImage(destWidth, destHeight, src.getType());
+			scale2xCacheImage = new BufferedImage(destWidth, destHeight, getCompatibleImageType(src));
 			scale2xCacheData = ((java.awt.image.DataBufferInt) scale2xCacheImage.getRaster().getDataBuffer()).getData();
 		}
 
@@ -552,7 +562,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						int w = currentImg.getWidth();
 						int h = currentImg.getHeight();
 						if (adjustedCacheImage == null || adjustedCacheImage.getWidth() != w || adjustedCacheImage.getHeight() != h) {
-							adjustedCacheImage = new BufferedImage(w, h, currentImg.getType());
+							adjustedCacheImage = new BufferedImage(w, h, getCompatibleImageType(currentImg));
 							adjustedCacheData = ((java.awt.image.DataBufferInt) adjustedCacheImage.getRaster().getDataBuffer()).getData();
 						}
 						
@@ -565,7 +575,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						int w = currentImg.getWidth();
 						int h = currentImg.getHeight();
 						if (convolvedCacheImage == null || convolvedCacheImage.getWidth() != w || convolvedCacheImage.getHeight() != h) {
-							convolvedCacheImage = new BufferedImage(w, h, currentImg.getType());
+							convolvedCacheImage = new BufferedImage(w, h, getCompatibleImageType(currentImg));
 						}
 						
 						if (sharpness != cachedSharpness || cachedConvolveOp == null) {
@@ -602,7 +612,7 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						int w = currentImg.getWidth();
 						int h = currentImg.getHeight();
 						if (ghostingCacheImage == null || ghostingCacheImage.getWidth() != w || ghostingCacheImage.getHeight() != h) {
-							ghostingCacheImage = new BufferedImage(w, h, currentImg.getType());
+							ghostingCacheImage = new BufferedImage(w, h, getCompatibleImageType(currentImg));
 							Graphics2D gg = ghostingCacheImage.createGraphics();
 							gg.drawImage(currentImg, 0, 0, null);
 							gg.dispose();

@@ -48,7 +48,7 @@ export function SpotlightCard({ children, className, ...props }: SpotlightCardPr
       <div
         className="pointer-events-none absolute -inset-px rounded-xl transition-opacity duration-300 z-0"
         style={{
-          opacity: "var(--spotlight-opacity, 0)" as any,
+          opacity: "var(--spotlight-opacity, 0)" as React.CSSProperties["opacity"],
           background: `radial-gradient(400px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(59, 130, 246, 0.08), transparent 80%)`,
         }}
       />
@@ -56,7 +56,7 @@ export function SpotlightCard({ children, className, ...props }: SpotlightCardPr
       <div
         className="pointer-events-none absolute -inset-px rounded-xl transition-opacity duration-300 z-10"
         style={{
-          opacity: "var(--spotlight-opacity, 0)" as any,
+          opacity: "var(--spotlight-opacity, 0)" as React.CSSProperties["opacity"],
           background: `radial-gradient(150px circle at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(6, 182, 212, 0.4), rgba(139, 92, 246, 0.4), transparent 80%)`,
           maskImage: "linear-gradient(black, black) content-box, linear-gradient(black, black)",
           maskComposite: "exclude",

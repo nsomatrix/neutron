@@ -102,7 +102,20 @@ public class FileSystemFileConnection implements FileConnection {
 		AccessController.doPrivileged(new PrivilegedAction() {
 			public Object run() {
 				fsRoot = getRoot(FileSystemFileConnection.this.fsRootConfig);
+				if (fsRoot == null) {
+					throw new SecurityException("Filesystem root is not accessible");
+				}
 				file = new File(fsRoot, fullPath);
+				try {
+					String canonicalRoot = fsRoot.getCanonicalPath();
+					String canonicalFile = file.getCanonicalPath();
+					String rootPrefix = canonicalRoot.endsWith(File.separator) ? canonicalRoot : canonicalRoot + File.separator;
+					if (!canonicalFile.equals(canonicalRoot) && !canonicalFile.startsWith(rootPrefix)) {
+						throw new SecurityException("Path traversal outside filesystem root: " + fullPath);
+					}
+				} catch (IOException e) {
+					throw new SecurityException("Failed to resolve canonical path: " + e.getMessage());
+				}
 				isDirectory = file.isDirectory();
 				return null;
 			}
@@ -128,10 +141,14 @@ public class FileSystemFileConnection implements FileConnection {
 	public static File getRoot(String fsRootConfig) {
 		try {
 			if (fsRootConfig == null) {
-				File fsRoot = new File(System.getProperty("user.home") + "/.neutron/filesystem");
+				String sysProp = System.getProperty("neutron.fsRoot");
+				File fsRoot = (sysProp != null) ? new File(sysProp) : new File(System.getProperty("user.home") + "/.neutron/filesystem");
 				if (!fsRoot.exists()) {
 					if (!fsRoot.mkdirs()) {
-						throw new RuntimeException("Can't create filesystem root " + fsRoot.getAbsolutePath());
+						fsRoot = new File(System.getProperty("java.io.tmpdir") + "/.neutron/filesystem");
+						if (!fsRoot.exists() && !fsRoot.mkdirs()) {
+							throw new RuntimeException("Can't create filesystem root " + fsRoot.getAbsolutePath());
+						}
 					}
 					// Create real roots C and E
 					File rootC = new File(fsRoot, "c");
@@ -147,7 +164,9 @@ public class FileSystemFileConnection implements FileConnection {
 			} else {
 				File fsRoot = new File(fsRootConfig);
 				if (!fsRoot.isDirectory()) {
-					throw new RuntimeException("Can't find filesystem root " + fsRoot.getAbsolutePath());
+					if (!fsRoot.mkdirs()) {
+						throw new RuntimeException("Can't find filesystem root " + fsRoot.getAbsolutePath());
+					}
 				}
 				return fsRoot;
 			}

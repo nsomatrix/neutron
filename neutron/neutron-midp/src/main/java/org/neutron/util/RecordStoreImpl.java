@@ -186,8 +186,6 @@ public class RecordStoreImpl extends RecordStore
 		}	
 		recordStoreManager.fireRecordStoreListener(ExtendedRecordListener.RECORDSTORE_CLOSE, this.getName());
 
-		records.clear();
-		
 		open = false;		
 	}
 

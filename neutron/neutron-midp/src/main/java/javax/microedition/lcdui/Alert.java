@@ -41,8 +41,8 @@ public class Alert extends Screen
 	Gauge indicator;
 
 	// this is for alertListener
-	static Displayable nextDisplayable;
-	static CommandListener defaultListener = new CommandListener()
+	Displayable nextDisplayable;
+	CommandListener defaultListener = new CommandListener()
 	{
 		public void commandAction(Command cmd, Displayable d)
 		{
@@ -52,8 +52,11 @@ public class Alert extends Screen
 			// Displayable (ie immediately after MIDlet start)
 			// in that particular case the initial state should 
 			// be restored
-			((Alert) d).currentDisplay.setCurrent(nextDisplayable);
-			nextDisplayable = null;
+			Alert alert = (Alert) d;
+			if (alert.currentDisplay != null) {
+				alert.currentDisplay.setCurrent(alert.nextDisplayable);
+			}
+			alert.nextDisplayable = null;
 		}
 	};
 	

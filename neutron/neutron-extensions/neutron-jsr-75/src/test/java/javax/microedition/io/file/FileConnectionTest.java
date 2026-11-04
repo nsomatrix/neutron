@@ -216,4 +216,22 @@ public class FileConnectionTest extends TestCase {
 			}
 		}
 	}
+
+	public void testPathTraversalBlocked() throws Exception {
+		try {
+			FileConnection fconn = (FileConnection) Connector.open("file:///test/../../sensitive.txt");
+			fconn.close();
+			fail("SecurityException expected on path traversal attempt");
+		} catch (SecurityException e) {
+			// Expected: path traversal blocked
+		}
+
+		try {
+			FileConnection fconn = (FileConnection) Connector.open("file:///../sensitive.txt");
+			fconn.close();
+			fail("SecurityException expected on root escape attempt");
+		} catch (SecurityException e) {
+			// Expected: root escape blocked
+		}
+	}
 }

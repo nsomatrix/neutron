@@ -36,6 +36,8 @@ public abstract class MIDletTimerTask extends TimerTask {
 	long period;
 	
 	boolean oneTimeTaskExcecuted = false;
+
+	boolean cancelled = false;
 	
 	public boolean cancel() {
 		if (timer == null) {
@@ -51,6 +53,10 @@ public abstract class MIDletTimerTask extends TimerTask {
 			if (oneTimeTaskExcecuted) {
 				return false;
 			}
+			if (cancelled) {
+				return false;
+			}
+			cancelled = true;
 			timer.tasks.remove(this);
 		}
 

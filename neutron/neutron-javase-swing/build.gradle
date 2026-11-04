@@ -8,6 +8,7 @@ dependencies {
     api project(':neutron:neutron-javase')
     implementation project(path: ':neutron:neutron-injected', configuration: 'inject')
     implementation 'com.formdev:flatlaf:3.5.1'
+    testImplementation 'junit:junit:4.12'
 }
 
 mainClassName = 'org.neutron.app.Main'

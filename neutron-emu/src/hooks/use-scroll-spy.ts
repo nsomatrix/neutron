@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useSyncExternalStore, useCallback } from "react";
 
 export function useScrollSpy(ids: string[], offset = 80) {
-  const [activeId, setActiveId] = useState<string>("");
-
-  const handleScroll = useCallback(() => {
+  const getSnapshot = useCallback(() => {
+    if (typeof window === "undefined") return ids[0] || "";
     const scrollY = window.scrollY;
 
     for (let i = ids.length - 1; i >= 0; i--) {
@@ -13,20 +12,22 @@ export function useScrollSpy(ids: string[], offset = 80) {
       if (element) {
         const top = element.offsetTop - offset;
         if (scrollY >= top) {
-          setActiveId(ids[i]);
-          return;
+          return ids[i];
         }
       }
     }
 
-    setActiveId(ids[0] || "");
+    return ids[0] || "";
   }, [ids, offset]);
 
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  const subscribe = useCallback(
+    (onStoreChange: () => void) => {
+      window.addEventListener("scroll", onStoreChange, { passive: true });
+      return () => window.removeEventListener("scroll", onStoreChange);
+    },
+    []
+  );
 
-  return activeId;
+  return useSyncExternalStore(subscribe, getSnapshot, () => ids[0] || "");
 }
+

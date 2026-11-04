@@ -31,6 +31,8 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Vector;
 
+import org.neutron.media.audio.PCTone;
+
 public final class Manager
 {
 
@@ -66,32 +68,68 @@ public final class Manager
     public static Player createPlayer(InputStream stream, String type)
             throws IOException, MediaException
     {
-        // TODO add all types, for now just simpleaudio
-    	if( type.equals( "audio/x-wav" ) || type.equals( "audio/basic" ) || 
-    		type.equals( "audio/mpeg" )  )
-    	{
-    	  	SampledAudioPlayer audPlayer = new SampledAudioPlayer();
-        	audPlayer.open( stream, type );
-        	
-        	vMedia.add( audPlayer );
-            return audPlayer;
+        if (stream == null) {
+            throw new IllegalArgumentException("stream cannot be null");
         }
-    	else if( type.equals( "audio/midi" ) )
-    	{
-    	  	MidiAudioPlayer midiPlayer = new MidiAudioPlayer();
-        	midiPlayer.open( stream, type );
-        	
-        	vMedia.add( midiPlayer );
-            return midiPlayer;
-    	}
-    	
-    	return null;
+
+        if (type == null) {
+            if (stream.markSupported()) {
+                stream.mark(16);
+                byte[] header = new byte[8];
+                int read = stream.read(header);
+                stream.reset();
+                if (read >= 4) {
+                    if (header[0] == 'M' && header[1] == 'T' && header[2] == 'h' && header[3] == 'd') {
+                        type = "audio/midi";
+                    } else if (header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F') {
+                        type = "audio/x-wav";
+                    } else if (header[0] == '.' && header[1] == 's' && header[2] == 'n' && header[3] == 'd') {
+                        type = "audio/basic";
+                    }
+                }
+            }
+        }
+
+        if (type != null) {
+            if (type.equalsIgnoreCase("audio/x-wav") || type.equalsIgnoreCase("audio/wav") ||
+                type.equalsIgnoreCase("audio/basic") || type.equalsIgnoreCase("audio/mpeg")) {
+                SampledAudioPlayer audPlayer = new SampledAudioPlayer();
+                audPlayer.open(stream, type);
+                vMedia.add(audPlayer);
+                return audPlayer;
+            } else if (type.equalsIgnoreCase("audio/midi") || type.equalsIgnoreCase("audio/x-midi") ||
+                       type.equalsIgnoreCase("audio/mid")) {
+                MidiAudioPlayer midiPlayer = new MidiAudioPlayer();
+                midiPlayer.open(stream, type);
+                vMedia.add(midiPlayer);
+                return midiPlayer;
+            }
+        }
+
+        return null;
     }
     
     
-    public synchronized static void playTone(int frequency, int time, int volume)
+    public synchronized static void playTone(int note, int duration, int volume)
 			throws MediaException 
 	{
+		if (duration <= 0) {
+			throw new IllegalArgumentException("duration must be positive");
+		}
+		if (note < 0 || note > 127) {
+			throw new IllegalArgumentException("note must be between 0 and 127");
+		}
+		if (volume < 0 || volume > 100) {
+			throw new IllegalArgumentException("volume must be between 0 and 100");
+		}
+
+		double frequency = 440.0 * Math.pow(2.0, (note - 69.0) / 12.0);
+		try {
+			PCTone tone = new PCTone();
+			tone.play(frequency, duration, volume);
+		} catch (Throwable t) {
+			throw new MediaException("Unable to play tone: " + t.getMessage());
+		}
 	}
 
     static void mediaDone(Object objMedia)

@@ -25,6 +25,9 @@ package org.neutron.media.audio;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
+import java.util.Arrays;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -68,11 +71,38 @@ public class PCTone
    public PCTone()
    {
    }
+
+   public byte[] generateTone(double frequency, double duration, double volume)
+   {
+      double amplify = volume / 100.0;
+      if (amplify > 1.0) amplify = 1.0;
+      if (amplify < 0.0) amplify = 0.0;
+
+      Arrays.fill(audioData, (byte) 0);
+      ByteBuffer byteBuffer = ByteBuffer.wrap(audioData);
+      ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
+      
+      final double d_sampleRate = sampleRate;
+      
+      int size = (int) (sampleRate * (duration / 1000.0));
+      if (size > audioData.length / 2) {
+         size = audioData.length / 2;
+      }
+      for (int index = 0; index < size; index++)
+      {
+         double currentTime = index / d_sampleRate;
+         double sinValue = Math.sin(2 * Math.PI * frequency * currentTime);
+         shortBuffer.put((short) (amplify * 32767.0 * sinValue));
+      }
+      return audioData;
+   }
    
    public void play(double frequency, double duration, double volume)
    {
       try
       {
+         generateTone(frequency, duration, volume);
+
          InputStream byteArrayInputStream =
             new ByteArrayInputStream(audioData);
          
@@ -80,29 +110,10 @@ public class PCTone
             new AudioInputStream(
             byteArrayInputStream,
             audioFormat,
-            audioData.length/audioFormat.getFrameSize());
+            audioData.length / audioFormat.getFrameSize());
 
          SourceDataLine sourceDataLine =
             (SourceDataLine) AudioSystem.getLine(dataLineInfo);
-         
-//         final ByteBuffer byteBuffer = ByteBuffer.wrap(audioData);
-//         final ShortBuffer shortBuffer = byteBuffer.asShortBuffer();
-         
-         double amplify = volume/100;
-         
-         final double d_sampleRate = sampleRate;
-         
-         int size = (int) ((sampleRate * (duration/1000))/2);
-         for(int index = 0; index < size; index++)
-         {
-            double currentTime = index/d_sampleRate;
-            
-            double sinValue =
-               (Math.sin(2 * Math.PI * frequency * currentTime));
-            
-            //System.out.println("value: " + d_sampleRate * sinValue);
-//            shortBuffer.put((short)(amplify * d_sampleRate * sinValue));
-         }
          
          PCToneRunnable pcToneRunnable =
             PCToneRunnablePoolFactory.getInstance(

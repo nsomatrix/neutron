@@ -49,6 +49,7 @@ class MidiAudioPlayer implements Player, MetaEventListener
 	private Sequencer sequencer = null;            // We play MIDI Sequences with a Sequencer
 	private Vector    vListeners = null;           // All PlayerListeners for this audio
 	private int       iLoopCount = 1;
+	private boolean   metaListenerAdded = false;
 	
 	public boolean open( InputStream stream, String type ) 
 	{
@@ -98,8 +99,13 @@ class MidiAudioPlayer implements Player, MetaEventListener
 	public void close() 
 	{
 		Manager.mediaDone( this );
-		if( sequencer != null )
+		if( sequencer != null ) {
+			if (metaListenerAdded) {
+				sequencer.removeMetaEventListener(this);
+				metaListenerAdded = false;
+			}
 			sequencer.close();
+		}
 	}
 
 	public void deallocate() {
@@ -162,7 +168,10 @@ class MidiAudioPlayer implements Player, MetaEventListener
 
 	public void start() throws MediaException {
 		if (sequencer != null) {
-			sequencer.addMetaEventListener( this );
+			if (!metaListenerAdded) {
+				sequencer.addMetaEventListener( this );
+				metaListenerAdded = true;
+			}
 			sequencer.start();
 			state = STARTED;
 		}

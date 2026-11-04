@@ -78,11 +78,15 @@ public class Connection implements DatagramConnection, UDPDatagramConnection, Co
 			throw new IOException("No network");
 		}
 		socket.receive(((DatagramImpl) dgram).getDatagramPacket());
+		((DatagramImpl) dgram).reset();
 		org.neutron.device.ui.NetworkActivityTracker.trackRead(dgram.getLength());
 	}
 
 	public Datagram newDatagram(int size) throws IOException {
-		return newDatagram(size, address);
+		if (address != null) {
+			return newDatagram(size, address);
+		}
+		return new DatagramImpl(size);
 	}
 
 	public Datagram newDatagram(int size, String addr) throws IOException {
@@ -95,7 +99,10 @@ public class Connection implements DatagramConnection, UDPDatagramConnection, Co
 	}
 
 	public Datagram newDatagram(byte[] buf, int size) throws IOException {
-		return newDatagram(buf, size, address);
+		if (address != null) {
+			return newDatagram(buf, size, address);
+		}
+		return new DatagramImpl(buf, size);
 	}
 
 	public Datagram newDatagram(byte[] buf, int size, String addr) throws IOException {
@@ -136,18 +143,19 @@ public class Connection implements DatagramConnection, UDPDatagramConnection, Co
 			throw new IOException("Invalid Protocol " + name);
 		}
 		// TODO currently we ignore the mode
-		address = name.substring(PROTOCOL.length());
+		String rawAddress = name.substring(PROTOCOL.length());
 		int port = -1;
-		int index = address.indexOf(':');
+		int index = rawAddress.indexOf(':');
 		if (index == -1) {
 			throw new IllegalArgumentException("Port missing");
 		}
-		String portToParse = address.substring(index + 1);
+		String portToParse = rawAddress.substring(index + 1);
 		if (portToParse.length() > 0) {
 			port = Integer.parseInt(portToParse);
 		}
 		if (index == 0) {
 			// server mode
+			this.address = null;
 			if (port == -1) {
 				socket = new DatagramSocket();
 			} else {
@@ -158,7 +166,8 @@ public class Connection implements DatagramConnection, UDPDatagramConnection, Co
 			if (port == -1) {
 				throw new IllegalArgumentException("Port missing");
 			}
-			String host = address.substring(0, index);
+			this.address = name;
+			String host = rawAddress.substring(0, index);
 			socket = new DatagramSocket();
 			socket.connect(InetAddress.getByName(host), port);
 		}

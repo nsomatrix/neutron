@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import Image, { type StaticImageData } from "next/image";
+import Link from "next/link";
 import logoImg from "@/assets/ntn.png";
 import render1 from "@/assets/render1.gif";
 import render2 from "@/assets/render2.gif";
@@ -10,12 +11,12 @@ import render3 from "@/assets/render3.gif";
 import render4 from "@/assets/render4.gif";
 import { useTheme } from "next-themes";
 import { 
-  Terminal as TerminalIcon, RefreshCw, Play, Pause, Circle, 
+  Terminal as TerminalIcon, RefreshCw, 
   Cpu, X, Minimize2, Square, Info
 } from "lucide-react";
 
 // Game GIFs and Names mapping
-const gameGifs: Record<string, any> = {
+const gameGifs: Record<string, StaticImageData> = {
   ninja_offline: render1,
   ninja_world: render2,
   nsomatrix: render3,
@@ -41,21 +42,13 @@ type AppState = "typing" | "booting" | "launcher" | "gameplay";
 type GraphicsFilter = "nearest" | "bilinear" | "scanlines" | "lcd";
 type EmulatorTheme = "dark" | "light" | "dracula";
 
-interface GameApp {
-  id: string;
-  name: string;
-  developer: string;
-  iconBg: string;
-  iconSvg: React.ReactNode;
-}
-
 export function CinematicTerminal() {
   const { resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
+  );
 
   const isLight = mounted && resolvedTheme === "light";
   const [appState, setAppState] = useState<AppState>("typing");
@@ -64,10 +57,10 @@ export function CinematicTerminal() {
   const [selectedAppId, setSelectedAppId] = useState("ninja_offline");
   
   // Custom interactive settings linked to actual JMenuBar options
-  const [graphicsFilter, setGraphicsFilter] = useState<GraphicsFilter>("nearest");
-  const [emulationSpeed, setEmulationSpeed] = useState<number>(1.0);
-  const [uiTheme, setUiTheme] = useState<EmulatorTheme>("dracula");
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [graphicsFilter] = useState<GraphicsFilter>("nearest");
+  const [emulationSpeed] = useState<number>(1.0);
+  const [uiThemeState] = useState<EmulatorTheme | null>(null);
+  const uiTheme: EmulatorTheme = uiThemeState ?? (resolvedTheme === "light" ? "light" : "dracula");
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   
   // Modal dialog states mirroring JVM SwingDialogPanel
@@ -77,57 +70,6 @@ export function CinematicTerminal() {
 
   const logTimerRef = useRef<NodeJS.Timeout | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  // J2ME Game Apps List
-  const apps: GameApp[] = [
-    {
-      id: "ninja_offline",
-      name: "Ninja School Offline",
-      developer: "Teamobi",
-      iconBg: "from-blue-900 to-indigo-950",
-      iconSvg: (
-        <svg className="w-10 h-10 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polygon points="12,2 22,22 12,17 2,22" fill="currentColor" fillOpacity="0.2" />
-          <circle cx="12" cy="12" r="3" className="animate-pulse" />
-        </svg>
-      ),
-    },
-    {
-      id: "ninja_world",
-      name: "Ninja School World",
-      developer: "Teamobi",
-      iconBg: "from-orange-600 to-red-950",
-      iconSvg: (
-        <svg className="w-10 h-10 text-orange-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="8" fill="currentColor" fillOpacity="0.3" />
-          <path d="M12,4 C14,8 14,16 12,20" />
-        </svg>
-      ),
-    },
-    {
-      id: "nsomatrix",
-      name: "NSOMatrix",
-      developer: "nsomatrix",
-      iconBg: "from-emerald-900 to-emerald-950",
-      iconSvg: (
-        <svg className="w-10 h-10 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M4,4 H20 V8 H8 V12 H20 V20 H4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-          <rect x="2" y="2" width="4" height="4" fill="currentColor" />
-        </svg>
-      ),
-    },
-    {
-      id: "neutron",
-      name: "Neutron",
-      developer: "nsomatrix",
-      iconBg: "from-cyan-900 to-teal-950",
-      iconSvg: (
-        <svg className="w-10 h-10 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polygon points="12,2 22,9 12,22 2,9" fill="currentColor" fillOpacity="0.2" />
-        </svg>
-      ),
-    },
-  ];
 
   // Theme Styling Configuration mapping to FlatLaf variables
   const themeStyles = {
@@ -168,16 +110,6 @@ export function CinematicTerminal() {
 
   const activeTheme = themeStyles[uiTheme];
 
-  // Sync FlatLaf theme with global theme
-  useEffect(() => {
-    if (!resolvedTheme) return;
-    if (resolvedTheme === "light") {
-      setUiTheme("light");
-    } else {
-      setUiTheme("dracula");
-    }
-  }, [resolvedTheme]);
-
   // Click outside menu handler to close JMenuBar dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -195,7 +127,6 @@ export function CinematicTerminal() {
 
     const command = "java -jar neutron.jar";
     let index = 0;
-    setTerminalText("");
     
     const interval = setInterval(() => {
       if (index < command.length) {
@@ -231,7 +162,6 @@ export function CinematicTerminal() {
       "Launching J2ME Suite Selector Menu",
     ];
 
-    setBootLogs([]);
     let logIndex = 0;
 
     const addLog = () => {
@@ -258,7 +188,9 @@ export function CinematicTerminal() {
   useEffect(() => {
     if (appState !== "launcher") return;
 
-    setSelectedAppId("ninja_offline");
+    const timer0 = setTimeout(() => {
+      setSelectedAppId("ninja_offline");
+    }, 0);
 
     // 1. Open the Run Menu
     const timer1 = setTimeout(() => {
@@ -278,6 +210,7 @@ export function CinematicTerminal() {
     }, 3800);
 
     return () => {
+      clearTimeout(timer0);
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
@@ -543,13 +476,13 @@ export function CinematicTerminal() {
                       >
                         System Info
                       </button>
-                      <a 
+                      <Link 
                         href="/docs" 
                         onClick={() => setActiveMenu(null)}
                         className={`w-full text-left px-2 py-1 rounded block ${activeTheme.textColor} ${activeTheme.dropdownHover}`}
                       >
                         Docs Help
-                      </a>
+                      </Link>
                     </div>
                   )}
                 </div>

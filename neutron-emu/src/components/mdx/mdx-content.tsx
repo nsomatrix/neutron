@@ -2,14 +2,14 @@ import { MDXRemote } from "next-mdx-remote/rsc";
 import remarkGfm from "remark-gfm";
 import rehypeSlug from "rehype-slug";
 import rehypePrettyCode from "rehype-pretty-code";
-import { useMDXComponents } from "@/components/mdx/mdx-components";
+import { getMDXComponents } from "@/components/mdx/mdx-components";
 
 interface MdxContentProps {
   source: string;
 }
 
 export async function MdxContent({ source }: MdxContentProps) {
-  const components = useMDXComponents();
+  const components = getMDXComponents();
 
   return (
     <div className="prose">

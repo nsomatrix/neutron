@@ -6,11 +6,3 @@ targetCompatibility = 1.8
 dependencies {
     api project(':neutron:neutron-cldc')
 }
-
-sourceSets {
-    test {
-        java {
-            setSrcDirs([])
-        }
-    }
-}

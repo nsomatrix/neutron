@@ -61,6 +61,9 @@ public class EventDispatcher implements Runnable {
 	}
 	
 	public void run() {
+		if (this.thread == null) {
+			this.thread = Thread.currentThread();
+		}
 
 		while (!cancelled) {
 			Event event = null;
@@ -168,6 +171,37 @@ public class EventDispatcher implements Runnable {
 
 	public void serviceRepaints() {
 		if (cancelled) {
+			return;
+		}
+		if (thread != null && Thread.currentThread() == thread) {
+			PaintEvent paintEvent;
+			synchronized (this) {
+				if (scheduledPaintEvent == null || cancelled) {
+					return;
+				}
+				paintEvent = scheduledPaintEvent;
+				scheduledPaintEvent = null;
+				if (head == paintEvent) {
+					head = paintEvent.next;
+					if (head == null) {
+						tail = null;
+					}
+				} else if (head != null) {
+					Event prev = head;
+					while (prev.next != null) {
+						if (prev.next == paintEvent) {
+							prev.next = paintEvent.next;
+							if (tail == paintEvent) {
+								tail = prev;
+							}
+							break;
+						}
+						prev = prev.next;
+					}
+				}
+			}
+			lastPaintEventTimeNs = System.nanoTime();
+			post(paintEvent);
 			return;
 		}
 		synchronized (serviceRepaintsLock) {

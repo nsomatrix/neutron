@@ -71,6 +71,10 @@ public class Sprite extends Layer {
     private int []rgbData;
     private int []rgbDataAux;
     
+    // raw (untransformed) frame dimensions
+    int rawFrameWidth;
+    int rawFrameHeight;
+    
     public Sprite(Image img) {
         this(img, img.getWidth(), img.getHeight());
     }
@@ -85,6 +89,8 @@ public class Sprite extends Layer {
                 img.getHeight() % frameHeight != 0)
             throw new IllegalArgumentException();
         this.img = img;
+        this.rawFrameWidth = frameWidth;
+        this.rawFrameHeight = frameHeight;
         cols = img.getWidth() / frameWidth;
         rows = img.getHeight() / frameHeight;
         collX = collY = 0;
@@ -105,6 +111,8 @@ public class Sprite extends Layer {
         this.rows = otherSprite.rows;
         this.transform = otherSprite.transform;
         this.img = otherSprite.img;
+        this.rawFrameWidth = otherSprite.rawFrameWidth;
+        this.rawFrameHeight = otherSprite.rawFrameHeight;
         this.collX = otherSprite.collX;
         this.collY = otherSprite.collY;
         this.collWidth = otherSprite.collWidth;
@@ -182,8 +190,8 @@ public class Sprite extends Layer {
 
     public void setRefPixelPosition(int x, int y) {
         int curRefX, curRefY;
-        int width = getWidth();
-        int height = getHeight();
+        int width = rawFrameWidth;
+        int height = rawFrameHeight;
 
         switch(transform) {
             case TRANS_NONE:
@@ -293,18 +301,23 @@ public class Sprite extends Layer {
  
     public void setImage(Image img, int frameWidth, int frameHeight) {
     	synchronized (this) {
-	        int oldW = getWidth();
-	        int oldH = getHeight();
+	        int oldW = rawFrameWidth;
+	        int oldH = rawFrameHeight;
 	        int newW = img.getWidth();
 	        int newH = img.getHeight();
-	        
-	        // implicit size check
-	        setSize(frameWidth, frameHeight);
-	
+
 	        if (img.getWidth() % frameWidth != 0 ||
 	                img.getHeight() % frameHeight != 0)
 	            throw new IllegalArgumentException();
 	        this.img = img;
+	        this.rawFrameWidth = frameWidth;
+	        this.rawFrameHeight = frameHeight;
+
+	        if (isRotated90or270(this.transform)) {
+	            setSize(frameHeight, frameWidth);
+	        } else {
+	            setSize(frameWidth, frameHeight);
+	        }
 	        
 	        int oldFrames = cols*rows;
 	        cols = img.getWidth() / frameWidth;
@@ -317,7 +330,7 @@ public class Sprite extends Layer {
 	            frame = 0;
 	        }
 	        
-	        if (frameWidth != getWidth() || frameHeight != getHeight()) {
+	        if (frameWidth != oldW || frameHeight != oldH) {
 	            // size changed
 	            // reset collision rectangle and collision detection array
 	            defineCollisionRectangle(0, 0, frameWidth, frameHeight);
@@ -373,24 +386,27 @@ public class Sprite extends Layer {
             return;
         
         int f = (sequence == null)? frame : sequence[frame];
-        int w = getWidth();
-        int h = getHeight();
-        int fx = w * (f % cols);
-        int fy = h * (f / cols);        
+        int fx = rawFrameWidth * (f % cols);
+        int fy = rawFrameHeight * (f / cols);        
         
-        g.drawRegion(img, fx, fy, w, h, transform, getX(), getY(), Graphics.TOP | Graphics.LEFT);
+        g.drawRegion(img, fx, fy, rawFrameWidth, rawFrameHeight, transform, getX(), getY(), Graphics.TOP | Graphics.LEFT);
     }
     
     public int getRawFrameCount() {
         return cols * rows;
+    }
+
+    private static boolean isRotated90or270(int transform) {
+        return transform == TRANS_ROT90 || transform == TRANS_ROT270 ||
+               transform == TRANS_MIRROR_ROT90 || transform == TRANS_MIRROR_ROT270;
     }
     
     public void setTransform (int transform) {
         if (this.transform == transform)
             return;
         
-        int width = getWidth();
-        int height = getHeight();
+        int width = rawFrameWidth;
+        int height = rawFrameHeight;
         int currentTransform = this.transform;
         
         // calculate the coordinates of refPixel in the new transform
@@ -482,6 +498,11 @@ public class Sprite extends Layer {
         // now change position to keep the refPixel in place
         move(curRefX - newRefX, curRefY - newRefY);
         this.transform = transform;
+        if (isRotated90or270(transform)) {
+            setSize(rawFrameHeight, rawFrameWidth);
+        } else {
+            setSize(rawFrameWidth, rawFrameHeight);
+        }
     }
 
     
@@ -527,19 +548,19 @@ public class Sprite extends Layer {
                     break;
                 case TRANS_MIRROR_ROT180:
                     sX = t.getX() + cX;
-                    sY = t.getY() + (t.getHeight() - cY - 1) - cH;
+                    sY = t.getY() + (t.rawFrameHeight - cY - 1) - cH;
                     sW = cW;
                     sH = cH;
                     break;
                 case TRANS_MIRROR:
-                    sX = t.getX() + (t.getWidth() - cX - 1) - cW;
+                    sX = t.getX() + (t.rawFrameWidth - cX - 1) - cW;
                     sY = t.getY() + cY;
                     sW = cW;
                     sH = cH;
                     break;
                 case TRANS_ROT180:
-                    sX = t.getX() + (t.getWidth() - cX - 1) - cW;
-                    sY = t.getY() + (t.getHeight() - cY - 1) - cH; 
+                    sX = t.getX() + (t.rawFrameWidth - cX - 1) - cW;
+                    sY = t.getY() + (t.rawFrameHeight - cY - 1) - cH; 
                     sW = cW;
                     sH = cH;
                     break;
@@ -550,20 +571,20 @@ public class Sprite extends Layer {
                     sH = cW;
                     break;
                 case TRANS_ROT90:
-                    sX = t.getX() + (t.getHeight() - cY - 1) - cH;
+                    sX = t.getX() + (t.rawFrameHeight - cY - 1) - cH;
                     sY = t.getY() + cX;
                     sW = cH;
                     sH = cW;
                     break;
                 case TRANS_MIRROR_ROT90:
-                    sX = t.getX() + (t.getHeight() - cY - 1) - cH;
-                    sY = t.getY() + (t.getWidth() - cX - 1) - cW;
+                    sX = t.getX() + (t.rawFrameHeight - cY - 1) - cH;
+                    sY = t.getY() + (t.rawFrameWidth - cX - 1) - cW;
                     sW = cH;
                     sH = cW;
                     break;
                 case TRANS_ROT270:
                     sX = t.getX() + cY;
-                    sY = t.getY() + (t.getWidth() - cX - 1) - cW;
+                    sY = t.getY() + (t.rawFrameWidth - cX - 1) - cW;
                     sW = cH;
                     sH = cW;
                     break;
@@ -705,15 +726,15 @@ public class Sprite extends Layer {
             // take the intersection between the collision
             // rectangle and the frame bounds
 
-            if (t.collX >= t.getWidth() || t.collX + t.collWidth <= 0 
-                        || t.collY >= t.getHeight() || t.collY + t.collHeight <= 0)
+            if (t.collX >= t.rawFrameWidth || t.collX + t.collWidth <= 0 
+                        || t.collY >= t.rawFrameHeight || t.collY + t.collHeight <= 0)
             // collision rectangle outside frame bounds
                 return false;
 
             cX = (t.collX >= 0)? t.collX : 0;
             cY = (t.collY >= 0)? t.collY : 0;
-            cW = (t.collX + t.collWidth < t.getWidth())? t.collX + t.collWidth - cX : t.getWidth() - cX;
-            cH = (t.collY + t.collHeight < t.getHeight())? t.collY + t.collHeight - cY : t.getHeight() - cY;
+            cW = (t.collX + t.collWidth < t.rawFrameWidth)? t.collX + t.collWidth - cX : t.rawFrameWidth - cX;
+            cH = (t.collY + t.collHeight < t.rawFrameHeight)? t.collY + t.collHeight - cY : t.rawFrameHeight - cY;
 
             switch(t.transform) {
                 case TRANS_NONE:
@@ -724,19 +745,19 @@ public class Sprite extends Layer {
                     break;
                 case TRANS_MIRROR_ROT180:
                     sX = t.getX() + cX;
-                    sY = t.getY() + (t.getHeight() - cY - 1) - cH;
+                    sY = t.getY() + (t.rawFrameHeight - cY - 1) - cH;
                     sW = cW;
                     sH = cH;
                     break;
                 case TRANS_MIRROR:
-                    sX = t.getX() + (t.getWidth() - cX - 1) - cW;
+                    sX = t.getX() + (t.rawFrameWidth - cX - 1) - cW;
                     sY = t.getY() + cY;
                     sW = cW;
                     sH = cH;
                     break;
                 case TRANS_ROT180:
-                    sX = t.getX() + (t.getWidth() - cX - 1) - cW;
-                    sY = t.getY() + (t.getHeight() - cY - 1) - cH; 
+                    sX = t.getX() + (t.rawFrameWidth - cX - 1) - cW;
+                    sY = t.getY() + (t.rawFrameHeight - cY - 1) - cH; 
                     sW = cW;
                     sH = cH;
                     break;
@@ -747,20 +768,20 @@ public class Sprite extends Layer {
                     sH = cW;
                     break;
                 case TRANS_ROT90:
-                    sX = t.getX() + (t.getHeight() - cY) - cH;
+                    sX = t.getX() + (t.rawFrameHeight - cY) - cH;
                     sY = t.getY() + cX;
                     sW = cH;
                     sH = cW;
                     break;
                 case TRANS_MIRROR_ROT90:
-                    sX = t.getX() + (t.getHeight() - cY) - cH;
-                    sY = t.getY() + (t.getWidth() - cX) - cW;
+                    sX = t.getX() + (t.rawFrameHeight - cY) - cH;
+                    sY = t.getY() + (t.rawFrameWidth - cX) - cW;
                     sW = cH;
                     sH = cW;
                     break;
                 case TRANS_ROT270:
                     sX = t.getX() + cY;
-                    sY = t.getY() + (t.getWidth() - cX) - cW;
+                    sY = t.getY() + (t.rawFrameWidth - cX) - cW;
                     sW = cH;
                     sH = cW;
                     break;
@@ -840,8 +861,8 @@ public class Sprite extends Layer {
 
         int f = (sequence == null)? frame : sequence[frame];
 
-        int fW = getWidth();
-        int fH = getHeight();
+        int fW = rawFrameWidth;
+        int fH = rawFrameHeight;
         int fX = fW * (f % cols);
         int fY = fH * (f / cols);
 
@@ -927,8 +948,8 @@ public class Sprite extends Layer {
           
                     f = (t.sequence == null)? t.frame : t.sequence[t.frame];
 
-                    fW = t.getWidth();
-                    fH = t.getHeight();
+                    fW = t.rawFrameWidth;
+                    fH = t.rawFrameHeight;
                     fX = fW * (f % t.cols);
                     fY = fH * (f / t.cols);
                 } else if (o instanceof TiledLayer) {

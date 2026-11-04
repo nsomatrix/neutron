@@ -57,8 +57,7 @@ public abstract class CustomItem extends Item {
 	}
 	
 	public int getGameAction(int keycode) {
-		// TODO add support for keypress
-		return 0;
+		return Display.getGameAction(keycode);
 	}
 	
 	protected final int getInteractionModes() {

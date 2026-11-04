@@ -74,7 +74,7 @@ public class J2SEFontManager implements FontManagerImpl
 	    	if ((meFont.getStyle() & Font.STYLE_ITALIC) != 0) {
 	    		style += "italic,";
 	    	}
-	    	if ((meFont.getStyle() & Font.STYLE_ITALIC) != 0) {
+	    	if ((meFont.getStyle() & Font.STYLE_UNDERLINED) != 0) {
 	    		style += "underlined,";
 	    	}
 	    	style = style.substring(0, style.length() - 1);

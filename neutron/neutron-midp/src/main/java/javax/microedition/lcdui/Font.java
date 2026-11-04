@@ -63,7 +63,7 @@ public final class Font
 		if ((face != FACE_SYSTEM) && (face != FACE_MONOSPACE) && (face != FACE_PROPORTIONAL)) {
 			throw new IllegalArgumentException();
 		}
-		if (!(isPlain() || isBold() || isItalic() || isUnderlined())) {
+		if (style < 0 || (style & ~(STYLE_BOLD | STYLE_ITALIC | STYLE_UNDERLINED)) != 0) {
 			throw new IllegalArgumentException();
 		}
 		if ((size != SIZE_SMALL) && (size != SIZE_MEDIUM) && (size != SIZE_LARGE)) {
@@ -92,7 +92,7 @@ public final class Font
 	
 	public static Font getFont(int face, int style, int size)
 	{
-		Integer key = new Integer(style + size + face);
+		Integer key = new Integer((face << 8) | (size << 4) | style);
 		Font result = (Font) fonts.get(key);
 		if (result == null) {
 			result = new Font(face, style, size);

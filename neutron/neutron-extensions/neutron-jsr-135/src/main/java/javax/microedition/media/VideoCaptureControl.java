@@ -102,7 +102,7 @@ public class VideoCaptureControl implements VideoControl {
 	 * @see javax.microedition.media.control.VideoControl#getDisplayWidth()
 	 */
 	public int getDisplayWidth() {
-		return m_displayHeight;
+		return m_displayWidth;
 	}
 
 	/* (non-Javadoc)

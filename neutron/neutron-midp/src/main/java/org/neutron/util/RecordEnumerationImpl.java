@@ -124,7 +124,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
         if (!recordStoreImpl.isOpen()) {
             throw new RecordStoreNotOpenException();
         }
-        if (currentRecord < 0) {
+        if (currentRecord <= 0) {
             throw new InvalidRecordIDException();
         }
 
@@ -138,7 +138,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
     public int previousRecordId() 
     		throws InvalidRecordIDException
     {
-        if (currentRecord < 0) {
+        if (currentRecord <= 0) {
             throw new InvalidRecordIDException();
         }
 
@@ -151,7 +151,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public boolean hasNextElement()
     {
-        if (currentRecord == numRecords()) {
+        if (currentRecord >= numRecords()) {
             return false;
         } else {
             return true;
@@ -161,7 +161,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public boolean hasPreviousElement()
     {
-        if (currentRecord == 0) {
+        if (currentRecord <= 0) {
             return false;
         } else {
             return true;

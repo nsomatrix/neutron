@@ -140,7 +140,7 @@ public class MIDletTimer extends Timer implements Runnable {
 					}
 				}
 				if (task != null) {
-					if (task.period > 0) {
+					if (task.period <= 0) {
 						task.oneTimeTaskExcecuted = true;
 					}
 					tasks.remove(task);
@@ -153,7 +153,7 @@ public class MIDletTimer extends Timer implements Runnable {
 
 					synchronized (tasks) {
 						// TODO implement scheduling for fixed rate tasks	
-						if (task.period > 0) {
+						if (task.period > 0 && !task.cancelled) {
 							task.time = System.currentTimeMillis() + task.period;
 							tasks.add(task);
 							if (task.time < nextTimeTask) {

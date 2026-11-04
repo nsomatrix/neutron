@@ -37,6 +37,11 @@ public class CreateTestFileSystem {
 	}
 
 	public static void init() {
+		if (System.getProperty("neutron.fsRoot") == null) {
+			File testFs = new File("build/test-fs");
+			testFs.mkdirs();
+			System.setProperty("neutron.fsRoot", testFs.getAbsolutePath());
+		}
 		File fsRoot = FileSystemFileConnection.getRoot(null);
 		File d1 = mkdir(fsRoot, "test/dir1");
 		mkfile(d1, "f1.txt", "text");

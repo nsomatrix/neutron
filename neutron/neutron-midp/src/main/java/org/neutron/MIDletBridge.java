@@ -90,10 +90,16 @@ public class MIDletBridge {
 	}
 
 	public static MIDletContext getMIDletContext(MIDlet midlet) {
+		if (midletContexts == null || midlet == null) {
+			return null;
+		}
 		return (MIDletContext)midletContexts.get(midlet);
 	}
 	
 	public static MIDletContext getMIDletContext() {
+		if (threadMIDletContexts == null) {
+			return null;
+		}
 		MIDletContext c = (MIDletContext)threadMIDletContexts.get();
 		if (c != null) {
 			return c;

@@ -37,16 +37,24 @@ public class RGBImageFilter extends java.awt.image.RGBImageFilter
   private Color foregroundColor;
   
 
-  public RGBImageFilter()
-	{
+  public RGBImageFilter(Color backgroundColor, Color foregroundColor)
+  {
     canFilterIndexColorModel = true;
-    backgroundColor = 
-        ((J2SEDeviceDisplay) DeviceFactory.getDevice().getDeviceDisplay()).getBackgroundColor();    
-    foregroundColor = 
-        ((J2SEDeviceDisplay) DeviceFactory.getDevice().getDeviceDisplay()).getForegroundColor();    
-    Rr = foregroundColor.getRed() - backgroundColor.getRed();
-    Rg = foregroundColor.getGreen() - backgroundColor.getGreen();
-    Rb = foregroundColor.getBlue() - backgroundColor.getBlue();
+    this.backgroundColor = backgroundColor;
+    this.foregroundColor = foregroundColor;
+    if (backgroundColor != null && foregroundColor != null) {
+      Rr = foregroundColor.getRed() - backgroundColor.getRed();
+      Rg = foregroundColor.getGreen() - backgroundColor.getGreen();
+      Rb = foregroundColor.getBlue() - backgroundColor.getBlue();
+    }
+  }
+
+  public RGBImageFilter()
+  {
+    this(DeviceFactory.getDevice() != null && DeviceFactory.getDevice().getDeviceDisplay() != null
+            ? ((J2SEDeviceDisplay) DeviceFactory.getDevice().getDeviceDisplay()).getBackgroundColor() : null,
+         DeviceFactory.getDevice() != null && DeviceFactory.getDevice().getDeviceDisplay() != null
+            ? ((J2SEDeviceDisplay) DeviceFactory.getDevice().getDeviceDisplay()).getForegroundColor() : null);
   }
 
 
@@ -62,12 +70,12 @@ public class RGBImageFilter extends java.awt.image.RGBImageFilter
     } else {
       r = (int) (r * -Rr) / 255 + foregroundColor.getRed();
     }
-    if (Rr > 0) {
+    if (Rg > 0) {
       g = (int) (g * Rg) / 255 + backgroundColor.getGreen();
     } else {
       g = (int) (g * -Rg) / 255 + foregroundColor.getGreen();
     }
-    if (Rr > 0) {
+    if (Rb > 0) {
       b = (int) (b * Rb) / 255 + backgroundColor.getBlue();
     } else {
       b = (int) (b * -Rb) / 255 + foregroundColor.getBlue();

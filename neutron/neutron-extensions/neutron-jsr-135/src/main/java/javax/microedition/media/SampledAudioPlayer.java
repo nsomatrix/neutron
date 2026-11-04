@@ -46,6 +46,7 @@ class SampledAudioPlayer implements Player, LineListener
 	private Clip clip = null;
 	private Vector vListeners = null;           // All PlayerListeners for this audio
 	private String strType = null;
+	private boolean lineListenerAdded = false;
 	
 	public boolean open( InputStream stream, String type ) 
 	{
@@ -97,6 +98,10 @@ class SampledAudioPlayer implements Player, LineListener
 		Manager.mediaDone( this );
 		if( clip != null )
 		{
+			if (lineListenerAdded) {
+				clip.removeLineListener(this);
+				lineListenerAdded = false;
+			}
 			clip.flush();
 	    	clip.close();
 		}
@@ -173,7 +178,10 @@ class SampledAudioPlayer implements Player, LineListener
 	public void start() throws MediaException {
 		if( clip != null )
 		{
-			clip.addLineListener( this );
+			if (!lineListenerAdded) {
+				clip.addLineListener( this );
+				lineListenerAdded = true;
+			}
 			clip.start();
 		}
 	}

@@ -5,7 +5,7 @@ import { CodeBlock } from "@/components/mdx/code-block";
 import { TabGroup, TabList, Tab, TabPanel } from "@/components/mdx/tabs";
 import { AccordionGroup, AccordionPanel } from "@/components/mdx/accordion";
 
-export function useMDXComponents(): MDXComponents {
+export function getMDXComponents(): MDXComponents {
   return {
     // Override HTML elements — rehype-slug adds IDs, headings just need scroll-margin
     h1: ({ children, id, ...props }) => (
@@ -67,4 +67,8 @@ export function useMDXComponents(): MDXComponents {
     AccordionGroup,
     AccordionPanel,
   };
+}
+
+export function useMDXComponents(): MDXComponents {
+  return getMDXComponents();
 }
