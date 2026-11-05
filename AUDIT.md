@@ -1381,7 +1381,7 @@ Every tracked file in the repository (628 total) has been cataloged below.
 | 643 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/IndexBuffer.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 644 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/KeyframeSequence.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 645 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Light.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 646 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Loader.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 646 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Loader.java` | Production source code | VERIFIED | Context classloader resource fallback | VERIFIED |
 | 647 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Material.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 648 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Mesh.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 649 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/MorphingMesh.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
@@ -1441,10 +1441,10 @@ Every tracked file in the repository (628 total) has been cataloged below.
 | 703 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/motorola/funlight/FunLight.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 704 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/motorola/multimedia/Lighting.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 705 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/motorola/multimedia/Vibrator.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 706 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/AudioClip.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 706 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/AudioClip.java` | Production source code | VERIFIED | Context classloader resource fallback | VERIFIED |
 | 707 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/LCDLight.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 708 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/Vibration.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 709 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/media/Sound.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 709 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/media/Sound.java` | Production source code | VERIFIED | Context classloader & resource locator fallback | VERIFIED |
 | 710 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/ui/Backlight.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 711 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/util/Vibration.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 712 | `neutron/neutron-extensions/neutron-oem-apis/src/test/java/org/neutron/oem/OemApisTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |

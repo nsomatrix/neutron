@@ -25,10 +25,27 @@ public class AudioClip {
 	public AudioClip(int type, String filename) {
 		this.clipType = type;
 		try {
-			InputStream in = getClass().getResourceAsStream(filename.startsWith("/") ? filename : "/" + filename);
-			if (in != null) {
-				String mime = type == TYPE_MIDI ? "audio/midi" : (type == TYPE_MP3 ? "audio/mpeg" : "audio/x-smaf");
-				player = Manager.createPlayer(in, mime);
+			if (filename != null) {
+				InputStream in = null;
+				ClassLoader cl = Thread.currentThread().getContextClassLoader();
+				String relPath = filename.startsWith("/") ? filename.substring(1) : filename;
+				String absPath = filename.startsWith("/") ? filename : "/" + filename;
+				if (cl != null) {
+					in = cl.getResourceAsStream(relPath);
+					if (in == null) {
+						in = cl.getResourceAsStream(absPath);
+					}
+				}
+				if (in == null) {
+					in = AudioClip.class.getResourceAsStream(absPath);
+				}
+				if (in == null) {
+					in = AudioClip.class.getResourceAsStream(relPath);
+				}
+				if (in != null) {
+					String mime = type == TYPE_MIDI ? "audio/midi" : (type == TYPE_MP3 ? "audio/mpeg" : "audio/x-smaf");
+					player = Manager.createPlayer(in, mime);
+				}
 			}
 		} catch (Throwable t) {
 			Logger.debug("AudioClip init error: " + t.getMessage());
@@ -55,7 +72,8 @@ public class AudioClip {
 				if (vc != null && volume >= 0) {
 					vc.setLevel(Math.min(100, volume));
 				}
-				player.setLoopCount(loop == 0 ? -1 : loop);
+				int safeLoop = (loop <= 0) ? -1 : loop;
+				player.setLoopCount(safeLoop);
 				player.start();
 			} catch (Throwable t) {
 				Logger.debug("AudioClip play error: " + t.getMessage());

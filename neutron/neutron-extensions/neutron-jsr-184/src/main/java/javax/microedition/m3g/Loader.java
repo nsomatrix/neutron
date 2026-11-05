@@ -12,10 +12,33 @@ public class Loader {
 
 	public static Object3D[] load(String name) throws IOException {
 		if (name == null) throw new NullPointerException();
-		InputStream is = Loader.class.getResourceAsStream(name);
+
+		InputStream is = null;
+		if (name.startsWith("http:") || name.startsWith("https:") || name.startsWith("file:") || name.startsWith("jar:")) {
+			try {
+				is = javax.microedition.io.Connector.openInputStream(name);
+			} catch (Throwable ignored) {
+				// Fall back to classpath resource lookup
+			}
+		}
+
 		if (is == null) {
+			String rootPath = name.startsWith("/") ? name : "/" + name;
+			String relPath = name.startsWith("/") ? name.substring(1) : name;
+
 			ClassLoader cl = Thread.currentThread().getContextClassLoader();
-			if (cl != null) is = cl.getResourceAsStream(name);
+			if (cl != null) {
+				is = cl.getResourceAsStream(relPath);
+				if (is == null) {
+					is = cl.getResourceAsStream(rootPath);
+				}
+			}
+			if (is == null) {
+				is = Loader.class.getResourceAsStream(rootPath);
+			}
+			if (is == null) {
+				is = Loader.class.getResourceAsStream(relPath);
+			}
 		}
 		if (is == null) {
 			throw new IOException("Resource not found: " + name);
@@ -35,13 +58,13 @@ public class Loader {
 
 	public static Object3D[] load(byte[] data, int offset) throws IOException {
 		if (data == null) throw new NullPointerException();
-		if (offset < 0 || offset >= data.length) throw new IndexOutOfBoundsException();
+		if (offset < 0 || offset > data.length) throw new IndexOutOfBoundsException();
 
 		Vector objects = new Vector();
 
 		// Check for M3G file header: 0xAB, 0x4A, 0x33, 0x47, 0x0D, 0x0A, 0x1A, 0x0A (ASCII: \xAB J 3 G \r \n \x1A \n)
 		boolean isM3G = false;
-		if (data.length - offset >= 12) {
+		if (data.length - offset >= 8) {
 			if ((data[offset] & 0xFF) == 0xAB &&
 			    data[offset + 1] == 'J' &&
 			    data[offset + 2] == '3' &&

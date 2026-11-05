@@ -42,7 +42,31 @@ public class Sound {
 	public Sound(String locator) {
 		try {
 			if (locator != null) {
-				player = Manager.createPlayer(locator);
+				if (locator.contains(":")) {
+					player = Manager.createPlayer(locator);
+				} else {
+					InputStream in = null;
+					ClassLoader cl = Thread.currentThread().getContextClassLoader();
+					String relPath = locator.startsWith("/") ? locator.substring(1) : locator;
+					String absPath = locator.startsWith("/") ? locator : "/" + locator;
+					if (cl != null) {
+						in = cl.getResourceAsStream(relPath);
+						if (in == null) {
+							in = cl.getResourceAsStream(absPath);
+						}
+					}
+					if (in == null) {
+						in = Sound.class.getResourceAsStream(absPath);
+					}
+					if (in == null) {
+						in = Sound.class.getResourceAsStream(relPath);
+					}
+					if (in != null) {
+						player = Manager.createPlayer(in, null);
+					} else {
+						player = Manager.createPlayer(locator);
+					}
+				}
 			}
 		} catch (Throwable t) {
 			Logger.debug("SonyEricsson Sound init error: " + t.getMessage());
@@ -60,7 +84,8 @@ public class Sound {
 				if (vc != null) {
 					vc.setLevel(volume);
 				}
-				player.setLoopCount(loop == 0 ? -1 : loop);
+				int safeLoop = (loop <= 0) ? -1 : loop;
+				player.setLoopCount(safeLoop);
 				player.start();
 			} catch (Throwable t) {
 				Logger.debug("SonyEricsson Sound play error: " + t.getMessage());

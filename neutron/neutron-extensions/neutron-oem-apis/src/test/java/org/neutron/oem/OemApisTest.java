@@ -18,6 +18,9 @@ public class OemApisTest {
         com.samsung.util.AudioClip clip = new com.samsung.util.AudioClip(com.samsung.util.AudioClip.TYPE_MIDI, new byte[0], 0, 0);
         clip.play(1, 100);
         clip.stop();
+
+        com.samsung.util.AudioClip fileClip = new com.samsung.util.AudioClip(com.samsung.util.AudioClip.TYPE_MIDI, "test.mid");
+        assertNotNull(fileClip);
     }
 
     @Test
@@ -34,6 +37,9 @@ public class OemApisTest {
         assertEquals(75, sound.getVolume());
         sound.play();
         sound.stop();
+
+        com.sonyericsson.media.Sound locatorSound = new com.sonyericsson.media.Sound("test.mid");
+        assertNotNull(locatorSound);
     }
 
     @Test

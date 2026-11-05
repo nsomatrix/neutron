@@ -127,4 +127,14 @@ public class M3GTest {
 		assertEquals(40, capturedW[0]);
 		assertEquals(50, capturedH[0]);
 	}
+
+	@Test(expected = java.io.IOException.class)
+	public void testLoaderMissingResourceThrowsIOException() throws Exception {
+		Loader.load("nonexistent_model.m3g");
+	}
+
+	@Test(expected = java.io.IOException.class)
+	public void testLoaderMissingRootResourceThrowsIOException() throws Exception {
+		Loader.load("/nonexistent_model.m3g");
+	}
 }
