@@ -1842,20 +1842,34 @@ public class Main extends JFrame {
 
 	public void setVirtualButtonsVisible(boolean visible) {
 		if (virtualKeypadPanel != null) {
-			Device dev = DeviceFactory.getDevice();
-			if (dev != null && dev.getDeviceDisplay() != null) {
-				DeviceDisplayImpl dd = (DeviceDisplayImpl) dev.getDeviceDisplay();
-				int currentW = dd.getFullWidth();
-				int currentH = dd.getFullHeight();
-				devicePanel.setPreferredSize(new Dimension(currentW, currentH));
+			if (virtualKeypadPanel.isVisible() == visible) {
+				return;
 			}
+
+			int keypadHeight = virtualKeypadPanel.getHeight();
+			if (keypadHeight <= 0) {
+				Dimension pref = virtualKeypadPanel.getPreferredSize();
+				keypadHeight = (pref != null && pref.height > 0) ? pref.height : 142;
+			}
+
 			virtualKeypadPanel.setVisible(visible);
 			if (menuVirtualButtons != null) {
 				menuVirtualButtons.setSelected(visible);
 			}
+
+			boolean isMaximized = (getExtendedState() & JFrame.MAXIMIZED_BOTH) != 0;
+			if (!isMaximized) {
+				int curW = getWidth();
+				int curH = getHeight();
+				if (visible) {
+					setSize(curW, curH + keypadHeight);
+				} else {
+					setSize(curW, Math.max(curH - keypadHeight, 100));
+				}
+			}
+
 			revalidate();
-			pack();
-			devicePanel.setPreferredSize(null);
+			repaint();
 			if (devicePanel != null) {
 				devicePanel.requestFocus();
 			}
