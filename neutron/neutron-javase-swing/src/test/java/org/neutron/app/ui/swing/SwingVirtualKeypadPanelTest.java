@@ -67,5 +67,20 @@ public class SwingVirtualKeypadPanelTest {
 		Assert.assertNotNull(diagonalBtn);
 		Assert.assertFalse("Button should not steal focus", diagonalBtn.isFocusable());
 	}
+
+	@Test
+	public void testFullscreenNonPersistence() {
+		try {
+			Config.setFullscreen(true);
+			Assert.assertTrue("Fullscreen should be true when set in session", Config.isFullscreen());
+
+			Config.saveConfig();
+
+			Config.setFullscreen(false);
+			Assert.assertFalse("Fullscreen should be false after reset", Config.isFullscreen());
+		} finally {
+			Config.setFullscreen(false);
+		}
+	}
 }
 

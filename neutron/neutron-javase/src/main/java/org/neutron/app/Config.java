@@ -62,6 +62,8 @@ public class Config {
 
 	private static XMLElement configXml = new XMLElement();
 
+	private static boolean fullscreen = false;
+
 	private static DeviceEntry defaultDevice;
 
 	private static EmulatorContext emulatorContext;
@@ -664,18 +666,11 @@ public class Config {
 	}
 
 	public static boolean isFullscreen() {
-		XMLElement optionsXml = configXml.getChild("options");
-		if (optionsXml == null) {
-			return false;
-		}
-		return Boolean.parseBoolean(optionsXml.getChildString("fullscreen", "false"));
+		return fullscreen;
 	}
 
 	public static void setFullscreen(boolean enabled) {
-		XMLElement optionsXml = configXml.getChildOrNew("options");
-		XMLElement fsXml = optionsXml.getChildOrNew("fullscreen");
-		fsXml.setContent(String.valueOf(enabled));
-		saveConfig();
+		fullscreen = enabled;
 	}
 
 	public static boolean isVirtualButtonsEnabled() {
