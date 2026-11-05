@@ -23,16 +23,11 @@ flowchart LR
 
 ---
 
-## Phase 1: Turbo Fast-Forward & Controller Support
-* **Target Modules:** `neutron-javase`, `neutron-javase-swing`
+## Phase 1: Turbo Fast-Forward & Controller Support (Pending User Redesign)
+* **Status:** Open for custom user implementation
 * **Goals:**
-  1. **Dynamic Engine Speed Multiplier (Turbo):**
-     - Extend `org.neutron.app.Config` with thread-safe `setTurbo(boolean active)` and `isTurboActive()`.
-     - Hook hotkey (hold `Tab` or `~` / menu toggle) in `Main.java` to dynamically accelerate game execution ($4.0\times$ speed) by reducing `sleep()` cycles in `MIDletThread`.
-     - Add visual indicator badge in `SwingStatusBar` (`[TURBO 4x]`).
-  2. **Modern Controller / Gamepad Input Mapping:**
-     - Implement standard gamepad/keyboard input bridge in `org.neutron.device.j2se`.
-     - Map standard D-pad, Analog Sticks, Action Buttons (A/B/X/Y), and Shoulder Triggers to standard J2ME keypad codes (`KEY_NUM2`, `KEY_NUM4`, `KEY_NUM6`, `KEY_NUM8`, `FIRE`, `SOFT_LEFT`, `SOFT_RIGHT`).
+  1. **Dynamic Engine Speed Multiplier (Turbo):** Custom user implementation.
+  2. **Modern Controller / Gamepad Input Mapping:** Custom user implementation.
 
 ---
 

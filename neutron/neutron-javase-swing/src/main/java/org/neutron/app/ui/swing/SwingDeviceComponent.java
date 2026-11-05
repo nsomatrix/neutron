@@ -446,11 +446,6 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 			return;
 		}
 
-		if (ev.getKeyCode() == KeyEvent.VK_TAB || ev.getKeyCode() == KeyEvent.VK_BACK_QUOTE) {
-			org.neutron.app.Config.setTurboMode(true);
-			return;
-		}
-
 		switch (ev.getKeyCode()) {
 		case KeyEvent.VK_ALT:
 		case KeyEvent.VK_CONTROL:
@@ -495,11 +490,6 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 			return;
 		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {
-			return;
-		}
-
-		if (ev.getKeyCode() == KeyEvent.VK_TAB || ev.getKeyCode() == KeyEvent.VK_BACK_QUOTE) {
-			org.neutron.app.Config.setTurboMode(false);
 			return;
 		}
 
