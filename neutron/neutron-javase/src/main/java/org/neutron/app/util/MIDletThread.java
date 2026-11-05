@@ -120,15 +120,13 @@ public class MIDletThread extends Thread {
 	
 	//TODO overrite run() in user Threads using ASM
 	public void run() {
-		 try {
+		try {
 			super.run();
 		} catch (Throwable e) {
-		    if (debug) {
-		        Logger.debug("MIDletThread throws", e);
-		    }
+			Logger.error("Uncaught exception in MIDlet thread [" + getName() + "]", e);
 		}
 		//Logger.debug("thread ends, created from " + callLocation);	
-	 }
+	}
 	
 	/**
 	 * Terminate all Threads created by MIDlet

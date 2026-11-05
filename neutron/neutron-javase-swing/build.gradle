@@ -7,6 +7,15 @@ targetCompatibility = 1.8
 dependencies {
     api project(':neutron:neutron-javase')
     implementation project(path: ':neutron:neutron-injected', configuration: 'inject')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-135')
+    implementation project(':neutron:neutron-extensions:neutron-nokiaui')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-75')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-120')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-82')
+    implementation project(':neutron:neutron-extensions:neutron-siemensapi')
+    implementation project(':neutron:neutron-extensions:neutron-device-large')
+    implementation project(':neutron:neutron-extensions:neutron-device-minimum')
+    implementation project(':neutron:neutron-extensions:neutron-device-resizable')
     implementation 'com.formdev:flatlaf:3.5.1'
     testImplementation 'junit:junit:4.12'
 }
@@ -18,13 +27,25 @@ applicationDefaultJvmArgs = [
 ]
 
 jar {
-    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar'
+    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar',
+              ':neutron:neutron-extensions:neutron-jsr-135:jar',
+              ':neutron:neutron-extensions:neutron-nokiaui:jar',
+              ':neutron:neutron-extensions:neutron-jsr-75:jar',
+              ':neutron:neutron-extensions:neutron-jsr-120:jar',
+              ':neutron:neutron-extensions:neutron-jsr-82:jar',
+              ':neutron:neutron-extensions:neutron-siemensapi:jar',
+              ':neutron:neutron-extensions:neutron-device-large:jar',
+              ':neutron:neutron-extensions:neutron-device-minimum:jar',
+              ':neutron:neutron-extensions:neutron-device-resizable:jar'
     manifest {
         attributes 'Main-Class': 'org.neutron.app.Main'
     }
     from {
         configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 

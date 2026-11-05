@@ -30,6 +30,15 @@ sourceSets {
 dependencies {
     api project(':neutron:neutron-javase')
     implementation project(path: ':neutron:neutron-injected', configuration: 'inject')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-135')
+    implementation project(':neutron:neutron-extensions:neutron-nokiaui')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-75')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-120')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-82')
+    implementation project(':neutron:neutron-extensions:neutron-siemensapi')
+    implementation project(':neutron:neutron-extensions:neutron-device-large')
+    implementation project(':neutron:neutron-extensions:neutron-device-minimum')
+    implementation project(':neutron:neutron-extensions:neutron-device-resizable')
     implementation 'org.tukaani:xz:1.9'
 }
 
@@ -45,7 +54,17 @@ application {
 }
 
 task rawJar(type: Jar) {
-    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar', ':neutron:neutron-injected:jar', compileJava, processResources
+    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar', ':neutron:neutron-injected:jar',
+              ':neutron:neutron-extensions:neutron-jsr-135:jar',
+              ':neutron:neutron-extensions:neutron-nokiaui:jar',
+              ':neutron:neutron-extensions:neutron-jsr-75:jar',
+              ':neutron:neutron-extensions:neutron-jsr-120:jar',
+              ':neutron:neutron-extensions:neutron-jsr-82:jar',
+              ':neutron:neutron-extensions:neutron-siemensapi:jar',
+              ':neutron:neutron-extensions:neutron-device-large:jar',
+              ':neutron:neutron-extensions:neutron-device-minimum:jar',
+              ':neutron:neutron-extensions:neutron-device-resizable:jar',
+              compileJava, processResources
     archiveBaseName = 'neutron-core-raw'
     destinationDirectory = file("${buildDir}/tmp/rawJar")
     entryCompression = ZipEntryCompression.STORED

@@ -23,9 +23,15 @@
  
 package org.neutron;
 
+import org.neutron.app.ui.DisplayRepaintListener;
+
 public interface DisplayComponent
 {
 
 	public void repaintRequest(int x, int y, int width, int height);
+
+	public void addDisplayRepaintListener(DisplayRepaintListener l);
+
+	public void removeDisplayRepaintListener(DisplayRepaintListener l);
 
 }

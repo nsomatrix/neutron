@@ -35,11 +35,9 @@ import javax.microedition.lcdui.Graphics;
 import javax.microedition.lcdui.Image;
 import javax.microedition.media.control.VideoControl;
 
+import org.neutron.DisplayComponent;
 import org.neutron.app.ui.DisplayRepaintListener;
-import org.neutron.app.ui.swing.SwingDisplayComponent;
 import org.neutron.device.impl.DeviceImpl;
-import org.neutron.device.j2se.J2SEDisplayGraphics;
-import org.neutron.device.j2se.J2SEGraphicsSurface;
 
 /**
  * Simulation video capture control that simulates capturing 
@@ -62,10 +60,36 @@ public class VideoCaptureControl implements VideoControl {
 	private int m_frameCounter = 0;
 	private RepaintThread m_repaintThread;
 	
+	private static java.lang.reflect.Constructor<?> s_displayGraphicsConstructor;
+	private static boolean s_displayGraphicsLookupAttempted = false;
+
+	private static synchronized java.lang.reflect.Constructor<?> getDisplayGraphicsConstructor() {
+		if (!s_displayGraphicsLookupAttempted) {
+			s_displayGraphicsLookupAttempted = true;
+			try {
+				Class<?> graphicsClass = Class.forName("org.neutron.device.j2se.J2SEDisplayGraphics");
+				Class<?> surfaceClass = Class.forName("org.neutron.device.j2se.J2SEGraphicsSurface");
+				s_displayGraphicsConstructor = graphicsClass.getConstructor(surfaceClass);
+			} catch (Throwable ignored) {
+				s_displayGraphicsConstructor = null;
+			}
+		}
+		return s_displayGraphicsConstructor;
+	}
+
 	private DisplayRepaintListener m_displayListener = new DisplayRepaintListener() {
 
 		public void repaintInvoked(Object repaintObject) {
-			Graphics g = new J2SEDisplayGraphics((J2SEGraphicsSurface) repaintObject);
+			java.lang.reflect.Constructor<?> cons = getDisplayGraphicsConstructor();
+			if (cons == null) {
+				return;
+			}
+			Graphics g = null;
+			try {
+				g = (Graphics) cons.newInstance(repaintObject);
+			} catch (Throwable t) {
+				return;
+			}
 			
 			m_frameCounter+=4;
 			// stop early so that we can still see the white text
@@ -234,8 +258,10 @@ public class VideoCaptureControl implements VideoControl {
 
 	private synchronized void doStartVideo() {
 		if (m_started && m_visible && m_canvas != null) {
-			SwingDisplayComponent dc = (SwingDisplayComponent) DeviceImpl.getEmulatorContext().getDisplayComponent();
-			dc.addDisplayRepaintListener(m_displayListener);
+			DisplayComponent dc = DeviceImpl.getEmulatorContext().getDisplayComponent();
+			if (dc != null) {
+				dc.addDisplayRepaintListener(m_displayListener);
+			}
 			m_repaintThread = new RepaintThread();
 			m_repaintThread.start();
 		}
@@ -255,8 +281,10 @@ public class VideoCaptureControl implements VideoControl {
 			return;
 		}
 		if (m_canvas != null) {
-			SwingDisplayComponent dc = (SwingDisplayComponent) DeviceImpl.getEmulatorContext().getDisplayComponent();
-			dc.removeDisplayRepaintListener(m_displayListener);
+			DisplayComponent dc = DeviceImpl.getEmulatorContext().getDisplayComponent();
+			if (dc != null) {
+				dc.removeDisplayRepaintListener(m_displayListener);
+			}
 			m_canvas.repaint();
 		}
 	}

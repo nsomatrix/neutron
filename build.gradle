@@ -2,6 +2,9 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'maven-publish'
 
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
     group = 'org.neutron'
     version = '1.3.0'
 
