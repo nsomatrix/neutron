@@ -325,6 +325,9 @@ public class Config {
 							result.width = rectangleXml.getChildInteger("width", -1);
 							result.height = rectangleXml.getChildInteger("height", -1);
 	
+							if (result.width > 800 || result.height > 800 || result.width < 64 || result.height < 64) {
+								return null;
+							}
 							return result;
 						}
 					}

@@ -866,46 +866,14 @@ public class Main extends JFrame {
 	};
 
 	private ComponentListener componentListener = new ComponentAdapter() {
-		Timer timer;
-
-		int count = 0;
-
 		public void componentResized(ComponentEvent e) {
-			count++;
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
-			if (deviceDisplay.isResizable()) {
-				javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
-				boolean isGameRunning = (current != null && !(current instanceof org.neutron.app.launcher.Launcher));
-
-				if (!isGameRunning) {
-					setDeviceSize(deviceDisplay, devicePanel.getWidth(), devicePanel.getHeight());
-					devicePanel.revalidate();
-					statusBarListener.statusBarChanged("New size: " + deviceDisplay.getFullWidth() + "x"
-							+ deviceDisplay.getFullHeight());
-				} else {
-					devicePanel.revalidate();
-					devicePanel.repaint();
-					statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
-							+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
-							+ deviceDisplay.getFullHeight() + ")");
-				}
-
-				synchronized (statusBarListener) {
-					if (timer == null) {
-						timer = new Timer();
-					}
-					timer.schedule(new CountTimerTask(count) {
-						public void run() {
-							if (counter == count) {
-								Config.setDeviceEntryDisplaySize(deviceEntry, new Rectangle(0, 0, devicePanel
-										.getWidth(), devicePanel.getHeight()));
-								statusBarListener.statusBarChanged("");
-								timer.cancel();
-								timer = null;
-							}
-						}
-					}, 2000);
-				}
+			if (deviceDisplay != null && deviceDisplay.isResizable()) {
+				devicePanel.revalidate();
+				devicePanel.repaint();
+				statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
+						+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
+						+ deviceDisplay.getFullHeight() + ")");
 			}
 		}
 	};
@@ -1083,34 +1051,6 @@ public class Main extends JFrame {
 		menuTerminateProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
 		menuTerminateProcess.addActionListener(menuCloseMidletListener);
 		menuFile.add(menuTerminateProcess);
-
-		final JMenu menuSwitchMidlet = new JMenu("Switch MIDlet...");
-		menuSwitchMidlet.addMenuListener(new MenuListener() {
-			public void menuSelected(MenuEvent e) {
-				menuSwitchMidlet.removeAll();
-				java.util.Vector entries = common != null ? common.getLoadedEntries() : null;
-				if (entries == null || entries.size() <= 1) {
-					JMenuItem emptyItem = new JMenuItem("No alternative MIDlets in suite");
-					emptyItem.setEnabled(false);
-					menuSwitchMidlet.add(emptyItem);
-				} else {
-					for (int i = 0; i < entries.size(); i++) {
-						final MIDletEntry entry = (MIDletEntry) entries.elementAt(i);
-						JMenuItem item = new JMenuItem((i + 1) + ". " + entry.getName());
-						item.addActionListener(new ActionListener() {
-							public void actionPerformed(ActionEvent ev) {
-								common.initMIDlet(true, entry);
-								Common.setStatusBar("Switched to MIDlet: " + entry.getName());
-							}
-						});
-						menuSwitchMidlet.add(item);
-					}
-				}
-			}
-			public void menuDeselected(MenuEvent e) {}
-			public void menuCanceled(MenuEvent e) {}
-		});
-		menuFile.add(menuSwitchMidlet);
 
 		menuFile.addSeparator();
 
@@ -1607,22 +1547,29 @@ public class Main extends JFrame {
 						if (statusBar != null) {
 							statusBar.setGameRunning(gameRunning);
 						}
-						if (gameRunning && Config.isAutoDetectResolutionEnabled()) {
-							Dimension origDim = common.getOriginalDisplaySize();
-							if (origDim != null && origDim.width >= 64 && origDim.height >= 64) {
-								DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
-								if (deviceDisplay != null && deviceDisplay.isResizable()) {
+						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+						if (deviceDisplay != null && deviceDisplay.isResizable()) {
+							if (gameRunning) {
+								Dimension origDim = common.getOriginalDisplaySize();
+								if (Config.isAutoDetectResolutionEnabled() && origDim != null && origDim.width >= 64 && origDim.height >= 64) {
 									if (deviceDisplay.getFullWidth() != origDim.width || deviceDisplay.getFullHeight() != origDim.height) {
-										devicePanel.setPreferredSize(new Dimension(origDim.width, origDim.height));
 										setDeviceSize(deviceDisplay, origDim.width, origDim.height);
-										pack();
-										devicePanel.setPreferredSize(null);
 										devicePanel.requestFocus();
 										Common.setStatusBar("Auto-detected resolution: " + origDim.width + "x" + origDim.height);
 									}
+								} else if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
+									setDeviceSize(deviceDisplay, 240, 320);
 								}
+							} else {
+								// Returning to launcher: clear surface and restore clean base mobile resolution
+								if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
+									setDeviceSize(deviceDisplay, 240, 320);
+								}
+								((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
 							}
 						}
+						devicePanel.revalidate();
+						devicePanel.repaint();
 					}
 				});
 			}
@@ -1979,10 +1926,10 @@ public class Main extends JFrame {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) device.getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
 				Rectangle size = Config.getDeviceEntryDisplaySize(entry);
-				if (size != null) {
+				if (size != null && size.width >= 64 && size.height >= 64 && size.width <= 800 && size.height <= 800) {
 				    setDeviceSize(deviceDisplay, size.width, size.height);
 				} else {
-					setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
+					setDeviceSize(deviceDisplay, 240, 320);
 				}
 			}
 			common.setDevice(device);
@@ -2190,10 +2137,10 @@ public class Main extends JFrame {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
 				Rectangle size = Config.getDeviceEntryDisplaySize(app.deviceEntry);
-				if (size != null) {
+				if (size != null && size.width >= 64 && size.height >= 64 && size.width <= 800 && size.height <= 800) {
 					app.setDeviceSize(deviceDisplay, size.width, size.height);
 				} else {
-					app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
+					app.setDeviceSize(deviceDisplay, 240, 320);
 				}
 			}
 		}

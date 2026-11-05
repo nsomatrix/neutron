@@ -509,6 +509,14 @@ public class Common implements Neutron, CommonInterface {
         } catch (Throwable e) {
             Message.error("Unable to destroy MIDlet, " + Message.getCauseMessage(e), e);
         }
+        try {
+            MIDletContext oldCtx = MIDletBridge.getMIDletContext();
+            if (oldCtx != null && !oldCtx.isLauncher()) {
+                destroyMIDletContext(oldCtx);
+            }
+        } catch (Throwable e) {
+            Logger.error("destroyMIDletContext error", e);
+        }
 
         MIDletContext context = new MIDletContext();
         MIDletBridge.setThreadMIDletContext(context);
@@ -562,6 +570,11 @@ public class Common implements Neutron, CommonInterface {
                 }
             } catch (Throwable e) {
                 Logger.error("destroyApp error", e);
+            }
+            try {
+                destroyMIDletContext(midletContext);
+            } catch (Throwable e) {
+                Logger.error("destroyMIDletContext error", e);
             }
 
             if (exitOnMIDletDestroy) {
