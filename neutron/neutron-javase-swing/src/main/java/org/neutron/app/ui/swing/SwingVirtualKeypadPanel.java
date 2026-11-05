@@ -26,8 +26,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -39,7 +37,9 @@ import org.neutron.device.impl.ButtonName;
 /**
  * On-screen virtual button board providing touch and mouse-driven controls
  * for all J2ME games (8-way D-Pad, Softkeys, and full 12-key numeric keypad).
- * Fully integrated with native Look-and-Feel / FlatLaf themes via UIManager.
+ * 
+ * Fully dynamic and responsive: scales seamlessly to any resolution (from 176x220,
+ * 240x320 up to 480x800+), never constraining or overriding the emulator's display size.
  */
 public class SwingVirtualKeypadPanel extends JPanel {
 
@@ -51,8 +51,8 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	private boolean isFullKeypadMode = false;
 
 	public SwingVirtualKeypadPanel() {
-		setLayout(new BorderLayout(8, 6));
-		setBorder(BorderFactory.createEmptyBorder(6, 10, 8, 10));
+		setLayout(new BorderLayout(6, 4));
+		setBorder(BorderFactory.createEmptyBorder(4, 6, 6, 6));
 
 		String initialMode = Config.getVirtualButtonsMode();
 		isFullKeypadMode = "full".equalsIgnoreCase(initialMode);
@@ -62,20 +62,34 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	@Override
+	public Dimension getPreferredSize() {
+		// Return 0 width so the keypad dynamically conforms to the emulator display's width
+		// without imposing a minimum width constraint that would prevent resolutions like 240x320.
+		int h = isFullKeypadMode ? 142 : 126;
+		return new Dimension(0, h);
+	}
+
+	@Override
+	public Dimension getMinimumSize() {
+		return new Dimension(0, 0);
+	}
+
+	@Override
 	public void updateUI() {
 		super.updateUI();
 		repaint();
 	}
 
 	private void initComponents() {
-		// Top Bar: Softkeys and mode switcher
-		JPanel topBar = new JPanel(new BorderLayout(12, 0));
+		// Top Bar: Softkeys and mode switcher evenly spaced via 1x3 GridLayout
+		JPanel topBar = new JPanel(new GridLayout(1, 3, 5, 0));
 		topBar.setOpaque(false);
+		topBar.setPreferredSize(new Dimension(0, 25));
 
-		VirtualKeyButton lskButton = new VirtualKeyButton(ButtonName.SOFT1, "LSK", "Menu", 74, 28);
-		VirtualKeyButton rskButton = new VirtualKeyButton(ButtonName.SOFT2, "RSK", "Back", 74, 28);
+		VirtualKeyButton lskButton = new VirtualKeyButton(ButtonName.SOFT1, "Menu", null);
+		VirtualKeyButton rskButton = new VirtualKeyButton(ButtonName.SOFT2, "Back", null);
 
-		modeToggleButton = new JButton(isFullKeypadMode ? "Mode: Full Keypad" : "Mode: Game Pad") {
+		modeToggleButton = new JButton(isFullKeypadMode ? "Full Keypad" : "Game Pad") {
 			@Override
 			protected void paintComponent(Graphics g) {
 				Graphics2D g2 = (Graphics2D) g.create();
@@ -86,12 +100,13 @@ public class SwingVirtualKeypadPanel extends JPanel {
 				Color text = getButtonForeground();
 
 				g2.setColor(fill);
-				g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
+				g2.fillRoundRect(0, 0, getWidth(), getHeight(), 8, 8);
 				g2.setColor(border);
-				g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
+				g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 8, 8);
 
 				g2.setColor(text);
-				g2.setFont(getFont().deriveFont(Font.BOLD, 10.5f));
+				float fontSize = Math.max(8.5f, Math.min(10.5f, getHeight() * 0.44f));
+				g2.setFont(getFont().deriveFont(Font.BOLD, fontSize));
 				FontMetrics fm = g2.getFontMetrics();
 				int tx = (getWidth() - fm.stringWidth(getText())) / 2;
 				int ty = (getHeight() - fm.getHeight()) / 2 + fm.getAscent();
@@ -99,7 +114,6 @@ public class SwingVirtualKeypadPanel extends JPanel {
 				g2.dispose();
 			}
 		};
-		modeToggleButton.setPreferredSize(new Dimension(130, 24));
 		modeToggleButton.setFocusable(false);
 		modeToggleButton.setContentAreaFilled(false);
 		modeToggleButton.setBorderPainted(false);
@@ -112,21 +126,18 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			}
 		});
 
-		topBar.add(lskButton, BorderLayout.WEST);
-		topBar.add(modeToggleButton, BorderLayout.CENTER);
-		topBar.add(rskButton, BorderLayout.EAST);
+		topBar.add(lskButton);
+		topBar.add(modeToggleButton);
+		topBar.add(rskButton);
 		add(topBar, BorderLayout.NORTH);
 
-		// Center body: Left is 8-Way D-Pad, Right is Action Cluster / Numeric Keypad
-		JPanel bodyPanel = new JPanel();
-		bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.X_AXIS));
+		// Center body: 50% Left (8-Way D-Pad), 50% Right (Action Cluster / Keypad)
+		JPanel bodyPanel = new JPanel(new GridLayout(1, 2, 6, 0));
 		bodyPanel.setOpaque(false);
 
 		// 1. 8-Way D-Pad Section
 		JPanel dpadPanel = createDPadPanel();
 		bodyPanel.add(dpadPanel);
-
-		bodyPanel.add(Box.createHorizontalStrut(14));
 
 		// 2. Right Section with CardLayout (Gamepad vs Full Keypad)
 		rightCardLayout = new CardLayout();
@@ -145,10 +156,10 @@ public class SwingVirtualKeypadPanel extends JPanel {
 
 	private void updateModeView() {
 		if (isFullKeypadMode) {
-			modeToggleButton.setText("Mode: Full Keypad");
+			modeToggleButton.setText("Full Keypad");
 			rightCardLayout.show(rightCardPanel, "full");
 		} else {
-			modeToggleButton.setText("Mode: Game Pad");
+			modeToggleButton.setText("Game Pad");
 			rightCardLayout.show(rightCardPanel, "gamepad");
 		}
 		revalidate();
@@ -156,28 +167,27 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	/**
-	 * Creates a complete 8-way D-Pad (Cardinals + Diagonals + Center OK/SELECT).
+	 * Creates a complete 8-way D-Pad (Cardinals + Diagonals + Center OK/SELECT)
+	 * dynamically fitting within a 3x3 responsive grid.
 	 */
 	private JPanel createDPadPanel() {
-		JPanel panel = new JPanel(new GridLayout(3, 3, 3, 3));
+		JPanel panel = new JPanel(new GridLayout(3, 3, 2, 2));
 		panel.setOpaque(false);
-		panel.setPreferredSize(new Dimension(135, 115));
-		panel.setMaximumSize(new Dimension(145, 125));
 
 		// Top row: Top-Left (↖), Up (▲), Top-Right (↗)
-		VirtualKeyButton upLeft = new VirtualKeyButton(new ButtonName[] { ButtonName.UP, ButtonName.LEFT }, "↖", null, 42, 36);
-		VirtualKeyButton up = new VirtualKeyButton(ButtonName.UP, "▲", null, 42, 36);
-		VirtualKeyButton upRight = new VirtualKeyButton(new ButtonName[] { ButtonName.UP, ButtonName.RIGHT }, "↗", null, 42, 36);
+		VirtualKeyButton upLeft = new VirtualKeyButton(new ButtonName[] { ButtonName.UP, ButtonName.LEFT }, "↖", null);
+		VirtualKeyButton up = new VirtualKeyButton(ButtonName.UP, "▲", null);
+		VirtualKeyButton upRight = new VirtualKeyButton(new ButtonName[] { ButtonName.UP, ButtonName.RIGHT }, "↗", null);
 
 		// Middle row: Left (◀), Center OK (OK), Right (▶)
-		VirtualKeyButton left = new VirtualKeyButton(ButtonName.LEFT, "◀", null, 42, 36);
-		VirtualKeyButton ok = new VirtualKeyButton(ButtonName.SELECT, "OK", null, 42, 36);
-		VirtualKeyButton right = new VirtualKeyButton(ButtonName.RIGHT, "▶", null, 42, 36);
+		VirtualKeyButton left = new VirtualKeyButton(ButtonName.LEFT, "◀", null);
+		VirtualKeyButton ok = new VirtualKeyButton(ButtonName.SELECT, "OK", null);
+		VirtualKeyButton right = new VirtualKeyButton(ButtonName.RIGHT, "▶", null);
 
 		// Bottom row: Bottom-Left (↙), Down (▼), Bottom-Right (↘)
-		VirtualKeyButton downLeft = new VirtualKeyButton(new ButtonName[] { ButtonName.DOWN, ButtonName.LEFT }, "↙", null, 42, 36);
-		VirtualKeyButton down = new VirtualKeyButton(ButtonName.DOWN, "▼", null, 42, 36);
-		VirtualKeyButton downRight = new VirtualKeyButton(new ButtonName[] { ButtonName.DOWN, ButtonName.RIGHT }, "↘", null, 42, 36);
+		VirtualKeyButton downLeft = new VirtualKeyButton(new ButtonName[] { ButtonName.DOWN, ButtonName.LEFT }, "↙", null);
+		VirtualKeyButton down = new VirtualKeyButton(ButtonName.DOWN, "▼", null);
+		VirtualKeyButton downRight = new VirtualKeyButton(new ButtonName[] { ButtonName.DOWN, ButtonName.RIGHT }, "↘", null);
 
 		panel.add(upLeft);
 		panel.add(up);
@@ -195,18 +205,16 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	/**
-	 * Creates a sleek action cluster for arcade/action games (Key 5, Clear, *, #).
+	 * Creates a responsive action cluster for arcade/action games (Key 5, Clear, *, #).
 	 */
 	private JPanel createGamepadActionPanel() {
-		JPanel panel = new JPanel(new GridLayout(2, 2, 4, 4));
+		JPanel panel = new JPanel(new GridLayout(2, 2, 3, 3));
 		panel.setOpaque(false);
-		panel.setPreferredSize(new Dimension(135, 115));
-		panel.setMaximumSize(new Dimension(150, 125));
 
-		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "Action", 56, 44);
-		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "C", "Del", 56, 44);
-		VirtualKeyButton star = new VirtualKeyButton(ButtonName.KEY_STAR, "*", null, 56, 44);
-		VirtualKeyButton pound = new VirtualKeyButton(ButtonName.KEY_POUND, "#", null, 56, 44);
+		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "Action");
+		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "C", "Del");
+		VirtualKeyButton star = new VirtualKeyButton(ButtonName.KEY_STAR, "*", null);
+		VirtualKeyButton pound = new VirtualKeyButton(ButtonName.KEY_POUND, "#", null);
 
 		panel.add(key5);
 		panel.add(clear);
@@ -220,33 +228,34 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	 * Creates the complete 3x4 mobile phone numeric keypad (1-9, *, 0, #) + Clear.
 	 */
 	private JPanel createFullKeypadPanel() {
-		JPanel wrapper = new JPanel(new BorderLayout(4, 0));
+		JPanel wrapper = new JPanel(new BorderLayout(3, 0));
 		wrapper.setOpaque(false);
 
-		JPanel grid = new JPanel(new GridLayout(4, 3, 3, 3));
+		JPanel grid = new JPanel(new GridLayout(4, 3, 2, 2));
 		grid.setOpaque(false);
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM1, "1", null, 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM2, "2", "ABC", 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM3, "3", "DEF", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM1, "1", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM2, "2", "ABC"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM3, "3", "DEF"));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM4, "4", "GHI", 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "JKL", 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM6, "6", "MNO", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM4, "4", "GHI"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "JKL"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM6, "6", "MNO"));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM7, "7", "PQRS", 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM8, "8", "TUV", 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM9, "9", "WXYZ", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM7, "7", "PQRS"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM8, "8", "TUV"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM9, "9", "WXYZ"));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_STAR, "*", null, 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM0, "0", "+", 38, 26));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_POUND, "#", null, 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_STAR, "*", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM0, "0", "+"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_POUND, "#", null));
 
 		wrapper.add(grid, BorderLayout.CENTER);
 
-		JPanel sideBar = new JPanel(new GridLayout(2, 1, 0, 3));
+		JPanel sideBar = new JPanel(new GridLayout(2, 1, 0, 2));
 		sideBar.setOpaque(false);
-		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "C", "Del", 34, 46));
+		sideBar.setPreferredSize(new Dimension(28, 0));
+		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "C", "Del"));
 		wrapper.add(sideBar, BorderLayout.EAST);
 
 		return wrapper;
@@ -364,7 +373,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 
 	/**
 	 * An individual virtual key button with tactile click response and repeat support.
-	 * Can trigger single or compound (diagonal) ButtonName actions.
+	 * Dynamically sizes and scales fonts based on current component bounds.
 	 */
 	public static class VirtualKeyButton extends JComponent {
 
@@ -377,23 +386,24 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		private boolean isHovered = false;
 		private Timer repeatTimer;
 
-		public VirtualKeyButton(final ButtonName buttonName, String primaryLabel, String subLabel,
-				int prefWidth, int prefHeight) {
-			this(new ButtonName[] { buttonName }, primaryLabel, subLabel, prefWidth, prefHeight);
+		public VirtualKeyButton(final ButtonName buttonName, String primaryLabel, String subLabel) {
+			this(new ButtonName[] { buttonName }, primaryLabel, subLabel);
 		}
 
-		public VirtualKeyButton(final ButtonName[] targetButtons, String primaryLabel, String subLabel,
-				int prefWidth, int prefHeight) {
+		public VirtualKeyButton(final ButtonName[] targetButtons, String primaryLabel, String subLabel) {
 			this.targetButtons = targetButtons;
 			this.primaryLabel = primaryLabel;
 			this.subLabel = subLabel;
 
-			setPreferredSize(new Dimension(prefWidth, prefHeight));
-			setMinimumSize(new Dimension(prefWidth - 6, prefHeight - 4));
 			setFocusable(false);
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
 			initMouseListener();
+		}
+
+		@Override
+		public Dimension getMinimumSize() {
+			return new Dimension(0, 0);
 		}
 
 		@Override
@@ -471,7 +481,12 @@ public class SwingVirtualKeypadPanel extends JPanel {
 
 			int w = getWidth();
 			int h = getHeight();
-			int arc = 10;
+			if (w <= 0 || h <= 0) {
+				g2.dispose();
+				return;
+			}
+
+			int arc = Math.max(6, Math.min(10, h / 3));
 
 			// Resolve colors dynamically from native Look-and-Feel UIManager
 			Color fillColor;
@@ -494,26 +509,30 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			g2.setColor(borderColor);
 			g2.drawRoundRect(1, 1 + yOffset, w - 3, h - 3 - yOffset, arc, arc);
 
-			// Draw text labels
+			// Draw text labels with dynamically scaled font sizes
 			g2.setColor(textColor);
 			if (subLabel != null && !subLabel.isEmpty()) {
 				// Primary label
-				g2.setFont(getFont().deriveFont(Font.BOLD, 11.5f));
+				float fontSize = Math.max(9.0f, Math.min(12.0f, h * 0.40f));
+				g2.setFont(getFont().deriveFont(Font.BOLD, fontSize));
 				FontMetrics fmPrimary = g2.getFontMetrics();
 				int px = (w - fmPrimary.stringWidth(primaryLabel)) / 2;
-				int py = (h / 2) + yOffset;
+				int py = (h * 42 / 100) + yOffset;
 				g2.drawString(primaryLabel, px, py);
 
 				// Subtitle label (smaller text matching disabled/secondary text)
-				g2.setFont(getFont().deriveFont(Font.PLAIN, 8.5f));
+				float subFontSize = Math.max(7.5f, Math.min(9.5f, h * 0.28f));
+				g2.setFont(getFont().deriveFont(Font.PLAIN, subFontSize));
 				g2.setColor(getSubLabelColor());
 				FontMetrics fmSub = g2.getFontMetrics();
 				int sx = (w - fmSub.stringWidth(subLabel)) / 2;
-				int sy = (h / 2) + fmSub.getAscent() + yOffset;
+				int sy = py + fmSub.getAscent() + 1;
 				g2.drawString(subLabel, sx, sy);
 			} else {
 				// Single centered primary label
-				float fontSize = (primaryLabel.length() > 3) ? 10.5f : 13.0f;
+				float fontSize = (primaryLabel.length() > 3) 
+						? Math.max(8.5f, Math.min(11.0f, h * 0.36f))
+						: Math.max(9.5f, Math.min(13.5f, h * 0.44f));
 				g2.setFont(getFont().deriveFont(Font.BOLD, fontSize));
 				FontMetrics fm = g2.getFontMetrics();
 				int x = (w - fm.stringWidth(primaryLabel)) / 2;

@@ -63,7 +63,7 @@ public class SwingVirtualKeypadPanelTest {
 	@Test
 	public void testDiagonalButtonCreation() {
 		SwingVirtualKeypadPanel.VirtualKeyButton diagonalBtn = new SwingVirtualKeypadPanel.VirtualKeyButton(
-				new ButtonName[] { ButtonName.UP, ButtonName.LEFT }, "↖", null, 40, 36);
+				new ButtonName[] { ButtonName.UP, ButtonName.LEFT }, "↖", null);
 		Assert.assertNotNull(diagonalBtn);
 		Assert.assertFalse("Button should not steal focus", diagonalBtn.isFocusable());
 	}

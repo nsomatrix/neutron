@@ -1579,9 +1579,12 @@ public class Main extends JFrame {
 				resizeDeviceDisplayDialog.setDeviceDisplaySize(deviceDisplay.getFullWidth(), deviceDisplay
 						.getFullHeight());
 				if (SwingDialogWindow.show(Main.this, "Enter new size...", resizeDeviceDisplayDialog, true)) {
-					devicePanel.setPreferredSize(null);
-				    setDeviceSize(deviceDisplay, resizeDeviceDisplayDialog.getDeviceDisplayWidth(), resizeDeviceDisplayDialog.getDeviceDisplayHeight());
+					int targetW = resizeDeviceDisplayDialog.getDeviceDisplayWidth();
+					int targetH = resizeDeviceDisplayDialog.getDeviceDisplayHeight();
+					devicePanel.setPreferredSize(new Dimension(targetW, targetH));
+				    setDeviceSize(deviceDisplay, targetW, targetH);
 					pack();
+					devicePanel.setPreferredSize(null);
 					devicePanel.requestFocus();
 				}
 			}
@@ -1765,12 +1768,20 @@ public class Main extends JFrame {
 
 	public void setVirtualButtonsVisible(boolean visible) {
 		if (virtualKeypadPanel != null) {
+			Device dev = DeviceFactory.getDevice();
+			if (dev != null && dev.getDeviceDisplay() != null) {
+				DeviceDisplayImpl dd = (DeviceDisplayImpl) dev.getDeviceDisplay();
+				int currentW = dd.getFullWidth();
+				int currentH = dd.getFullHeight();
+				devicePanel.setPreferredSize(new Dimension(currentW, currentH));
+			}
 			virtualKeypadPanel.setVisible(visible);
 			if (menuVirtualButtons != null) {
 				menuVirtualButtons.setSelected(visible);
 			}
 			revalidate();
 			pack();
+			devicePanel.setPreferredSize(null);
 			if (devicePanel != null) {
 				devicePanel.requestFocus();
 			}
