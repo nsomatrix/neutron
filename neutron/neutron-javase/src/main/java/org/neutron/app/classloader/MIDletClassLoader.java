@@ -306,6 +306,12 @@ public class MIDletClassLoader extends URLClassLoader {
 		if (className.startsWith("com.nokia.mid.")) {
 			return true;
 		}
+		if (className.startsWith("com.mascotcapsule.")) {
+			return true;
+		}
+		if (className.startsWith("com.siemens.mp.")) {
+			return true;
+		}
 		if (className.startsWith("javax.")) {
 			return true;
 		}

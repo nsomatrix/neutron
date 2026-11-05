@@ -20,6 +20,7 @@ include 'neutron:neutron-extensions:neutron-jsr-75'
 include 'neutron:neutron-extensions:neutron-jsr-82'
 include 'neutron:neutron-extensions:neutron-nokiaui'
 include 'neutron:neutron-extensions:neutron-siemensapi'
+include 'neutron:neutron-extensions:neutron-micro3d'
 include 'neutron:neutron-injected'
 
 include 'neutron:neutron-javase'

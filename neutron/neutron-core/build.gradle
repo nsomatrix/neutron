@@ -37,6 +37,7 @@ dependencies {
     implementation project(':neutron:neutron-extensions:neutron-jsr-120')
     implementation project(':neutron:neutron-extensions:neutron-jsr-82')
     implementation project(':neutron:neutron-extensions:neutron-siemensapi')
+    implementation project(':neutron:neutron-extensions:neutron-micro3d')
     implementation project(':neutron:neutron-extensions:neutron-device-large')
     implementation project(':neutron:neutron-extensions:neutron-device-minimum')
     implementation project(':neutron:neutron-extensions:neutron-device-resizable')
@@ -63,6 +64,7 @@ task rawJar(type: Jar) {
               ':neutron:neutron-extensions:neutron-jsr-120:jar',
               ':neutron:neutron-extensions:neutron-jsr-82:jar',
               ':neutron:neutron-extensions:neutron-siemensapi:jar',
+              ':neutron:neutron-extensions:neutron-micro3d:jar',
               ':neutron:neutron-extensions:neutron-device-large:jar',
               ':neutron:neutron-extensions:neutron-device-minimum:jar',
               ':neutron:neutron-extensions:neutron-device-resizable:jar',
