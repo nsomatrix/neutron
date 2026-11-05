@@ -211,8 +211,8 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		JPanel panel = new JPanel(new GridLayout(2, 2, 3, 3));
 		panel.setOpaque(false);
 
-		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "Action");
-		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "C", "Del");
+		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "Action", null);
+		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "Del", null);
 		VirtualKeyButton star = new VirtualKeyButton(ButtonName.KEY_STAR, "*", null);
 		VirtualKeyButton pound = new VirtualKeyButton(ButtonName.KEY_POUND, "#", null);
 
@@ -255,7 +255,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		JPanel sideBar = new JPanel(new GridLayout(2, 1, 0, 2));
 		sideBar.setOpaque(false);
 		sideBar.setPreferredSize(new Dimension(28, 0));
-		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "C", "Del"));
+		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "Del", null));
 		wrapper.add(sideBar, BorderLayout.EAST);
 
 		return wrapper;
