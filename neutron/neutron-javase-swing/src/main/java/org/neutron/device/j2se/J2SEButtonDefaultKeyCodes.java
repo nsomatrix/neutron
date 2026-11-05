@@ -72,13 +72,13 @@ public class J2SEButtonDefaultKeyCodes {
 	}
 
 	static {
-		code(ButtonName.SOFT1, KeyEvent.VK_F1);
-		code(ButtonName.SOFT2, KeyEvent.VK_F2);
-		code(ButtonName.SELECT, KeyEvent.VK_ENTER);
-		code(ButtonName.UP, KeyEvent.VK_UP, KeyEvent.VK_KP_UP);
-		code(ButtonName.DOWN, KeyEvent.VK_DOWN, KeyEvent.VK_KP_DOWN);
-		code(ButtonName.LEFT, KeyEvent.VK_LEFT, KeyEvent.VK_KP_LEFT);
-		code(ButtonName.RIGHT, KeyEvent.VK_RIGHT, KeyEvent.VK_KP_RIGHT);
+		code(ButtonName.SOFT1, KeyEvent.VK_F1, KeyEvent.VK_Q, KeyEvent.VK_J);
+		code(ButtonName.SOFT2, KeyEvent.VK_F2, KeyEvent.VK_E, KeyEvent.VK_K);
+		code(ButtonName.SELECT, KeyEvent.VK_ENTER, KeyEvent.VK_SPACE, KeyEvent.VK_Z);
+		code(ButtonName.UP, KeyEvent.VK_UP, KeyEvent.VK_KP_UP, KeyEvent.VK_W);
+		code(ButtonName.DOWN, KeyEvent.VK_DOWN, KeyEvent.VK_KP_DOWN, KeyEvent.VK_S);
+		code(ButtonName.LEFT, KeyEvent.VK_LEFT, KeyEvent.VK_KP_LEFT, KeyEvent.VK_A);
+		code(ButtonName.RIGHT, KeyEvent.VK_RIGHT, KeyEvent.VK_KP_RIGHT, KeyEvent.VK_D);
 
 		// code(ButtonName.BACK, KeyEvent.VK_HOME);
 		code(ButtonName.BACK_SPACE, KeyEvent.VK_BACK_SPACE);
@@ -98,19 +98,13 @@ public class J2SEButtonDefaultKeyCodes {
 		code(ButtonName.KEY_POUND, KeyEvent.VK_MODECHANGE, KeyEvent.VK_SUBTRACT).charCodes = "#";
 	}
 
-	private static KeyInformation code(ButtonName name, int code) {
+	private static KeyInformation code(ButtonName name, int... keyCodes) {
 		KeyInformation info = new KeyInformation();
-		info.keyCodes = new int[] { code };
+		info.keyCodes = keyCodes;
 		codes.put(name, info);
-		backwardCompatibleNames.put(new Integer(code), name);
-		return info;
-	}
-
-	private static KeyInformation code(ButtonName name, int code1, int code2) {
-		KeyInformation info = new KeyInformation();
-		info.keyCodes = new int[] { code1, code2 };
-		codes.put(name, info);
-		backwardCompatibleNames.put(new Integer(code1), name);
+		for (int i = 0; i < keyCodes.length; i++) {
+			backwardCompatibleNames.put(new Integer(keyCodes[i]), name);
+		}
 		return info;
 	}
 

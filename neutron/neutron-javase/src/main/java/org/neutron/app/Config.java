@@ -735,7 +735,32 @@ public class Config {
 		notifyConfigChanged("FPS Limit", maxFps);
 	}
 
+	private static volatile boolean turboMode = false;
+	private static volatile double turboMultiplier = 4.0;
+
+	public static boolean isTurboMode() {
+		return turboMode;
+	}
+
+	public static void setTurboMode(boolean turbo) {
+		if (turboMode != turbo) {
+			turboMode = turbo;
+			notifyConfigChanged("Turbo Mode", turbo ? (turboMultiplier + "x") : "Off");
+		}
+	}
+
+	public static void setTurboMultiplier(double multiplier) {
+		turboMultiplier = multiplier;
+	}
+
+	public static double getTurboMultiplier() {
+		return turboMultiplier;
+	}
+
 	public static double getSpeedMultiplier() {
+		if (turboMode) {
+			return turboMultiplier;
+		}
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
 			return 1.0;

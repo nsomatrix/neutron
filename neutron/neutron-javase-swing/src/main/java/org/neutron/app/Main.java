@@ -1215,7 +1215,7 @@ public class Main extends JFrame {
 		menuFilter = new JMenu("Graphics Filter");
 		ButtonGroup filterGroup = new ButtonGroup();
 		String[] filters = {
-			"Nearest Neighbor", "Bilinear", "Bicubic", "Scale2x", "CRT Scanlines", "LCD Grid"
+			"Nearest Neighbor", "Bilinear", "Bicubic", "xBRZ 2x", "xBRZ 3x", "xBRZ 4x", "xBRZ 5x", "xBRZ 6x", "Scale2x", "CRT Scanlines", "LCD Grid"
 		};
 		String currentFilter = Config.getGraphicsFilter();
 		for (final String filterName : filters) {

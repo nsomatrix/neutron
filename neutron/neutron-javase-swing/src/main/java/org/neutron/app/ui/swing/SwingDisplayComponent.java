@@ -453,6 +453,26 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		return scale2xCacheImage;
 	}
 
+	private BufferedImage xbrzCacheImage;
+	private int[] xbrzCacheData;
+	private int xbrzCachedFactor = 0;
+
+	BufferedImage getXbrzImage(BufferedImage src, int[] srcData, int factor) {
+		int width = src.getWidth();
+		int height = src.getHeight();
+		int destWidth = width * factor;
+		int destHeight = height * factor;
+
+		if (xbrzCacheImage == null || xbrzCacheImage.getWidth() != destWidth || xbrzCacheImage.getHeight() != destHeight || xbrzCachedFactor != factor) {
+			xbrzCacheImage = new BufferedImage(destWidth, destHeight, getCompatibleImageType(src));
+			xbrzCacheData = ((java.awt.image.DataBufferInt) xbrzCacheImage.getRaster().getDataBuffer()).getData();
+			xbrzCachedFactor = factor;
+		}
+
+		org.neutron.app.ui.filter.XBRZ.scale(factor, srcData, xbrzCacheData, width, height);
+		return xbrzCacheImage;
+	}
+
 	private void applyColorAdjustments(int[] srcPixels, int[] destPixels, int length, 
 	                                  int brightness, int contrastVal, float gamma, int saturationVal, boolean invert) {
 		float contrast = contrastVal / 100.0f;
@@ -548,6 +568,14 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 					if ("Scale2x".equals(filter)) {
 						currentImg = getScale2xImage(currentImg, currentData);
 						currentData = scale2xCacheData;
+					} else if (filter != null && filter.startsWith("xBRZ")) {
+						int factor = 2;
+						if ("xBRZ 3x".equals(filter)) factor = 3;
+						else if ("xBRZ 4x".equals(filter)) factor = 4;
+						else if ("xBRZ 5x".equals(filter)) factor = 5;
+						else if ("xBRZ 6x".equals(filter)) factor = 6;
+						currentImg = getXbrzImage(currentImg, currentData, factor);
+						currentData = xbrzCacheData;
 					}
 
 					int brightness = Config.getBrightness();

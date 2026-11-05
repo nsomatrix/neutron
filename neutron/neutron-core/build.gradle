@@ -31,6 +31,7 @@ dependencies {
     api project(':neutron:neutron-javase')
     implementation project(path: ':neutron:neutron-injected', configuration: 'inject')
     implementation project(':neutron:neutron-extensions:neutron-jsr-135')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-184')
     implementation project(':neutron:neutron-extensions:neutron-nokiaui')
     implementation project(':neutron:neutron-extensions:neutron-jsr-75')
     implementation project(':neutron:neutron-extensions:neutron-jsr-120')
@@ -56,6 +57,7 @@ application {
 task rawJar(type: Jar) {
     dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar', ':neutron:neutron-injected:jar',
               ':neutron:neutron-extensions:neutron-jsr-135:jar',
+              ':neutron:neutron-extensions:neutron-jsr-184:jar',
               ':neutron:neutron-extensions:neutron-nokiaui:jar',
               ':neutron:neutron-extensions:neutron-jsr-75:jar',
               ':neutron:neutron-extensions:neutron-jsr-120:jar',
