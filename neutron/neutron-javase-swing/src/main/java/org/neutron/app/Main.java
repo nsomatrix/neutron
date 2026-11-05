@@ -679,6 +679,14 @@ public class Main extends JFrame {
 				Config.setWindow("scaledDisplay", new Rectangle(scaledDisplayFrame.getX(), scaledDisplayFrame.getY(),
 						0, 0), false);
 			}
+			boolean isMaximized = (Main.this.getExtendedState() & (JFrame.MAXIMIZED_BOTH | JFrame.ICONIFIED)) != 0;
+			boolean isFullscreen = Config.isFullscreen();
+			javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
+			boolean isGameRunning = (current != null && !(current instanceof org.neutron.app.launcher.Launcher));
+
+			if (!isGameRunning && !isMaximized && !isFullscreen && deviceEntry != null && devicePanel != null && devicePanel.getWidth() >= 64 && devicePanel.getHeight() >= 64) {
+				Config.setDeviceEntryDisplaySize(deviceEntry, new Rectangle(0, 0, devicePanel.getWidth(), devicePanel.getHeight()));
+			}
 			Config.setWindow("main", new Rectangle(Main.this.getX(), Main.this.getY(), Main.this.getWidth(), Main.this
 					.getHeight()), true);
 
@@ -861,14 +869,18 @@ public class Main extends JFrame {
 		}
 	};
 
+	private javax.swing.Timer resizeDebounceTimer = null;
+
 	private ComponentListener componentListener = new ComponentAdapter() {
 		public void componentResized(ComponentEvent e) {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay != null && deviceDisplay.isResizable()) {
+				boolean isMaximized = (getExtendedState() & (JFrame.MAXIMIZED_BOTH | JFrame.ICONIFIED)) != 0;
+				boolean isFullscreen = Config.isFullscreen();
 				javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
 				boolean isGameRunning = (current != null && !(current instanceof org.neutron.app.launcher.Launcher));
 
-				if (!isGameRunning) {
+				if (!isGameRunning && !isMaximized && !isFullscreen) {
 					int newW = devicePanel.getWidth();
 					int newH = devicePanel.getHeight();
 					if (newW >= 64 && newH >= 64 && (newW != deviceDisplay.getFullWidth() || newH != deviceDisplay.getFullHeight())) {
@@ -878,6 +890,19 @@ public class Main extends JFrame {
 						statusBarListener.statusBarChanged("New size: " + deviceDisplay.getFullWidth() + "x"
 								+ deviceDisplay.getFullHeight());
 					}
+
+					if (resizeDebounceTimer == null) {
+						resizeDebounceTimer = new javax.swing.Timer(1500, new ActionListener() {
+							public void actionPerformed(ActionEvent evt) {
+								if (deviceEntry != null && devicePanel != null && devicePanel.getWidth() >= 64 && devicePanel.getHeight() >= 64) {
+									Config.setDeviceEntryDisplaySize(deviceEntry, new Rectangle(0, 0, devicePanel.getWidth(), devicePanel.getHeight()));
+								}
+								statusBarListener.statusBarChanged("");
+							}
+						});
+						resizeDebounceTimer.setRepeats(false);
+					}
+					resizeDebounceTimer.restart();
 				} else {
 					devicePanel.revalidate();
 					devicePanel.repaint();
@@ -1584,6 +1609,9 @@ public class Main extends JFrame {
 					devicePanel.setPreferredSize(new Dimension(targetW, targetH));
 				    setDeviceSize(deviceDisplay, targetW, targetH);
 					pack();
+					if (deviceEntry != null) {
+						Config.setDeviceEntryDisplaySize(deviceEntry, new Rectangle(0, 0, targetW, targetH));
+					}
 					devicePanel.setPreferredSize(null);
 					devicePanel.requestFocus();
 				}
@@ -1911,10 +1939,10 @@ public class Main extends JFrame {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) device.getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
 				Rectangle size = Config.getDeviceEntryDisplaySize(entry);
-				if (size != null && size.width >= 64 && size.height >= 64 && size.width <= 800 && size.height <= 800) {
+				if (size != null && size.width >= 64 && size.height >= 64) {
 				    setDeviceSize(deviceDisplay, size.width, size.height);
 				} else {
-					setDeviceSize(deviceDisplay, 240, 320);
+					setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 				}
 			}
 			common.setDevice(device);
@@ -2122,10 +2150,10 @@ public class Main extends JFrame {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay.isResizable()) {
 				Rectangle size = Config.getDeviceEntryDisplaySize(app.deviceEntry);
-				if (size != null && size.width >= 64 && size.height >= 64 && size.width <= 800 && size.height <= 800) {
+				if (size != null && size.width >= 64 && size.height >= 64) {
 					app.setDeviceSize(deviceDisplay, size.width, size.height);
 				} else {
-					app.setDeviceSize(deviceDisplay, 240, 320);
+					app.setDeviceSize(deviceDisplay, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 				}
 			}
 		}
@@ -2176,16 +2204,6 @@ public class Main extends JFrame {
 			}
 		}
 		return list;
-	}
-
-	private abstract class CountTimerTask extends TimerTask {
-
-		protected int counter;
-
-		public CountTimerTask(int counter) {
-			this.counter = counter;
-		}
-
 	}
 
 }
