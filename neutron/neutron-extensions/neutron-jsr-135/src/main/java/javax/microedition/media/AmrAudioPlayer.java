@@ -414,9 +414,12 @@ public class AmrAudioPlayer implements Player, VolumeControl, LineListener {
 		if (state == CLOSED) {
 			throw new IllegalStateException("Player is closed");
 		}
+		if (count == 0 || count < -1) {
+			throw new IllegalArgumentException("Invalid loop count: " + count);
+		}
 		this.loopCount = count;
 		if (clip != null) {
-			clip.loop(count);
+			clip.loop(count == -1 ? Clip.LOOP_CONTINUOUSLY : (count - 1));
 		}
 	}
 

@@ -155,8 +155,13 @@ class MidiAudioPlayer implements Player, MetaEventListener
 	   }
 	}
 
+	private final J2SEVolumeControl volumeControl = new J2SEVolumeControl();
+
 	public void setLoopCount(int count) 
 	{
+		if (count == 0 || count < -1) {
+			throw new IllegalArgumentException("Invalid loop count: " + count);
+		}
 		iLoopCount = count;
 	}
 
@@ -185,16 +190,15 @@ class MidiAudioPlayer implements Player, MetaEventListener
 	}
 
 	public Control getControl(String controlType) {
-	    if ("VolumeControl".equals(controlType)) {
-	        return new J2SEVolumeControl();
-	    }
+		if ("VolumeControl".equals(controlType) || "javax.microedition.media.control.VolumeControl".equals(controlType)) {
+			return volumeControl;
+		}
 
 		return null;
 	}
 
 	public Control[] getControls() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Control[] { volumeControl };
 	}
 
     public void meta( MetaMessage event )

@@ -96,13 +96,14 @@ public class Graphics3D {
 		if (target == null) return;
 
 		// Blit rendered pixels back to target Graphics or Image
+		int offset = vpY * targetWidth + vpX;
 		if (target instanceof Graphics) {
 			Graphics g = (Graphics) target;
-			g.drawRGB(targetPixels, 0, targetWidth, vpX, vpY, vpWidth, vpHeight, true);
+			g.drawRGB(targetPixels, offset, targetWidth, vpX, vpY, vpWidth, vpHeight, true);
 		} else if (target instanceof Image) {
 			Image img = (Image) target;
 			Graphics g = img.getGraphics();
-			g.drawRGB(targetPixels, 0, targetWidth, vpX, vpY, vpWidth, vpHeight, true);
+			g.drawRGB(targetPixels, offset, targetWidth, vpX, vpY, vpWidth, vpHeight, true);
 		}
 
 		this.target = null;
@@ -194,16 +195,33 @@ public class Graphics3D {
 		int clearColor = 0x00000000;
 		if (background != null) {
 			clearColor = background.getColor();
-			if (background.isColorClearEnabled()) {
-				java.util.Arrays.fill(targetPixels, clearColor);
+		}
+		boolean clearColorEnabled = (background == null || background.isColorClearEnabled());
+		boolean clearDepthEnabled = depthBuffer != null && (background == null || background.isDepthClearEnabled());
+
+		if (vpX == 0 && vpY == 0 && vpWidth == targetWidth && vpHeight == targetHeight) {
+			int total = targetWidth * targetHeight;
+			if (clearColorEnabled) {
+				java.util.Arrays.fill(targetPixels, 0, total, clearColor);
 			}
-			if (background.isDepthClearEnabled() && depthBuffer != null) {
-				java.util.Arrays.fill(depthBuffer, 1.0f);
+			if (clearDepthEnabled) {
+				java.util.Arrays.fill(depthBuffer, 0, total, 1.0f);
 			}
 		} else {
-			java.util.Arrays.fill(targetPixels, 0);
-			if (depthBuffer != null) {
-				java.util.Arrays.fill(depthBuffer, 1.0f);
+			int maxY = Math.min(vpY + vpHeight, targetHeight);
+			int startX = Math.max(0, vpX);
+			int scanW = Math.min(vpWidth, targetWidth - startX);
+			if (scanW > 0) {
+				for (int y = Math.max(0, vpY); y < maxY; y++) {
+					int start = y * targetWidth + startX;
+					int end = start + scanW;
+					if (clearColorEnabled) {
+						java.util.Arrays.fill(targetPixels, start, end, clearColor);
+					}
+					if (clearDepthEnabled) {
+						java.util.Arrays.fill(depthBuffer, start, end, 1.0f);
+					}
+				}
 			}
 		}
 	}

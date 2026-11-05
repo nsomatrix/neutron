@@ -167,8 +167,11 @@ class SampledAudioPlayer implements Player, LineListener
 	}
 
 	public void setLoopCount(int count) {
+		if (count == 0 || count < -1) {
+			throw new IllegalArgumentException("Invalid loop count: " + count);
+		}
 		if( clip != null )
-			clip.loop( count );
+			clip.loop( count == -1 ? Clip.LOOP_CONTINUOUSLY : (count - 1) );
 	}
 
 	public long setMediaTime(long now) throws MediaException {

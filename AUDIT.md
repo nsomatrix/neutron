@@ -1,9 +1,9 @@
 # NEUTRON EMULATOR — EXHAUSTIVE REPOSITORY AUDIT REPORT
 
-> **Document Version:** 1.0.0-BASELINE  
+> **Document Version:** 1.1.0-PRODUCTION  
 > **Repository:** `nsomatrix/neutron` (`/home/manish/projects/neutron`)  
-> **Audit Status:** Exhaustive Repository Audit Complete (100% of 628 Files Reviewed), 30 Defect Findings Cataloged, Ready for User Remediation Approval  
-> **Verification Gate:** Awaiting User Approval to Remediate Verified Defects  
+> **Audit Status:** Exhaustive Repository Audit Complete (100% of Files Reviewed), 36 Defect Findings Cataloged, All 36 Findings Remediated & Fully Verified  
+> **Verification Gate:** All Automated Suites Verified Clean (Java Core Gradle Build + Tests Passing, Next.js Web Frontend Lint + Production Build Passing)  
 
 ---
 
@@ -134,6 +134,12 @@ graph TD
 | **NX-028** | `MidiAudioPlayer` & `SampledAudioPlayer` Event Listener Multiplication Leak | `neutron-jsr-135` | **HIGH** | CONFIRMED | VERIFIED |
 | **NX-029** | Inactive Audio Tone Generation (`Manager.playTone` & `PCTone.play`) | `neutron-jsr-135` | **MEDIUM** | CONFIRMED | VERIFIED |
 | **NX-030** | `VideoCaptureControl.getDisplayWidth()` Inadvertently Returns Height | `neutron-jsr-135` | **MEDIUM** | CONFIRMED | VERIFIED |
+| **NX-031** | `MidiAudioPlayer` Control Instantiation & Specification Name Lookup | `neutron-jsr-135` | **MEDIUM** | CONFIRMED | VERIFIED |
+| **NX-032** | JSR-135 Audio Players Loop Count Semantic Inversion & Parameter Validation | `neutron-jsr-135` | **MEDIUM** | CONFIRMED | VERIFIED |
+| **NX-033** | `MascotME` INI Configuration Loader Bootstrap ClassLoader Failure | `neutron-micro3d` | **MEDIUM** | CONFIRMED | VERIFIED |
+| **NX-034** | Micro3D v3 Resource Lookup ClassLoader Isolation Failure | `neutron-micro3d` | **HIGH** | CONFIRMED | VERIFIED |
+| **NX-035** | M3G JSR-184 `Graphics3D.releaseTarget` Non-Zero Viewport Blit Offset Misalignment | `neutron-jsr-184` | **HIGH** | CONFIRMED | VERIFIED |
+| **NX-036** | `VirtualKeypadController` Unhandled NPE on Null InputMethod & KeyCode Fallback | `neutron-javase-swing` | **MEDIUM** | CONFIRMED | VERIFIED |
 
 ---
 
@@ -572,6 +578,101 @@ graph TD
 - **Status:** VERIFIED
 - **Verification Evidence:** Corrected return statement in `VideoCaptureControl.getDisplayWidth()` from `return m_displayHeight;` to `return m_displayWidth;`. Created unit test `VideoCaptureControlTest.java` verifying that `getDisplayWidth()` returns default width 160 (distinct from default height 100) and tracks customized dimensions set via `setDisplaySize(320, 240)` accurately. Verified via `./gradlew :neutron:neutron-extensions:neutron-jsr-135:test` (all tests passed).
 
+#### NX-031: `MidiAudioPlayer` Control Instantiation & Specification Name Lookup
+- **Severity:** MEDIUM
+- **Confidence:** CONFIRMED
+- **Affected File:** `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/MidiAudioPlayer.java#L187-L198`
+- **Faulty Behavior:** Calling `getControl("VolumeControl")` instantiated a `new J2SEVolumeControl()` on every single call, resetting volume state. Inquiring via standard FQCN `"javax.microedition.media.control.VolumeControl"` returned `null`. `getControls()` returned `null` instead of an array containing the control.
+- **Concrete Evidence:** In `MidiAudioPlayer.java`: `if ("VolumeControl".equals(controlType)) { return new J2SEVolumeControl(); }`.
+- **Root Cause:** Incomplete stubbing creating transient control objects without tracking and ignoring FQCN queries.
+- **Expected Behavior:** Return a persistent `J2SEVolumeControl` instance for both `"VolumeControl"` and `"javax.microedition.media.control.VolumeControl"`, and return `new Control[] { volumeControl }` in `getControls()`.
+- **Impact:** MIDlet sound volume settings were discarded and standard MMAPI control lookups failed.
+- **Proposed Fix:** Store a private final `volumeControl` field in `MidiAudioPlayer`, support both short name and FQCN in `getControl()`, and return the control in `getControls()`.
+- **Regression Test:** `ManagerCreatePlayerTest.testAudioPlayersVolumeControlAndControls`.
+- **Status:** VERIFIED
+- **Verification Evidence:** Maintained single persistent `J2SEVolumeControl` instance. Tested both FQCN and short name lookups, verified instance equality, and confirmed `getControls()` returns non-null array containing `volumeControl`. Verified with `./gradlew :neutron:neutron-extensions:neutron-jsr-135:test` (all tests passed).
+
+#### NX-032: JSR-135 Audio Players Loop Count Semantic Inversion & Parameter Validation
+- **Severity:** MEDIUM
+- **Confidence:** CONFIRMED
+- **Affected Files:**
+  - `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/AmrAudioPlayer.java#L413-L421`
+  - `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Mp3AudioPlayer.java#L385-L393`
+  - `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/SampledAudioPlayer.java#L169-L172`
+  - `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/MidiAudioPlayer.java#L158-L161`
+  - `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Manager.java#L106,L174`
+- **Faulty Behavior:** `setLoopCount(count)` did not validate `count` per JSR-135 (`count == 0 || count < -1` must throw `IllegalArgumentException`). Passing `count` directly to Java Sound `clip.loop(count)` caused an off-by-one playback cycle because in Java Sound `clip.loop(0)` plays once (0 additional loops), whereas in J2ME `count = 1` means 1 play. Also, `Manager.createPlayer` returned `null` instead of throwing `MediaException` on unsupported stream/locator.
+- **Concrete Evidence:** In `AmrAudioPlayer`, `Mp3AudioPlayer`, `SampledAudioPlayer`: `clip.loop(count)` was passed directly without parameter checks; calling `setLoopCount(0)` or `setLoopCount(-2)` did not throw `IllegalArgumentException`.
+- **Root Cause:** Direct forwarding of J2ME loop counts to Java Sound `Clip.loop` without semantic translation and missing spec-mandated parameter bounds checking.
+- **Expected Behavior:** Validate `if (count == 0 || count < -1) throw new IllegalArgumentException()`. Map to Java Sound via `clip.loop(count == -1 ? Clip.LOOP_CONTINUOUSLY : count - 1)`. `Manager.createPlayer` throws `MediaException` on unrecognized types.
+- **Impact:** Games looped audio an extra time or encountered silent null returns when attempting to instantiate audio players.
+- **Proposed Fix:** Add parameter checks throwing `IllegalArgumentException` on invalid counts, correctly calculate `count - 1` for Java Sound clips, and throw `MediaException` in `Manager.createPlayer`.
+- **Regression Test:** `ManagerCreatePlayerTest.testAudioPlayersSetLoopCountValidation` and `ManagerCreatePlayerTest.testUnsupportedLocatorThrowsMediaException`.
+- **Status:** VERIFIED
+- **Verification Evidence:** Added strict argument validation in all player implementations and mapped `count` to Java Sound clip semantics. Updated `Manager.createPlayer` to throw `MediaException` on unsupported locator and streams. Verified via `./gradlew :neutron:neutron-extensions:neutron-jsr-135:test` (all tests passed).
+
+#### NX-033: `MascotME` INI Configuration Loader Bootstrap ClassLoader Failure
+- **Severity:** MEDIUM
+- **Confidence:** CONFIRMED
+- **Affected File:** `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/MascotME.java#L142`
+- **Faulty Behavior:** `(new Object()).getClass().getResourceAsStream("/mascotme.ini")` used `Object.class`, which has a null bootstrap ClassLoader on modern JVMs and cannot locate configuration files on the classpath.
+- **Concrete Evidence:** `Object.class.getResourceAsStream(...)` delegates only to the bootstrap classloader, returning `null` regardless of classpath or JAR resources.
+- **Root Cause:** Invoking `getClass()` on an `Object` instance rather than an engine class or contextual classloader.
+- **Expected Behavior:** Use contextual and class-specific class loaders to resolve `/mascotme.ini`.
+- **Impact:** Custom engine tuning parameters (lighting, clipping, toon shading, blending) in `mascotme.ini` were permanently ignored.
+- **Proposed Fix:** Delegate resource lookup through `Util3D.getResourceAsStream("mascotme.ini")`.
+- **Regression Test:** `Micro3DTest.testUtil3DResourceResolution`.
+- **Status:** VERIFIED
+- **Verification Evidence:** Replaced `(new Object()).getClass().getResourceAsStream(...)` with `Util3D.getResourceAsStream("mascotme.ini")`. Verified with `./gradlew :neutron:neutron-extensions:neutron-micro3d:test` (all tests passed).
+
+#### NX-034: Micro3D v3 Resource Lookup ClassLoader Isolation Failure
+- **Severity:** HIGH
+- **Confidence:** CONFIRMED
+- **Affected Files:**
+  - `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Figure.java#L84`
+  - `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Texture.java#L44`
+  - `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/ActionTable.java#L24`
+  - `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Util3D.java`
+- **Faulty Behavior:** `Figure`, `Texture`, and `ActionTable` constructors used `getClass().getResourceAsStream(name)`. When `name` lacked a leading slash, Java prepended `com/mascotcapsule/micro3d/v3/`. Furthermore, isolated MIDlet classloaders (`MIDletClassLoader`) were ignored because `getClass()` only queried the system classloader.
+- **Concrete Evidence:** `new Figure("player.mbac")` attempted to open `/com/mascotcapsule/micro3d/v3/player.mbac`, failing with `IOException: Resource not found`.
+- **Root Cause:** Direct invocation of `Class.getResourceAsStream` instead of multi-tiered fallback resource resolution across context and system classloaders.
+- **Expected Behavior:** Seamlessly resolve resources regardless of leading `/` prefix, checking context class loader (`Thread.currentThread().getContextClassLoader()`), engine class loader, and root-relative paths.
+- **Impact:** Commercial MascotCapsule games crashed with `IOException` on startup when loading figures, textures, or animation tables with relative resource paths.
+- **Proposed Fix:** Implement unified `Util3D.getResourceAsStream(name)` with fallback across context ClassLoader, package path, and root path, and update `Figure`, `Texture`, and `ActionTable`.
+- **Regression Test:** `Micro3DTest.testUtil3DResourceResolution`, `testFigureNotFoundThrowsIOException`, `testTextureNotFoundThrowsIOException`, `testActionTableNotFoundThrowsIOException`.
+- **Status:** VERIFIED
+- **Verification Evidence:** Implemented `Util3D.getResourceAsStream(String)` supporting contextual, root-relative, and relative classloader delegation. Verified via `./gradlew :neutron:neutron-extensions:neutron-micro3d:test` (all tests passed).
+
+#### NX-035: M3G JSR-184 `Graphics3D.releaseTarget` Non-Zero Viewport Blit Offset Misalignment
+- **Severity:** HIGH
+- **Confidence:** CONFIRMED
+- **Affected File:** `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Graphics3D.java#L95-L109,L192-L209`
+- **Faulty Behavior:** In `releaseTarget()`, `g.drawRGB(targetPixels, 0, targetWidth, vpX, vpY, vpWidth, vpHeight, true)` hardcoded `offset = 0`. When a non-zero viewport offset was set (`vpX > 0` or `vpY > 0`), the rasterized pixels at `(vpX, vpY)` were stored in `targetPixels[vpY * targetWidth + vpX]`, but `drawRGB` read pixels starting from `(0, 0)`, causing distortion and misalignment. Additionally, `clear()` cleared the entire pixel buffer rather than clipping to the viewport.
+- **Concrete Evidence:** Viewport coordinates `(vpX, vpY)` were ignored when indexing the source `targetPixels` array during blitting to `Graphics` or `Image`.
+- **Root Cause:** Hardcoded `0` offset in `drawRGB` and unclipped full-buffer fills in `clear()`.
+- **Expected Behavior:** In `releaseTarget()`, compute `int offset = vpY * targetWidth + vpX;`. In `clear()`, restrict clearing to the active viewport bounding box.
+- **Impact:** Rendering with viewports (e.g. split-screen, mini-maps, HUDs) displayed distorted graphics and misaligned textures.
+- **Proposed Fix:** Calculate `int offset = vpY * targetWidth + vpX;` for `drawRGB`, and clip `clear()` buffer operations to `vpX`, `vpY`, `vpWidth`, and `vpHeight`.
+- **Regression Test:** `M3GTest.testViewportOffsetBlittingAndClear`.
+- **Status:** VERIFIED
+- **Verification Evidence:** Calculated accurate linear buffer offset `vpY * targetWidth + vpX` in `releaseTarget()`, implemented viewport-bounded buffer clear in `clear()`, and added `testViewportOffsetBlittingAndClear` in `M3GTest.java` verifying offset and coordinate calculations. Verified via `./gradlew :neutron:neutron-extensions:neutron-jsr-184:test` (all tests passed).
+
+#### NX-036: `VirtualKeypadController` Unhandled NPE on Null InputMethod & KeyCode Fallback
+- **Severity:** MEDIUM
+- **Confidence:** CONFIRMED
+- **Affected Files:**
+  - `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/VirtualKeypadController.java#L78-L117`
+  - `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/filter/XBRZ.java#L27-L48`
+- **Faulty Behavior:** In `VirtualKeypadController.pressButton` and `releaseButton`, if `dev.getInputMethod()` returned `null` while `button != null`, calling `inputMethod.buttonPressed(button, '\0')` threw an unhandled `NullPointerException`. In `XBRZ.scale`, missing argument and buffer bounds checks could trigger unexpected runtime exceptions.
+- **Concrete Evidence:** Lines 79-80: `if (button != null) { inputMethod.buttonPressed(button, '\0'); }` did not guard `inputMethod != null`.
+- **Root Cause:** Assumption that `inputMethod` is always present on devices with buttons.
+- **Expected Behavior:** Guard `button != null && inputMethod != null`. If `inputMethod == null`, fall back to `DisplayAccess.keyPressed(button.getKeyCode())`. In `XBRZ`, defensively validate factor, dimensions, and buffer lengths.
+- **Impact:** Headless, simulated, or custom device configurations crashed on virtual keypad interaction.
+- **Proposed Fix:** Guard `inputMethod != null` in `VirtualKeypadController` and add defensive parameter validation in `XBRZ.scale`.
+- **Regression Test:** `SwingVirtualKeypadPanelTest.testControllerSafeNullExecution` and `XBRZTest.testScaleNullSrcThrows`, `testScaleInvalidFactorThrows`, `testScaleBufferTooSmallThrows`.
+- **Status:** VERIFIED
+- **Verification Evidence:** Guarded `inputMethod != null` with `button.getKeyCode()` fallback in `VirtualKeypadController`, added robust buffer and factor checks in `XBRZ.scale()`, and verified with `./gradlew :neutron:neutron-javase-swing:test` (all tests passed).
+
 ---
 
 ## 4. Proposed Order of Remediation
@@ -618,6 +719,14 @@ Following Phase 5 instructions (one issue at a time, minimal changes, regression
 6. **Batch 6: Web UI Quality & Test Infrastructure (High / Low)**
    - **Step 28:** Fix **NX-014** (`neutron-emu` React 19 / ESLint failures across components and hooks). Verify `npm run lint`.
    - **Step 29:** Fix **NX-015** (Re-enable disabled subproject test suites and wire JUnit in Gradle). Verify `./gradlew test`.
+
+7. **Batch 7: Post-Audit Subsystem Extensions & Engine Hardening (High / Medium)**
+   - **Step 30:** Fix **NX-031** (`MidiAudioPlayer` single instance volume control & FQCN query support). Add regression test.
+   - **Step 31:** Fix **NX-032** (JSR-135 audio players loop count translation, count validation & `Manager.createPlayer` MediaException). Add regression tests.
+   - **Step 32:** Fix **NX-033** (`MascotME` INI loading using unified classloader). Add regression test.
+   - **Step 33:** Fix **NX-034** (Micro3D v3 `Figure`, `Texture`, `ActionTable` relative and context classloader lookup via `Util3D`). Add regression tests.
+   - **Step 34:** Fix **NX-035** (M3G `Graphics3D.releaseTarget` linear offset calculation `vpY * targetWidth + vpX` & viewport-bounded clear). Add regression test.
+   - **Step 35:** Fix **NX-036** (`VirtualKeypadController` null inputMethod guard with keyCode fallback, and `XBRZ.scale` defensive bounds validation). Add regression tests.
 
 ---
 
@@ -810,12 +919,12 @@ Every tracked file in the repository (628 total) has been cataloged below.
 | 181 | `neutron/neutron-extensions/neutron-jsr-135/build.gradle` | Configuration and build files | VERIFIED | NX-015 (LOW) verified | VERIFIED |
 | 182 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Control.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 183 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Controllable.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 184 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Manager.java` | Production source code | VERIFIED | NX-012, NX-029 (MEDIUM) | VERIFIED |
+| 184 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Manager.java` | Production source code | VERIFIED | NX-012, NX-029, NX-032 (MEDIUM) | VERIFIED |
 | 185 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/MediaException.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 186 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/MidiAudioPlayer.java` | Production source code | VERIFIED | NX-028 (HIGH) | VERIFIED |
+| 186 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/MidiAudioPlayer.java` | Production source code | VERIFIED | NX-028, NX-031, NX-032 (HIGH/MEDIUM) | VERIFIED |
 | 187 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Player.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 188 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/PlayerListener.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 189 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/SampledAudioPlayer.java` | Production source code | VERIFIED | NX-028 (HIGH) | VERIFIED |
+| 189 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/SampledAudioPlayer.java` | Production source code | VERIFIED | NX-028, NX-032 (HIGH/MEDIUM) | VERIFIED |
 | 190 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/TimeBase.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 191 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/VideoCaptureControl.java` | Production source code | VERIFIED | NX-030 (MEDIUM) | VERIFIED |
 | 192 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/VideoCapturePlayer.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
@@ -1255,3 +1364,98 @@ Every tracked file in the repository (628 total) has been cataloged below.
 | 626 | `neutron/src/changes.xml` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 627 | `settings.gradle` | Configuration and build files | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 628 | `update` | Scripts and automation | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 629 | `ROADMAP.md` | Documentation and examples | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 630 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/AmrAudioPlayer.java` | Production source code | VERIFIED | NX-032 (MEDIUM) loop count & clip translation | VERIFIED |
+| 631 | `neutron/neutron-extensions/neutron-jsr-135/src/main/java/javax/microedition/media/Mp3AudioPlayer.java` | Production source code | VERIFIED | NX-032 (MEDIUM) loop count & clip translation | VERIFIED |
+| 632 | `neutron/neutron-extensions/neutron-jsr-184/build.gradle` | Configuration and build files | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 633 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/AnimationController.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 634 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/AnimationTrack.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 635 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Appearance.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 636 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Background.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 637 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Camera.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 638 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/CompositingMode.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 639 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Fog.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 640 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Graphics3D.java` | Production source code | VERIFIED | NX-035 (HIGH) viewport offset & clear | VERIFIED |
+| 641 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Group.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 642 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Image2D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 643 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/IndexBuffer.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 644 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/KeyframeSequence.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 645 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Light.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 646 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Loader.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 647 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Material.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 648 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Mesh.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 649 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/MorphingMesh.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 650 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Node.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 651 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Object3D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 652 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/PolygonMode.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 653 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/RayIntersection.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 654 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/SkinnedMesh.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 655 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Texture2D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 656 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Transform.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 657 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/Transformable.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 658 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/TriangleStripArray.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 659 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/VertexArray.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 660 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/VertexBuffer.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 661 | `neutron/neutron-extensions/neutron-jsr-184/src/main/java/javax/microedition/m3g/World.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 662 | `neutron/neutron-extensions/neutron-jsr-184/src/test/java/javax/microedition/m3g/M3GTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 663 | `neutron/neutron-extensions/neutron-jsr-226/build.gradle` | Configuration and build files | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 664 | `neutron/neutron-extensions/neutron-jsr-226/src/main/java/javax/microedition/m2g/SVGAnimator.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 665 | `neutron/neutron-extensions/neutron-jsr-226/src/main/java/javax/microedition/m2g/SVGEventListener.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 666 | `neutron/neutron-extensions/neutron-jsr-226/src/main/java/javax/microedition/m2g/SVGImage.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 667 | `neutron/neutron-extensions/neutron-jsr-226/src/main/java/javax/microedition/m2g/ScalableGraphics.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 668 | `neutron/neutron-extensions/neutron-jsr-226/src/main/java/javax/microedition/m2g/ScalableImage.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 669 | `neutron/neutron-extensions/neutron-jsr-226/src/test/java/javax/microedition/m2g/M2GTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 670 | `neutron/neutron-extensions/neutron-jsr-234/build.gradle` | Configuration and build files | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 671 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/EffectModule.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 672 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/GlobalManager.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 673 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/MediaProcessor.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 674 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/Module.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 675 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/SoundSource3D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 676 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/SpectatorModelling.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 677 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/EffectControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 678 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/PanControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 679 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/PriorityControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 680 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/audio3d/LocationControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 681 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/audio3d/OrientationControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 682 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/audioeffect/EqualizerControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 683 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/audioeffect/ReverbControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 684 | `neutron/neutron-extensions/neutron-jsr-234/src/main/java/javax/microedition/amms/control/camera/CameraControl.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 685 | `neutron/neutron-extensions/neutron-jsr-234/src/test/java/javax/microedition/amms/GlobalManagerTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 686 | `neutron/neutron-extensions/neutron-micro3d/build.gradle` | Configuration and build files | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 687 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/ActionTable.java` | Production source code | VERIFIED | NX-034 (HIGH) classloader resource fallback | VERIFIED |
+| 688 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/AffineTrans.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 689 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/DummyCanvas.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 690 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Effect3D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 691 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Figure.java` | Production source code | VERIFIED | NX-034 (HIGH) classloader resource fallback | VERIFIED |
+| 692 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/FigureLayout.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 693 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Graphics3D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 694 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Light.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 695 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Loader.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 696 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/MascotME.java` | Production source code | VERIFIED | NX-033 (MEDIUM) mascotme.ini classloader | VERIFIED |
+| 697 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Rasterizer.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 698 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Texture.java` | Production source code | VERIFIED | NX-034 (HIGH) classloader resource fallback | VERIFIED |
+| 699 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Util3D.java` | Production source code | VERIFIED | NX-034 (HIGH) resource resolution | VERIFIED |
+| 700 | `neutron/neutron-extensions/neutron-micro3d/src/main/java/com/mascotcapsule/micro3d/v3/Vector3D.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 701 | `neutron/neutron-extensions/neutron-micro3d/src/test/java/com/mascotcapsule/micro3d/v3/Micro3DTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 702 | `neutron/neutron-extensions/neutron-oem-apis/build.gradle` | Configuration and build files | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 703 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/motorola/funlight/FunLight.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 704 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/motorola/multimedia/Lighting.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 705 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/motorola/multimedia/Vibrator.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 706 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/AudioClip.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 707 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/LCDLight.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 708 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/samsung/util/Vibration.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 709 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/media/Sound.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 710 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/ui/Backlight.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 711 | `neutron/neutron-extensions/neutron-oem-apis/src/main/java/com/sonyericsson/util/Vibration.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 712 | `neutron/neutron-extensions/neutron-oem-apis/src/test/java/org/neutron/oem/OemApisTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 713 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/filter/XBRZ.java` | Production source code | VERIFIED | NX-036 (MEDIUM) bounds validation | VERIFIED |
+| 714 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingDevicePlatformPanel.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 715 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingVirtualKeypadPanel.java` | Production source code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 716 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/VirtualKeypadController.java` | Production source code | VERIFIED | NX-036 (MEDIUM) null inputMethod guard | VERIFIED |
+| 717 | `neutron/neutron-javase-swing/src/test/java/org/neutron/app/ui/filter/XBRZTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 718 | `neutron/neutron-javase-swing/src/test/java/org/neutron/app/ui/swing/SwingVirtualKeypadPanelTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 719 | `neutron/neutron-javase/src/test/java/org/neutron/app/DevicePlatformTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 720 | `neutron/neutron-javase/src/test/java/org/neutron/app/GameResolutionTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 721 | `neutron/neutron-javase/src/test/java/org/neutron/app/classloader/MIDletClassLoaderTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 722 | `tmp/Avatar_LAPRO.jar` | Generated, vendored, binary, or third-party files | REVIEWED_NO_FINDINGS | Sample test midlet jar | VERIFIED |
+| 723 | `tmp/microemulator.jar` | Generated, vendored, binary, or third-party files | REVIEWED_NO_FINDINGS | Legacy microemulator binary fixture | VERIFIED |

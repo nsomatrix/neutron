@@ -85,4 +85,46 @@ public class M3GTest {
 		g3d.render(vb, tsa, app, null);
 		g3d.releaseTarget();
 	}
+
+	@Test
+	public void testViewportOffsetBlittingAndClear() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		final int[] capturedOffset = new int[1];
+		final int[] capturedX = new int[1];
+		final int[] capturedY = new int[1];
+		final int[] capturedW = new int[1];
+		final int[] capturedH = new int[1];
+
+		Graphics g = new Graphics() {
+			public int getClipWidth() { return 100; }
+			public int getClipHeight() { return 100; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {
+				capturedOffset[0] = offset;
+				capturedX[0] = x;
+				capturedY[0] = y;
+				capturedW[0] = width;
+				capturedH[0] = height;
+			}
+		};
+
+		g3d.bindTarget(g);
+		g3d.setViewport(15, 25, 40, 50);
+		assertEquals(15, g3d.getViewportX());
+		assertEquals(25, g3d.getViewportY());
+		assertEquals(40, g3d.getViewportWidth());
+		assertEquals(50, g3d.getViewportHeight());
+
+		Background bg = new Background();
+		bg.setColor(0xFF00FF00);
+		g3d.clear(bg);
+
+		g3d.releaseTarget();
+
+		// Target width is 100, so offset for (15, 25) must be 25 * 100 + 15 = 2515
+		assertEquals(25 * 100 + 15, capturedOffset[0]);
+		assertEquals(15, capturedX[0]);
+		assertEquals(25, capturedY[0]);
+		assertEquals(40, capturedW[0]);
+		assertEquals(50, capturedH[0]);
+	}
 }

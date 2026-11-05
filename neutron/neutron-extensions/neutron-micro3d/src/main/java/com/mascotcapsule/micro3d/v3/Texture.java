@@ -41,7 +41,7 @@ public class Texture {
 		if (name == null) throw new NullPointerException();
 		this.isForModel = isForModel;
 
-		InputStream is = getClass().getResourceAsStream(name);
+		InputStream is = Util3D.getResourceAsStream(name);
 		if (is == null) throw new IOException("Resource not found: " + name);
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -39,5 +39,20 @@ public class XBRZTest {
 		XBRZ.scale(4, src, dst4x, w, h);
 		assertEquals(64, dst4x.length);
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testScaleNullSrcThrows() {
+		XBRZ.scale(2, null, new int[16], 2, 2);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testScaleInvalidFactorThrows() {
+		XBRZ.scale(1, new int[4], new int[4], 2, 2);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testScaleBufferTooSmallThrows() {
+		XBRZ.scale(2, new int[4], new int[8], 2, 2);
+	}
 }
 

@@ -139,7 +139,7 @@ public class MascotME {
 		InputStream is = null;
 		
 		try {
-			is = (new Object()).getClass().getResourceAsStream("/mascotme.ini");
+			is = Util3D.getResourceAsStream("mascotme.ini");
 			if (is == null) return;
 			
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();

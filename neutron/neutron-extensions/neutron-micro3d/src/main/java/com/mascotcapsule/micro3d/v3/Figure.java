@@ -81,7 +81,7 @@ public class Figure {
 	public Figure(String name) throws IOException {
 		if (name == null) throw new NullPointerException();
 
-		InputStream is = getClass().getResourceAsStream(name);
+		InputStream is = Util3D.getResourceAsStream(name);
 		if (is == null) throw new IOException("Resource not found: " + name);
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();

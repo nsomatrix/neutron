@@ -25,6 +25,21 @@ public final class XBRZ {
 	 * @param srcHeight height of source
 	 */
 	public static void scale(int factor, int[] src, int[] dst, int srcWidth, int srcHeight) {
+		if (src == null || dst == null) {
+			throw new IllegalArgumentException("src and dst buffers must not be null");
+		}
+		if (srcWidth <= 0 || srcHeight <= 0) {
+			throw new IllegalArgumentException("Invalid dimensions: " + srcWidth + "x" + srcHeight);
+		}
+		if (factor < 2 || factor > 6) {
+			throw new IllegalArgumentException("Unsupported factor: " + factor + " (expected 2 to 6)");
+		}
+		int minSrcLen = srcWidth * srcHeight;
+		int minDstLen = (srcWidth * factor) * (srcHeight * factor);
+		if (src.length < minSrcLen || dst.length < minDstLen) {
+			throw new IllegalArgumentException("Buffer too small: src length " + src.length + " < " + minSrcLen + " or dst length " + dst.length + " < " + minDstLen);
+		}
+
 		switch (factor) {
 			case 2:
 				scale2x(src, dst, srcWidth, srcHeight);

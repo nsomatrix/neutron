@@ -13,7 +13,9 @@ public class ManagerCreatePlayerTest {
         InputStream in = new ByteArrayInputStream(new byte[32]);
         try {
             Player p = Manager.createPlayer(in, null);
-            // If undetectable, returning null is acceptable per specification, but must never throw NPE
+            // If undetectable, throwing MediaException is standard per specification
+        } catch (MediaException me) {
+            // Expected per JSR-135 specification when type cannot be determined
         } catch (NullPointerException npe) {
             fail("Manager.createPlayer(stream, null) threw NullPointerException");
         }
@@ -106,5 +108,53 @@ public class ManagerCreatePlayerTest {
         Player p = Manager.createPlayer(new ByteArrayInputStream(smafData), null);
         assertNotNull("Auto-detected SMAF player should be created", p);
         assertEquals("audio/x-smaf", p.getContentType());
+    }
+
+    @Test(expected = MediaException.class)
+    public void testUnsupportedLocatorThrowsMediaException() throws Exception {
+        Manager.createPlayer("custom-protocol://unsupported-audio-stream");
+    }
+
+    @Test
+    public void testAudioPlayersVolumeControlAndControls() throws Exception {
+        byte[] midiHeader = new byte[]{
+                'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0, (byte) 120
+        };
+        Player midiPlayer = Manager.createPlayer(new ByteArrayInputStream(midiHeader), "audio/midi");
+        assertNotNull("Midi player should be created", midiPlayer);
+        Control vc1 = midiPlayer.getControl("VolumeControl");
+        Control vc2 = midiPlayer.getControl("javax.microedition.media.control.VolumeControl");
+        assertNotNull("VolumeControl by short name should not be null", vc1);
+        assertNotNull("VolumeControl by FQCN should not be null", vc2);
+        assertSame("VolumeControl instances should be identical", vc1, vc2);
+        Control[] controls = midiPlayer.getControls();
+        assertNotNull("getControls() should not return null", controls);
+        assertTrue("getControls() should contain at least 1 control", controls.length >= 1);
+        assertSame("getControls() should contain volumeControl", vc1, controls[0]);
+    }
+
+    @Test
+    public void testAudioPlayersSetLoopCountValidation() throws Exception {
+        byte[] midiHeader = new byte[]{
+                'M', 'T', 'h', 'd', 0, 0, 0, 6, 0, 0, 0, 1, 0, (byte) 120
+        };
+        Player midiPlayer = Manager.createPlayer(new ByteArrayInputStream(midiHeader), "audio/midi");
+        
+        // Valid loop counts: 1 (default / once) and -1 (indefinitely)
+        midiPlayer.setLoopCount(1);
+        midiPlayer.setLoopCount(-1);
+        midiPlayer.setLoopCount(5);
+
+        try {
+            midiPlayer.setLoopCount(0);
+            fail("setLoopCount(0) must throw IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+        }
+
+        try {
+            midiPlayer.setLoopCount(-2);
+            fail("setLoopCount(-2) must throw IllegalArgumentException");
+        } catch (IllegalArgumentException expected) {
+        }
     }
 }

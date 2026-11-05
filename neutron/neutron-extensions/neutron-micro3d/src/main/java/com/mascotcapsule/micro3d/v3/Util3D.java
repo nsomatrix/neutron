@@ -43,4 +43,31 @@ public class Util3D {
 		
 		return (int) (Math.sqrt(a) + 0.5);
 	}
+
+	public static java.io.InputStream getResourceAsStream(String name) {
+		if (name == null) {
+			return null;
+		}
+		String rootPath = name.startsWith("/") ? name : "/" + name;
+		String relPath = name.startsWith("/") ? name.substring(1) : name;
+
+		java.io.InputStream is = null;
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		if (cl != null) {
+			is = cl.getResourceAsStream(relPath);
+			if (is == null) {
+				is = cl.getResourceAsStream(rootPath);
+			}
+		}
+		if (is == null) {
+			is = Util3D.class.getResourceAsStream(rootPath);
+		}
+		if (is == null) {
+			is = Util3D.class.getResourceAsStream(relPath);
+		}
+		if (is == null && Util3D.class.getClassLoader() != null) {
+			is = Util3D.class.getClassLoader().getResourceAsStream(relPath);
+		}
+		return is;
+	}
 }

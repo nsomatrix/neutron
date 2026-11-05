@@ -76,10 +76,10 @@ public class VirtualKeypadController {
 		}
 
 		J2SEButton button = findButton(buttonName);
-		if (button != null) {
+		if (button != null && inputMethod != null) {
 			inputMethod.buttonPressed(button, '\0');
 		} else {
-			int keyCode = ButtonDetaultDeviceKeyCodes.getKeyCode(buttonName);
+			int keyCode = (button != null) ? button.getKeyCode() : ButtonDetaultDeviceKeyCodes.getKeyCode(buttonName);
 			MIDletAccess ma = MIDletBridge.getMIDletAccess();
 			if (ma != null && ma.getDisplayAccess() != null) {
 				ma.getDisplayAccess().keyPressed(keyCode);
@@ -105,10 +105,10 @@ public class VirtualKeypadController {
 		}
 
 		J2SEButton button = findButton(buttonName);
-		if (button != null) {
+		if (button != null && inputMethod != null) {
 			inputMethod.buttonReleased(button, '\0');
 		} else {
-			int keyCode = ButtonDetaultDeviceKeyCodes.getKeyCode(buttonName);
+			int keyCode = (button != null) ? button.getKeyCode() : ButtonDetaultDeviceKeyCodes.getKeyCode(buttonName);
 			MIDletAccess ma = MIDletBridge.getMIDletAccess();
 			if (ma != null && ma.getDisplayAccess() != null) {
 				ma.getDisplayAccess().keyReleased(keyCode);

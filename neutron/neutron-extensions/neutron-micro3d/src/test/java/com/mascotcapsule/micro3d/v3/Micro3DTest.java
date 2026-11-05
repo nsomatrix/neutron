@@ -86,4 +86,27 @@ public class Micro3DTest {
 		g3d.release(g);
 		g3d.dispose();
 	}
+
+	@Test
+	public void testUtil3DResourceResolution() {
+		// Non-existent resource returns null safely without NPE
+		Assert.assertNull(Util3D.getResourceAsStream(null));
+		Assert.assertNull(Util3D.getResourceAsStream("nonexistent_model.mbac"));
+		Assert.assertNull(Util3D.getResourceAsStream("/nonexistent_model.mbac"));
+	}
+
+	@Test(expected = java.io.IOException.class)
+	public void testFigureNotFoundThrowsIOException() throws Exception {
+		new Figure("missing_figure.mbac");
+	}
+
+	@Test(expected = java.io.IOException.class)
+	public void testTextureNotFoundThrowsIOException() throws Exception {
+		new Texture("missing_texture.bmp", false);
+	}
+
+	@Test(expected = java.io.IOException.class)
+	public void testActionTableNotFoundThrowsIOException() throws Exception {
+		new ActionTable("missing_action.tra");
+	}
 }

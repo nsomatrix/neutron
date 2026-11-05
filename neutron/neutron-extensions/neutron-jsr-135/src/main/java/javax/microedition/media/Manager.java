@@ -99,11 +99,15 @@ public final class Manager
                     type = "audio/x-smaf";
                 }
                 return createPlayer(is, type);
+            } catch (IOException e) {
+                throw e;
+            } catch (MediaException e) {
+                throw e;
             } catch (Exception e) {
-                // fall through
+                throw new MediaException("Failed to open locator: " + locator + " (" + e.getMessage() + ")");
             }
         }
-        return null;
+        throw new MediaException("Unsupported or unrecognized locator: " + locator);
     }
     
     
@@ -171,7 +175,7 @@ public final class Manager
             }
         }
 
-        return null;
+        throw new MediaException("Unsupported audio format or unrecognized content type: " + type);
     }
     
     
