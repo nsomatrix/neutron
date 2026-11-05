@@ -89,11 +89,15 @@ class MidiAudioPlayer implements Player, MetaEventListener
         close();
 	}
 	
-	public void addPlayerListener(PlayerListener playerListener) 
+	public synchronized void addPlayerListener(PlayerListener playerListener) 
 	{
+		if (playerListener == null)
+			return;
 		if( vListeners == null )
 			vListeners = new Vector();
-		vListeners.add( playerListener );
+		if (!vListeners.contains(playerListener)) {
+			vListeners.add( playerListener );
+		}
 	}
 
 	public void close() 
@@ -140,19 +144,11 @@ class MidiAudioPlayer implements Player, MetaEventListener
 
 	}
 
-	public void removePlayerListener(PlayerListener playerListener) 
+	public synchronized void removePlayerListener(PlayerListener playerListener) 
 	{
-	   if( vListeners == null )
-		   return;
-	   for( Iterator it = vListeners.iterator (); it.hasNext (); ) 
-	   {
-		    PlayerListener listener = (PlayerListener) it.next ();
-		    if( listener == playerListener )
-		    {
-		    	vListeners.remove( listener );
-		    	break;
-	   		}
-	   }
+		if( vListeners == null || playerListener == null )
+			return;
+		vListeners.remove( playerListener );
 	}
 
 	private final J2SEVolumeControl volumeControl = new J2SEVolumeControl();
@@ -218,12 +214,19 @@ class MidiAudioPlayer implements Player, MetaEventListener
         	else
         	{
     			close();
-    			if( vListeners != null )
-    			{
-    				for( Iterator it = vListeners.iterator (); it.hasNext (); ) 
-    				{
-    				    PlayerListener listener = (PlayerListener) it.next ();
-    				    listener.playerUpdate( this, PlayerListener.END_OF_MEDIA, null );
+    			java.util.List copy = null;
+    			synchronized (this) {
+    				if (vListeners != null && !vListeners.isEmpty()) {
+    					copy = new java.util.ArrayList(vListeners);
+    				}
+    			}
+    			if (copy != null) {
+    				for (int i = 0; i < copy.size(); i++) {
+    					PlayerListener listener = (PlayerListener) copy.get(i);
+    					try {
+    						listener.playerUpdate(this, PlayerListener.END_OF_MEDIA, null);
+    					} catch (Throwable t) {
+    					}
     				}
     			}
         	}

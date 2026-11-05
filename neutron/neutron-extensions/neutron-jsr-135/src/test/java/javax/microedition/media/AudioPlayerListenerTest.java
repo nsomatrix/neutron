@@ -96,5 +96,99 @@ public class AudioPlayerListenerTest {
         player.close();
         assertEquals("removeLineListener should be called on close", 1, removeCount.get());
     }
+
+    @Test
+    public void testSampledAudioPlayerListenerSelfRemovalOnEventDoesNotThrowCME() throws Exception {
+        final SampledAudioPlayer player = new SampledAudioPlayer();
+        final boolean[] called = new boolean[] { false, false };
+
+        PlayerListener listener1 = new PlayerListener() {
+            public void playerUpdate(Player p, String event, Object eventData) {
+                called[0] = true;
+                player.removePlayerListener(this);
+            }
+        };
+        PlayerListener listener2 = new PlayerListener() {
+            public void playerUpdate(Player p, String event, Object eventData) {
+                called[1] = true;
+            }
+        };
+
+        player.addPlayerListener(listener1);
+        player.addPlayerListener(listener2);
+
+        javax.sound.sampled.LineEvent stopEvent = new javax.sound.sampled.LineEvent(
+                (javax.sound.sampled.Line) Proxy.newProxyInstance(
+                        javax.sound.sampled.Line.class.getClassLoader(),
+                        new Class[]{javax.sound.sampled.Line.class},
+                        new InvocationHandler() {
+                            public Object invoke(Object proxy, Method method, Object[] args) {
+                                return null;
+                            }
+                        }
+                ),
+                javax.sound.sampled.LineEvent.Type.STOP,
+                0
+        );
+
+        player.update(stopEvent);
+
+        assertTrue("First listener should be invoked", called[0]);
+        assertTrue("Second listener should be invoked without CME", called[1]);
+    }
+
+    @Test
+    public void testMidiAudioPlayerListenerSelfRemovalOnEventDoesNotThrowCME() throws Exception {
+        final MidiAudioPlayer player = new MidiAudioPlayer();
+        final boolean[] called = new boolean[] { false, false };
+
+        PlayerListener listener1 = new PlayerListener() {
+            public void playerUpdate(Player p, String event, Object eventData) {
+                called[0] = true;
+                player.removePlayerListener(this);
+            }
+        };
+        PlayerListener listener2 = new PlayerListener() {
+            public void playerUpdate(Player p, String event, Object eventData) {
+                called[1] = true;
+            }
+        };
+
+        player.addPlayerListener(listener1);
+        player.addPlayerListener(listener2);
+
+        javax.sound.midi.MetaMessage endMsg = new javax.sound.midi.MetaMessage();
+        endMsg.setMessage(0x2F, new byte[0], 0);
+        player.meta(endMsg);
+
+        assertTrue("First listener should be invoked", called[0]);
+        assertTrue("Second listener should be invoked without CME", called[1]);
+    }
+
+    @Test
+    public void testAmrAudioPlayerLockFreeAlienDispatch() throws Exception {
+        final AmrAudioPlayer player = new AmrAudioPlayer();
+        byte[] dummyAmr = new byte[] { '#', '!', 'A', 'M', 'R', '\n', 0x04, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+        player.open(new java.io.ByteArrayInputStream(dummyAmr), "audio/amr");
+
+        final boolean[] stopCalledInCallback = new boolean[] { false };
+        player.addPlayerListener(new PlayerListener() {
+            public void playerUpdate(Player p, String event, Object eventData) {
+                if (PlayerListener.STARTED.equals(event)) {
+                    // Call stop() inside listener callback without deadlock
+                    try {
+                        p.stop();
+                        stopCalledInCallback[0] = true;
+                    } catch (Exception e) {
+                        fail("Exception in callback stop: " + e.getMessage());
+                    }
+                }
+            }
+        });
+
+        player.start();
+        assertTrue("Listener callback should be able to call stop() safely", stopCalledInCallback[0]);
+        player.close();
+    }
 }
 

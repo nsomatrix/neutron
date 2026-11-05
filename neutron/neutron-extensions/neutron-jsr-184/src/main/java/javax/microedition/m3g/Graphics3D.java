@@ -95,15 +95,24 @@ public class Graphics3D {
 	public synchronized void releaseTarget() {
 		if (target == null) return;
 
-		// Blit rendered pixels back to target Graphics or Image
-		int offset = vpY * targetWidth + vpX;
-		if (target instanceof Graphics) {
-			Graphics g = (Graphics) target;
-			g.drawRGB(targetPixels, offset, targetWidth, vpX, vpY, vpWidth, vpHeight, true);
-		} else if (target instanceof Image) {
-			Image img = (Image) target;
-			Graphics g = img.getGraphics();
-			g.drawRGB(targetPixels, offset, targetWidth, vpX, vpY, vpWidth, vpHeight, true);
+		// Blit rendered pixels back to target Graphics or Image safely
+		int startX = Math.max(0, vpX);
+		int startY = Math.max(0, vpY);
+		int endX = Math.min(targetWidth, vpX + vpWidth);
+		int endY = Math.min(targetHeight, vpY + vpHeight);
+		int blitW = endX - startX;
+		int blitH = endY - startY;
+
+		if (blitW > 0 && blitH > 0) {
+			int offset = startY * targetWidth + startX;
+			if (target instanceof Graphics) {
+				Graphics g = (Graphics) target;
+				g.drawRGB(targetPixels, offset, targetWidth, startX, startY, blitW, blitH, true);
+			} else if (target instanceof Image) {
+				Image img = (Image) target;
+				Graphics g = img.getGraphics();
+				g.drawRGB(targetPixels, offset, targetWidth, startX, startY, blitW, blitH, true);
+			}
 		}
 
 		this.target = null;
@@ -356,11 +365,11 @@ public class Graphics3D {
 
 			float invArea = 1.0f / area;
 
-			// Triangle bounding box clamped to viewport
-			int minX = Math.max(vpX, (int) Math.floor(Math.min(x0, Math.min(x1, x2))));
-			int maxX = Math.min(vpX + vpWidth - 1, (int) Math.ceil(Math.max(x0, Math.max(x1, x2))));
-			int minY = Math.max(vpY, (int) Math.floor(Math.min(y0, Math.min(y1, y2))));
-			int maxY = Math.min(vpY + vpHeight - 1, (int) Math.ceil(Math.max(y0, Math.max(y1, y2))));
+			// Triangle bounding box clamped to viewport and target boundaries
+			int minX = Math.max(Math.max(0, vpX), (int) Math.floor(Math.min(x0, Math.min(x1, x2))));
+			int maxX = Math.min(Math.min(targetWidth - 1, vpX + vpWidth - 1), (int) Math.ceil(Math.max(x0, Math.max(x1, x2))));
+			int minY = Math.max(Math.max(0, vpY), (int) Math.floor(Math.min(y0, Math.min(y1, y2))));
+			int maxY = Math.min(Math.min(targetHeight - 1, vpY + vpHeight - 1), (int) Math.ceil(Math.max(y0, Math.max(y1, y2))));
 
 			float u0 = 0, v0_c = 0, u1 = 0, v1_c = 0, u2 = 0, v2_c = 0;
 			if (texArray != null) {

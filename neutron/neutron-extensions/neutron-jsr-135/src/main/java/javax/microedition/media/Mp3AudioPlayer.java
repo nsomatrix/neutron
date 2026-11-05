@@ -175,50 +175,59 @@ public class Mp3AudioPlayer implements Player, VolumeControl, LineListener {
 		}
 	}
 
-	public synchronized void start() throws MediaException {
-		if (state == CLOSED) {
-			throw new IllegalStateException("Player is closed");
-		}
-		if (state == STARTED) {
-			return;
-		}
-		if (state < PREFETCHED) {
-			prefetch();
-		}
-
-		state = STARTED;
-
-		if (clip != null) {
-			if (!lineListenerAdded) {
-				clip.addLineListener(this);
-				lineListenerAdded = true;
+	public void start() throws MediaException {
+		long time;
+		synchronized (this) {
+			if (state == CLOSED) {
+				throw new IllegalStateException("Player is closed");
 			}
-			clip.setMicrosecondPosition(currentMediaTimeUs);
-			clip.start();
-		} else {
-			startSimulatedPlayback();
+			if (state == STARTED) {
+				return;
+			}
+			if (state < PREFETCHED) {
+				prefetch();
+			}
+
+			state = STARTED;
+
+			if (clip != null) {
+				if (!lineListenerAdded) {
+					clip.addLineListener(this);
+					lineListenerAdded = true;
+				}
+				clip.setMicrosecondPosition(currentMediaTimeUs);
+				clip.start();
+			} else {
+				startSimulatedPlayback();
+			}
+			time = currentMediaTimeUs;
 		}
 
-		notifyListeners(PlayerListener.STARTED, Long.valueOf(currentMediaTimeUs));
+		notifyListeners(PlayerListener.STARTED, Long.valueOf(time));
 	}
 
-	public synchronized void stop() throws MediaException {
-		if (state == CLOSED) {
-			throw new IllegalStateException("Player is closed");
-		}
-		if (state != STARTED) {
-			return;
+	public void stop() throws MediaException {
+		long time;
+		synchronized (this) {
+			if (state == CLOSED) {
+				throw new IllegalStateException("Player is closed");
+			}
+			if (state != STARTED) {
+				return;
+			}
+
+			if (clip != null) {
+				currentMediaTimeUs = clip.getMicrosecondPosition();
+				clip.stop();
+			} else {
+				stopSimulatedPlayback();
+			}
+
+			state = PREFETCHED;
+			time = currentMediaTimeUs;
 		}
 
-		if (clip != null) {
-			currentMediaTimeUs = clip.getMicrosecondPosition();
-			clip.stop();
-		} else {
-			stopSimulatedPlayback();
-		}
-
-		state = PREFETCHED;
-		notifyListeners(PlayerListener.STOPPED, Long.valueOf(currentMediaTimeUs));
+		notifyListeners(PlayerListener.STOPPED, Long.valueOf(time));
 	}
 
 	private synchronized void startSimulatedPlayback() {
@@ -233,6 +242,7 @@ public class Mp3AudioPlayer implements Player, VolumeControl, LineListener {
 						long elapsedMs;
 						long currentUs;
 						long totalDurationUs;
+						boolean notifyEnd = false;
 						synchronized (Mp3AudioPlayer.this) {
 							if (state != STARTED) {
 								break;
@@ -254,10 +264,14 @@ public class Mp3AudioPlayer implements Player, VolumeControl, LineListener {
 								} else {
 									state = PREFETCHED;
 									currentMediaTimeUs = totalDurationUs;
-									notifyListeners(PlayerListener.END_OF_MEDIA, Long.valueOf(totalDurationUs));
-									break;
+									notifyEnd = true;
 								}
 							}
+						}
+
+						if (notifyEnd) {
+							notifyListeners(PlayerListener.END_OF_MEDIA, Long.valueOf(totalDurationUs));
+							break;
 						}
 
 						Thread.sleep(30);
@@ -300,35 +314,37 @@ public class Mp3AudioPlayer implements Player, VolumeControl, LineListener {
 		state = UNREALIZED;
 	}
 
-	public synchronized void close() {
-		if (state == CLOSED) {
-			return;
-		}
-		Manager.mediaDone(this);
-		deallocate();
-
-		if (clip != null) {
-			if (lineListenerAdded) {
-				clip.removeLineListener(this);
-				lineListenerAdded = false;
+	public void close() {
+		synchronized (this) {
+			if (state == CLOSED) {
+				return;
 			}
-			clip.close();
-			clip = null;
-		}
+			Manager.mediaDone(this);
+			deallocate();
 
-		try {
-			if (decodedStream != null) {
-				decodedStream.close();
-				decodedStream = null;
+			if (clip != null) {
+				if (lineListenerAdded) {
+					clip.removeLineListener(this);
+					lineListenerAdded = false;
+				}
+				clip.close();
+				clip = null;
 			}
-			if (audioInputStream != null) {
-				audioInputStream.close();
-				audioInputStream = null;
-			}
-		} catch (IOException e) {
-		}
 
-		state = CLOSED;
+			try {
+				if (decodedStream != null) {
+					decodedStream.close();
+					decodedStream = null;
+				}
+				if (audioInputStream != null) {
+					audioInputStream.close();
+					audioInputStream = null;
+				}
+			} catch (IOException e) {
+			}
+
+			state = CLOSED;
+		}
 		notifyListeners(PlayerListener.CLOSED, null);
 	}
 
@@ -461,6 +477,8 @@ public class Mp3AudioPlayer implements Player, VolumeControl, LineListener {
 
 	public void update(LineEvent event) {
 		if (LineEvent.Type.STOP.equals(event.getType())) {
+			boolean notifyEnd = false;
+			long dur = 0;
 			synchronized (this) {
 				if (state == STARTED) {
 					if (loopCount == -1 || loopCount > 1) {
@@ -473,9 +491,13 @@ public class Mp3AudioPlayer implements Player, VolumeControl, LineListener {
 						}
 					} else {
 						state = PREFETCHED;
-						notifyListeners(PlayerListener.END_OF_MEDIA, Long.valueOf(durationUs));
+						notifyEnd = true;
+						dur = durationUs;
 					}
 				}
+			}
+			if (notifyEnd) {
+				notifyListeners(PlayerListener.END_OF_MEDIA, Long.valueOf(dur));
 			}
 		}
 	}

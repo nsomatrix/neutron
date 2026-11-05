@@ -177,6 +177,16 @@ public class Main extends JFrame {
 
 	private JCheckBoxMenuItem menuNetworkOverlay;
 
+	private ConfigChangeListener configChangeListener = new ConfigChangeListener() {
+		public void onConfigChanged(String key, Object newValue) {
+			SwingUtilities.invokeLater(new Runnable() {
+				public void run() {
+					syncMenuStates();
+				}
+			});
+		}
+	};
+
 
 
 	private static Main instance;
@@ -276,7 +286,7 @@ public class Main extends JFrame {
 
 	private Timer menuTimer;
 
-	private Timer statusBarHideTimer;
+	private javax.swing.Timer statusBarHideTimer = null;
 
 	private java.awt.event.AWTEventListener awtEventListener;
 
@@ -793,9 +803,14 @@ public class Main extends JFrame {
 				scaledDisplayFrame.setVisible(true);
 				Common.setStatusBar("Scaled Display Zoom: " + scale + "x");
 			} else {
-				((SwingDisplayComponent) emulatorContext.getDisplayComponent())
-						.removeDisplayRepaintListener(updateScaledImageListener);
-				scaledDisplayFrame.dispose();
+				if (updateScaledImageListener != null && emulatorContext != null && emulatorContext.getDisplayComponent() != null) {
+					((SwingDisplayComponent) emulatorContext.getDisplayComponent())
+							.removeDisplayRepaintListener(updateScaledImageListener);
+				}
+				if (scaledDisplayFrame != null) {
+					scaledDisplayFrame.dispose();
+					scaledDisplayFrame = null;
+				}
 				Config.setScaledDisplayZoom(-1);
 				Common.setStatusBar("Scaled Display Zoom: Off");
 			}
@@ -815,17 +830,33 @@ public class Main extends JFrame {
 		}
 
 		private void updateScaledImage(int scale, JFrame scaledLCDFrame) {
-			J2SEGraphicsSurface graphicsSurface = 
-					((SwingDisplayComponent) emulatorContext.getDisplayComponent()).getGraphicsSurface();
+			if (emulatorContext == null || emulatorContext.getDisplayComponent() == null || scaledLCDFrame == null) {
+				return;
+			}
+			SwingDisplayComponent sdc = (SwingDisplayComponent) emulatorContext.getDisplayComponent();
+			J2SEGraphicsSurface graphicsSurface = sdc.getGraphicsSurface();
+			if (graphicsSurface == null) {
+				return;
+			}
 			
 			BufferedImage img = graphicsSurface.getImage();
-			BufferedImage scaledImg = new BufferedImage(img.getWidth() * scale, img.getHeight() * scale, img.getType());
+			if (img == null) {
+				return;
+			}
+			int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
+			BufferedImage scaledImg = new BufferedImage(Math.max(1, img.getWidth() * scale), Math.max(1, img.getHeight() * scale), imgType);
 			Graphics2D imgGraphics = scaledImg.createGraphics();
 			imgGraphics.scale(scale, scale);
 			imgGraphics.drawImage(img, 0, 0, null);
+			imgGraphics.dispose();
 			
-			((ImageIcon) (((JLabel) scaledLCDFrame.getContentPane()).getIcon())).setImage(scaledImg);
-			((JLabel) scaledLCDFrame.getContentPane()).repaint();
+			if (scaledLCDFrame.getContentPane() instanceof JLabel) {
+				JLabel label = (JLabel) scaledLCDFrame.getContentPane();
+				if (label.getIcon() instanceof ImageIcon) {
+					((ImageIcon) label.getIcon()).setImage(scaledImg);
+					label.repaint();
+				}
+			}
 		}
 	};
 
@@ -838,24 +869,20 @@ public class Main extends JFrame {
 						statusBar.setVisible(true);
 						revalidate();
 						repaint();
-						if (statusBarHideTimer != null) {
-							statusBarHideTimer.cancel();
-						}
-						statusBarHideTimer = new Timer(true);
-						statusBarHideTimer.schedule(new TimerTask() {
-							public void run() {
-								SwingUtilities.invokeLater(new Runnable() {
-									public void run() {
-										if (Config.isFullscreen()) {
-											statusBar.setVisible(false);
-											statusBar.clearTransientMessage();
-											revalidate();
-											repaint();
-										}
+						if (statusBarHideTimer == null) {
+							statusBarHideTimer = new javax.swing.Timer(5000, new ActionListener() {
+								public void actionPerformed(ActionEvent e) {
+									if (Config.isFullscreen()) {
+										statusBar.setVisible(false);
+										statusBar.clearTransientMessage();
+										revalidate();
+										repaint();
 									}
-								});
-							}
-						}, 5000);
+								}
+							});
+							statusBarHideTimer.setRepeats(false);
+						}
+						statusBarHideTimer.restart();
 					}
 				}
 			});
@@ -965,15 +992,7 @@ public class Main extends JFrame {
 		instance = this;
 
 		Config.loadConfig(defaultDevice, emulatorContext);
-		Config.addConfigChangeListener(new ConfigChangeListener() {
-			public void onConfigChanged(String key, Object newValue) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						syncMenuStates();
-					}
-				});
-			}
-		});
+		Config.addConfigChangeListener(configChangeListener);
 
 		this.logQueueAppender = new QueueAppender(1024);
 		Logger.addAppender(logQueueAppender);
@@ -1815,7 +1834,7 @@ public class Main extends JFrame {
 				menuVirtualButtons.setSelected(visible);
 			}
 
-			boolean isMaximized = (getExtendedState() & JFrame.MAXIMIZED_BOTH) != 0;
+			boolean isMaximized = (getExtendedState() & JFrame.MAXIMIZED_BOTH) != 0 || Config.isFullscreen();
 			if (!isMaximized) {
 				int curW = getWidth();
 				int curH = getHeight();
@@ -1864,7 +1883,7 @@ public class Main extends JFrame {
 	public void setFullscreenMode(final boolean enabled) {
 		Config.setFullscreen(enabled);
 		updateAwtEventListener(enabled);
-		SwingUtilities.invokeLater(new Runnable() {
+		Runnable updateRunnable = new Runnable() {
 			public void run() {
 				if (menuFullscreen != null) {
 					menuFullscreen.setSelected(enabled);
@@ -1894,7 +1913,12 @@ public class Main extends JFrame {
 				revalidate();
 				repaint();
 			}
-		});
+		};
+		if (SwingUtilities.isEventDispatchThread()) {
+			updateRunnable.run();
+		} else {
+			SwingUtilities.invokeLater(updateRunnable);
+		}
 	}
 
 	private void resetMenuInactivityTimer() {
@@ -1903,12 +1927,14 @@ public class Main extends JFrame {
 
 	@Override
 	public void dispose() {
+		Config.removeConfigChangeListener(configChangeListener);
 		updateAwtEventListener(false);
 		if (menuTimer != null) {
 			menuTimer.cancel();
 		}
 		if (statusBarHideTimer != null) {
-			statusBarHideTimer.cancel();
+			statusBarHideTimer.stop();
+			statusBarHideTimer = null;
 		}
 		super.dispose();
 	}
