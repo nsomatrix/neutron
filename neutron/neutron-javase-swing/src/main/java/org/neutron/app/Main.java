@@ -1263,17 +1263,6 @@ public class Main extends JFrame {
 		});
 		menuOptions.add(menuVirtualButtons);
 
-		final JCheckBoxMenuItem menuAutoDetectResolution = new JCheckBoxMenuItem("Auto-Detect Resolution");
-		menuAutoDetectResolution.setSelected(Config.isAutoDetectResolutionEnabled());
-		menuAutoDetectResolution.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				boolean enabled = menuAutoDetectResolution.isSelected();
-				Config.setAutoDetectResolutionEnabled(enabled);
-				Common.setStatusBar("Auto-detect resolution " + (enabled ? "enabled" : "disabled"));
-			}
-		});
-		menuOptions.add(menuAutoDetectResolution);
-
 		JMenu menuControls = new JMenu("Controls");
 		menuFullscreen = new JCheckBoxMenuItem("Fullscreen");
 		menuFullscreen.setState(Config.isFullscreen());
@@ -1542,22 +1531,8 @@ public class Main extends JFrame {
 						}
 						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 						if (deviceDisplay != null && deviceDisplay.isResizable()) {
-							if (gameRunning) {
-								Dimension origDim = common.getOriginalDisplaySize();
-								if (Config.isAutoDetectResolutionEnabled() && origDim != null && origDim.width >= 64 && origDim.height >= 64) {
-									if (deviceDisplay.getFullWidth() != origDim.width || deviceDisplay.getFullHeight() != origDim.height) {
-										setDeviceSize(deviceDisplay, origDim.width, origDim.height);
-										devicePanel.requestFocus();
-										Common.setStatusBar("Auto-detected resolution: " + origDim.width + "x" + origDim.height);
-									}
-								} else if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
-									setDeviceSize(deviceDisplay, 240, 320);
-								}
-							} else {
-								// Returning to launcher or idle screen: ensure clean mobile resolution
-								if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
-									setDeviceSize(deviceDisplay, 240, 320);
-								}
+							if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
+								setDeviceSize(deviceDisplay, 240, 320);
 							}
 							deviceDisplay.repaint(0, 0, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 						}

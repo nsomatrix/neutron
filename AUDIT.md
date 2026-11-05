@@ -1455,7 +1455,6 @@ Every tracked file in the repository (628 total) has been cataloged below.
 | 717 | `neutron/neutron-javase-swing/src/test/java/org/neutron/app/ui/filter/XBRZTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 718 | `neutron/neutron-javase-swing/src/test/java/org/neutron/app/ui/swing/SwingVirtualKeypadPanelTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 719 | `neutron/neutron-javase/src/test/java/org/neutron/app/DevicePlatformTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 720 | `neutron/neutron-javase/src/test/java/org/neutron/app/GameResolutionTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 721 | `neutron/neutron-javase/src/test/java/org/neutron/app/classloader/MIDletClassLoaderTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 722 | `tmp/Avatar_LAPRO.jar` | Generated, vendored, binary, or third-party files | REVIEWED_NO_FINDINGS | Sample test midlet jar | VERIFIED |
-| 723 | `tmp/microemulator.jar` | Generated, vendored, binary, or third-party files | REVIEWED_NO_FINDINGS | Legacy microemulator binary fixture | VERIFIED |
+| 720 | `neutron/neutron-javase/src/test/java/org/neutron/app/classloader/MIDletClassLoaderTest.java` | Tests and test fixtures | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
+| 721 | `tmp/Avatar_LAPRO.jar` | Generated, vendored, binary, or third-party files | REVIEWED_NO_FINDINGS | Sample test midlet jar | VERIFIED |
+| 722 | `tmp/microemulator.jar` | Generated, vendored, binary, or third-party files | REVIEWED_NO_FINDINGS | Legacy microemulator binary fixture | VERIFIED |

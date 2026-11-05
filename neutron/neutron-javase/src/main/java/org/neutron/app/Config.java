@@ -1211,21 +1211,6 @@ public class Config {
 		saveConfig();
 	}
 
-	public static boolean isAutoDetectResolutionEnabled() {
-		XMLElement optionsXml = configXml.getChild("options");
-		if (optionsXml != null) {
-			return Boolean.parseBoolean(optionsXml.getChildString("autoDetectResolution", "true"));
-		}
-		return true;
-	}
-
-	public static void setAutoDetectResolutionEnabled(boolean val) {
-		XMLElement optionsXml = configXml.getChildOrNew("options");
-		XMLElement elem = optionsXml.getChildOrNew("autoDetectResolution");
-		elem.setContent(String.valueOf(val));
-		saveConfig();
-	}
-
 	public static String getDevicePlatform() {
 		if (configXml == null) {
 			return "Neutron";
