@@ -865,12 +865,29 @@ public class Main extends JFrame {
 		public void componentResized(ComponentEvent e) {
 			DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 			if (deviceDisplay != null && deviceDisplay.isResizable()) {
-				devicePanel.revalidate();
-				devicePanel.repaint();
-				if (devicePanel.getWidth() != deviceDisplay.getFullWidth() || devicePanel.getHeight() != deviceDisplay.getFullHeight()) {
-					statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
-							+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
-							+ deviceDisplay.getFullHeight() + ")");
+				javax.microedition.midlet.MIDlet current = MIDletBridge.getCurrentMIDlet();
+				boolean isGameRunning = (current != null && !(current instanceof org.neutron.app.launcher.Launcher));
+
+				if (!isGameRunning) {
+					int newW = devicePanel.getWidth();
+					int newH = devicePanel.getHeight();
+					if (newW >= 64 && newH >= 64 && (newW != deviceDisplay.getFullWidth() || newH != deviceDisplay.getFullHeight())) {
+						setDeviceSize(deviceDisplay, newW, newH);
+						devicePanel.revalidate();
+						devicePanel.repaint();
+						statusBarListener.statusBarChanged("New size: " + deviceDisplay.getFullWidth() + "x"
+								+ deviceDisplay.getFullHeight());
+					}
+				} else {
+					devicePanel.revalidate();
+					devicePanel.repaint();
+					if (devicePanel.getWidth() != deviceDisplay.getFullWidth() || devicePanel.getHeight() != deviceDisplay.getFullHeight()) {
+						statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
+								+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
+								+ deviceDisplay.getFullHeight() + ")");
+					} else {
+						statusBarListener.statusBarChanged("");
+					}
 				}
 			}
 		}
