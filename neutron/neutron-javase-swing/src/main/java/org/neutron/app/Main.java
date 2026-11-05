@@ -403,11 +403,7 @@ public class Main extends JFrame {
 		}
 	};
 
-	private ActionListener menuCloseMidletListener = new ActionListener() {
-		public void actionPerformed(ActionEvent e) {
-			common.startLauncher(MIDletBridge.getMIDletContext());
-		}
-	};
+
 
 
 
@@ -1048,12 +1044,6 @@ public class Main extends JFrame {
 			public void menuCanceled(javax.swing.event.MenuEvent e) {}
 		});
 		menuFile.add(menuConnectedDirs);
-
-		JMenuItem menuTerminateProcess = new JMenuItem("Terminate Process");
-		menuTerminateProcess.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, ActionEvent.CTRL_MASK));
-		menuTerminateProcess.addActionListener(menuCloseMidletListener);
-		menuFile.add(menuTerminateProcess);
-
 		menuFile.addSeparator();
 
 		JMRUMenu urlsMRU = new JMRUMenu("Installed Games");
@@ -1545,6 +1535,7 @@ public class Main extends JFrame {
 			public void gameStateChanged(final boolean gameRunning) {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
+						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
 						updateResizeButtonVisibility();
 						if (statusBar != null) {
 							statusBar.setGameRunning(gameRunning);

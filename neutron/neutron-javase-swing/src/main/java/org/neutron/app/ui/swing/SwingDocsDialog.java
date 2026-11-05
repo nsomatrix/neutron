@@ -116,7 +116,6 @@ public class SwingDocsDialog extends SwingDialogPanel {
 				+ "      <li><i>Connect New Directory</i>: Scan and register a folder to list its games in the menu.</li>"
 				+ "    </ul>"
 				+ "  </li>"
-				+ "  <li><b>Terminate Process</b> (<code>Ctrl+W</code>): Instantly halts MIDlet execution & frees resources.</li>"
 				+ "  <li><b>Installed Games</b>: MRU shortcut list of recently loaded games.</li>"
 				+ "  <li><b>Open Root Directory</b>: Accesses the <code>~/.neutron</code> config & save folder in OS explorer.</li>"
 				+ "  <li><b>Snapshot Manager</b>:"
