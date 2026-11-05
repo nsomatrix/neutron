@@ -341,7 +341,7 @@ public class LauncherCanvas extends Canvas {
         
         g.setFont(Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM));
         g.setColor(btnText);
-        g.drawString("LAUNCH APP", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
+        g.drawString("Launch", w / 2, btnY + (btnH - 16) / 2, Graphics.HCENTER | Graphics.TOP);
     }
 
     protected void keyPressed(int keyCode) {
