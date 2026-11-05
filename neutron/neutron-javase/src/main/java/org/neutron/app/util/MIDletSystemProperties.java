@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Vector;
 
+import org.neutron.app.Config;
 import org.neutron.device.Device;
 import org.neutron.log.Logger;
 
@@ -79,7 +80,7 @@ public class MIDletSystemProperties {
 		initialized = true;
 		setProperty("microedition.configuration", "CLDC-1.1");
 		setProperty("microedition.profiles", "MIDP-2.0");
-		setProperty("microedition.platform", "Neutron");
+		setProperty("microedition.platform", Config.getDevicePlatform());
 		setProperty("microedition.encoding", getSystemProperty("file.encoding"));
 	}
 

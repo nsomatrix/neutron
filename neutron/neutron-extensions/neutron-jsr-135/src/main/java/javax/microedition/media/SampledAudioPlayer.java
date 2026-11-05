@@ -39,6 +39,8 @@ import javax.sound.sampled.LineListener;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import org.neutron.media.control.J2SEVolumeControl;
+
 class SampledAudioPlayer implements Player, LineListener 
 {
 	private AudioInputStream audioInputStream = null;
@@ -191,14 +193,17 @@ class SampledAudioPlayer implements Player, LineListener
 			clip.stop();
 	}
 
+	private J2SEVolumeControl volumeControl = new J2SEVolumeControl();
+
 	public Control getControl(String controlType) {
-		// TODO Auto-generated method stub
+		if ("VolumeControl".equals(controlType) || "javax.microedition.media.control.VolumeControl".equals(controlType)) {
+			return volumeControl;
+		}
 		return null;
 	}
 
 	public Control[] getControls() {
-		// TODO Auto-generated method stub
-		return null;
+		return new Control[] { volumeControl };
 	}
 
 	public void update( LineEvent event ) 

@@ -117,6 +117,7 @@ import org.neutron.app.ui.swing.SwingAutoClicker;
 import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
 import org.neutron.app.ui.swing.SwingLibraryExplorerDialog;
 import org.neutron.app.ui.swing.SwingSystemInfoDialog;
+import org.neutron.app.ui.swing.SwingDevicePlatformPanel;
 import org.neutron.app.util.DeviceEntry;
 import org.neutron.app.util.IOUtils;
 import org.neutron.app.util.MidletURLReference;
@@ -1490,6 +1491,17 @@ public class Main extends JFrame {
 		menuControls.add(menuAutoClicker);
 
 		JMenu menuMisc = new JMenu("Misc");
+		JMenuItem menuPlatformModifier = new JMenuItem("Device Platform Modifier");
+		menuPlatformModifier.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SwingDevicePlatformPanel panel = new SwingDevicePlatformPanel();
+				if (SwingDialogWindow.show(Main.this, "Device Platform Modifier", panel, true)) {
+					Common.setStatusBar("Device platform updated: " + Config.getDevicePlatform());
+				}
+			}
+		});
+		menuMisc.add(menuPlatformModifier);
+
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
 		menuMisc.add(menuAbout);

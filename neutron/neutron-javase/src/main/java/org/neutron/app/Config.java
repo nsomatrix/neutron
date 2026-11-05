@@ -272,6 +272,7 @@ public class Config {
 		}
 
 		MIDletSystemProperties.setProperties(systemProperties);
+		MIDletSystemProperties.setProperty("microedition.platform", getDevicePlatform());
 	}
 
 	public static File getConfigPath() {
@@ -1205,6 +1206,34 @@ public class Config {
 		XMLElement dirXml = dirsXml.addChild("directory");
 		dirXml.setContent(path);
 		saveConfig();
+	}
+
+	public static String getDevicePlatform() {
+		if (configXml == null) {
+			return "Neutron";
+		}
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml != null) {
+			String platform = optionsXml.getChildString("devicePlatform", "Neutron");
+			if (platform != null && !platform.trim().isEmpty()) {
+				return platform.trim();
+			}
+		}
+		return "Neutron";
+	}
+
+	public static void setDevicePlatform(String platform) {
+		if (platform == null || platform.trim().isEmpty()) {
+			platform = "Neutron";
+		}
+		platform = platform.trim();
+		if (configXml != null) {
+			XMLElement optionsXml = configXml.getChildOrNew("options");
+			XMLElement platformXml = optionsXml.getChildOrNew("devicePlatform");
+			platformXml.setContent(platform);
+			saveConfig();
+		}
+		MIDletSystemProperties.setProperty("microedition.platform", platform);
 	}
 
 	public static void removeConnectedDirectory(String path) {

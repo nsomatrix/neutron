@@ -26,11 +26,13 @@
 
 package javax.microedition.media;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Vector;
 
+import javax.microedition.io.Connector;
 import org.neutron.media.audio.PCTone;
 
 public final class Manager
@@ -38,11 +40,23 @@ public final class Manager
 
     public static final String TONE_DEVICE_LOCATOR = "device://tone";
     static Vector vMedia = new Vector();
+
+    private static final String[] SUPPORTED_CONTENT_TYPES = new String[] {
+        "audio/x-wav",
+        "audio/wav",
+        "audio/basic",
+        "audio/midi",
+        "audio/x-midi",
+        "audio/mid",
+        "audio/amr",
+        "audio/amr-nb",
+        "audio/amr-wb",
+        "audio/3gpp"
+    };
     
     public static String[] getSupportedContentTypes(String protocol)
     {
-        // TODO
-        return new String[0];
+        return (String[]) SUPPORTED_CONTENT_TYPES.clone();
     }
     
     
@@ -56,11 +70,30 @@ public final class Manager
     public static Player createPlayer(String locator)
             throws IOException, MediaException
     {
+        if (locator == null) {
+            throw new IllegalArgumentException("locator cannot be null");
+        }
     	// should we simulate video capturing?
     	if (locator.startsWith("capture://video")) {
     		return new VideoCapturePlayer(locator);
     	}
-        // TODO
+        if (locator.startsWith("http:") || locator.startsWith("https:") || locator.startsWith("file:") || locator.startsWith("jar:")) {
+            try {
+                InputStream is = Connector.openInputStream(locator);
+                String type = null;
+                String lower = locator.toLowerCase();
+                if (lower.endsWith(".amr") || lower.endsWith(".amr-nb")) {
+                    type = "audio/amr";
+                } else if (lower.endsWith(".mid") || lower.endsWith(".midi")) {
+                    type = "audio/midi";
+                } else if (lower.endsWith(".wav")) {
+                    type = "audio/x-wav";
+                }
+                return createPlayer(is, type);
+            } catch (Exception e) {
+                // fall through
+            }
+        }
         return null;
     }
     
@@ -72,20 +105,24 @@ public final class Manager
             throw new IllegalArgumentException("stream cannot be null");
         }
 
+        if (!stream.markSupported()) {
+            stream = new BufferedInputStream(stream);
+        }
+
         if (type == null) {
-            if (stream.markSupported()) {
-                stream.mark(16);
-                byte[] header = new byte[8];
-                int read = stream.read(header);
-                stream.reset();
-                if (read >= 4) {
-                    if (header[0] == 'M' && header[1] == 'T' && header[2] == 'h' && header[3] == 'd') {
-                        type = "audio/midi";
-                    } else if (header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F') {
-                        type = "audio/x-wav";
-                    } else if (header[0] == '.' && header[1] == 's' && header[2] == 'n' && header[3] == 'd') {
-                        type = "audio/basic";
-                    }
+            stream.mark(16);
+            byte[] header = new byte[8];
+            int read = stream.read(header);
+            stream.reset();
+            if (read >= 4) {
+                if (header[0] == 'M' && header[1] == 'T' && header[2] == 'h' && header[3] == 'd') {
+                    type = "audio/midi";
+                } else if (header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F') {
+                    type = "audio/x-wav";
+                } else if (header[0] == '.' && header[1] == 's' && header[2] == 'n' && header[3] == 'd') {
+                    type = "audio/basic";
+                } else if (read >= 5 && header[0] == '#' && header[1] == '!' && header[2] == 'A' && header[3] == 'M' && header[4] == 'R') {
+                    type = "audio/amr";
                 }
             }
         }
@@ -103,6 +140,12 @@ public final class Manager
                 midiPlayer.open(stream, type);
                 vMedia.add(midiPlayer);
                 return midiPlayer;
+            } else if (type.equalsIgnoreCase("audio/amr") || type.equalsIgnoreCase("audio/amr-nb") ||
+                       type.equalsIgnoreCase("audio/amr-wb") || type.equalsIgnoreCase("audio/3gpp")) {
+                AmrAudioPlayer amrPlayer = new AmrAudioPlayer();
+                amrPlayer.open(stream, type);
+                vMedia.add(amrPlayer);
+                return amrPlayer;
             }
         }
 

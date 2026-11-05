@@ -165,7 +165,7 @@ public class Common implements Neutron, CommonInterface {
 
     public String getAppProperty(String key) {
         if (key.equals("microedition.platform")) {
-            return "Neutron";
+            return Config.getDevicePlatform();
         } else if (key.equals("microedition.profiles")) {
             return "MIDP-2.0";
         } else if (key.equals("microedition.configuration")) {

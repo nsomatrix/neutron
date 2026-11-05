@@ -22,29 +22,33 @@ import javax.microedition.media.control.VolumeControl;
 
 public class J2SEVolumeControl implements VolumeControl
 {
+    private int level = 100;
+    private boolean muted = false;
 
     public int getLevel()
     {
-        // TODO Auto-generated method stub
-        return 0;
+        return level;
     }
 
     public boolean isMuted()
     {
-        // TODO Auto-generated method stub
-        return false;
+        return muted;
     }
 
     public int setLevel(int level)
     {
-        // TODO Auto-generated method stub
-        return 0;
+        if (level < 0) {
+            level = 0;
+        } else if (level > 100) {
+            level = 100;
+        }
+        this.level = level;
+        return this.level;
     }
 
     public void setMute(boolean mute)
     {
-        // TODO Auto-generated method stub
-
+        this.muted = mute;
     }
 
 }
