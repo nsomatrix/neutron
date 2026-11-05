@@ -23,6 +23,10 @@ public class SwingAutoClicker {
 	private static int currentTargetIndex = 0;
 	private static int intervalMs = 1000;
 	private static Timer timer = null;
+	private static Timer releaseTimer = null;
+	private static int currentReleaseX = 0;
+	private static int currentReleaseY = 0;
+	private static J2SEInputMethod currentReleaseInputMethod = null;
 	private static boolean setupModeActive = false;
 
 	public static void init() {
@@ -102,6 +106,9 @@ public class SwingAutoClicker {
 			timer.stop();
 			timer = null;
 		}
+		if (releaseTimer != null) {
+			releaseTimer.stop();
+		}
 		if (enabled && intervalMs > 0 && targets.size() > 0) {
 			timer = new Timer(intervalMs, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -136,17 +143,26 @@ public class SwingAutoClicker {
 					// Send pressed event
 					inputMethod.pointerPressed(targetX, targetY);
 					
-					// Schedule released event after hold time
+					// Reusable release timer without allocating new objects per click
+					currentReleaseInputMethod = inputMethod;
+					currentReleaseX = targetX;
+					currentReleaseY = targetY;
 					int holdTime = Math.min(100, intervalMs / 2);
-					Timer releaseTimer = new Timer(holdTime, new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							try {
-								inputMethod.pointerReleased(targetX, targetY);
-							} catch (Exception ex) {}
-						}
-					});
-					releaseTimer.setRepeats(false);
-					releaseTimer.start();
+					if (releaseTimer == null) {
+						releaseTimer = new Timer(holdTime, new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								try {
+									if (currentReleaseInputMethod != null) {
+										currentReleaseInputMethod.pointerReleased(currentReleaseX, currentReleaseY);
+									}
+								} catch (Exception ex) {}
+							}
+						});
+						releaseTimer.setRepeats(false);
+					} else {
+						releaseTimer.setInitialDelay(holdTime);
+					}
+					releaseTimer.restart();
 				}
 			}
 		} catch (Exception ex) {

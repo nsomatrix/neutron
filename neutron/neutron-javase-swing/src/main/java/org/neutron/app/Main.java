@@ -215,6 +215,9 @@ public class Main extends JFrame {
 		if (menuSleepMode != null) {
 			menuSleepMode.setSelected(Config.isSleepModeEnabled());
 		}
+		if (menuVirtualButtons != null) {
+			menuVirtualButtons.setSelected(Config.isVirtualButtonsEnabled());
+		}
 		if (menuShowMouseCoordinates != null) {
 			menuShowMouseCoordinates.setSelected(Config.isShowMouseCoordinates());
 		}
@@ -615,18 +618,21 @@ public class Main extends JFrame {
 
 	private ActionListener menuAboutListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
+			Common.setStatusBar("About dialog opened");
 			SwingDialogWindow.show(Main.this, "About", new SwingAboutDialog(), false);
 		}
 	};
 
 	private ActionListener menuSystemInfoListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
+			Common.setStatusBar("System Info opened");
 			SwingDialogWindow.show(Main.this, "System", new SwingSystemInfoDialog(), false);
 		}
 	};
 
 	private ActionListener menuDocsListener = new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
+			Common.setStatusBar("Help & Documentation opened");
 			if (docsDialog == null) {
 				docsDialog = new JDialog(Main.this, "Help & Documentation", false);
 				final org.neutron.app.ui.swing.SwingDocsDialog panel = new org.neutron.app.ui.swing.SwingDocsDialog();
@@ -924,21 +930,26 @@ public class Main extends JFrame {
 		}
 
 		public void windowIconified(WindowEvent ev) {
-			org.neutron.app.util.SleepManager.onWindowIconified();
-			MIDletAccess ma = MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet());
-			if (ma != null) {
-				ma.pauseApp();
+			if (Config.isSleepModeEnabled()) {
+				org.neutron.app.util.SleepManager.onWindowIconified();
+			} else {
+				MIDletAccess ma = MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet());
+				if (ma != null) {
+					ma.pauseApp();
+				}
 			}
 		}
 
 		public void windowDeiconified(WindowEvent ev) {
-			try {
-				MIDletAccess ma = MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet());
-				if (ma != null) {
-					ma.startApp();
+			if (!Config.isSleepModeEnabled()) {
+				try {
+					MIDletAccess ma = MIDletBridge.getMIDletAccess(MIDletBridge.getCurrentMIDlet());
+					if (ma != null) {
+						ma.startApp();
+					}
+				} catch (MIDletStateChangeException ex) {
+					System.err.println(ex);
 				}
-			} catch (MIDletStateChangeException ex) {
-				System.err.println(ex);
 			}
 		}
 
@@ -989,6 +1000,7 @@ public class Main extends JFrame {
 				JMenuItem explorerItem = new JMenuItem("Library Explorer");
 				explorerItem.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent ev) {
+						Common.setStatusBar("Library Explorer opened");
 						SwingLibraryExplorerDialog dialog = new SwingLibraryExplorerDialog(Main.this);
 						dialog.setVisible(true);
 					}
@@ -1027,7 +1039,7 @@ public class Main extends JFrame {
 						}
 						final JMenu dirMenu = new JMenu(dirName);
 						dirMenu.setToolTipText(dirPath);
-						dirMenu.add(new JMenuItem("Loading..."));
+						dirMenu.add(new JMenuItem("Loading"));
 
 						dirMenu.addMenuListener(new javax.swing.event.MenuListener() {
 							public void menuSelected(javax.swing.event.MenuEvent ev2) {
@@ -1301,6 +1313,7 @@ public class Main extends JFrame {
 				boolean enabled = menuVirtualButtons.isSelected();
 				Config.setVirtualButtonsEnabled(enabled);
 				setVirtualButtonsVisible(enabled);
+				Common.setStatusBar("Virtual Buttons: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
 		menuOptions.add(menuVirtualButtons);
@@ -1313,6 +1326,7 @@ public class Main extends JFrame {
 				boolean enabled = menuFullscreen.isSelected();
 				Config.setFullscreen(enabled);
 				setFullscreenMode(enabled);
+				Common.setStatusBar("Fullscreen: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
 		menuControls.add(menuFullscreen);
@@ -1614,6 +1628,7 @@ public class Main extends JFrame {
 					}
 					devicePanel.setPreferredSize(null);
 					devicePanel.requestFocus();
+					Common.setStatusBar("Device resolution: " + targetW + "x" + targetH);
 				}
 			}
 		});

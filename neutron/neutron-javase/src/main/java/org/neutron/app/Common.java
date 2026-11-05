@@ -440,7 +440,7 @@ public class Common implements Neutron, CommonInterface {
 
     private void openMIDletUrl(String urlString, MIDletClassLoader midletClassLoader) throws IOException {
         try {
-            setStatusBar("Loading...");
+            setStatusBar("Loading");
             jad.clear();
 
             if (urlString.toLowerCase().endsWith(".jad")) {

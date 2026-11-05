@@ -328,6 +328,9 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 							if (sleepRepaintTimer == null) {
 								sleepRepaintTimer = new javax.swing.Timer(16, new java.awt.event.ActionListener() {
 									public void actionPerformed(java.awt.event.ActionEvent e) {
+										if (!isShowing()) {
+											return;
+										}
 										repaint();
 										if (SwingDisplayComponent.this.deviceComponent != null) {
 											SwingDisplayComponent.this.deviceComponent.repaint();

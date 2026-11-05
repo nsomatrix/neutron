@@ -54,7 +54,7 @@ public class SwingStatusBar extends JPanel {
 		setLayout(new BorderLayout());
 		setBorder(new javax.swing.border.EmptyBorder(3, 10, 3, 10));
 
-		// Left compartment: status dot, spinner, status message, coordinate badge
+		// Left compartment: status indicator (dot / spinner), status message, coordinate badge
 		JPanel leftPanel = new JPanel(new GridBagLayout());
 		leftPanel.setOpaque(false);
 
@@ -64,19 +64,26 @@ public class SwingStatusBar extends JPanel {
 		gbc.fill = GridBagConstraints.NONE;
 		gbc.weighty = 1.0;
 
+		// Dedicated fixed-size indicator slot (16x16) so dot and spinner seamlessly swap without horizontal jitter
+		JPanel indicatorPanel = new JPanel(new GridBagLayout());
+		indicatorPanel.setOpaque(false);
+		indicatorPanel.setPreferredSize(new Dimension(16, 16));
+		GridBagConstraints igbc = new GridBagConstraints();
+		igbc.gridx = 0;
+		igbc.gridy = 0;
+		igbc.anchor = GridBagConstraints.CENTER;
+		indicatorPanel.add(statusDotComponent, igbc);
+		indicatorPanel.add(spinnerComponent, igbc);
+
 		gbc.gridx = 0;
 		gbc.insets = new Insets(0, 0, 0, 8);
-		leftPanel.add(statusDotComponent, gbc);
+		leftPanel.add(indicatorPanel, gbc);
 
 		gbc.gridx = 1;
 		gbc.insets = new Insets(0, 0, 0, 8);
-		leftPanel.add(spinnerComponent, gbc);
-
-		gbc.gridx = 2;
-		gbc.insets = new Insets(0, 0, 0, 8);
 		leftPanel.add(messageLabel, gbc);
 
-		gbc.gridx = 3;
+		gbc.gridx = 2;
 		gbc.insets = new Insets(0, 0, 0, 0);
 		leftPanel.add(coordinateLabel, gbc);
 
@@ -107,22 +114,6 @@ public class SwingStatusBar extends JPanel {
 			Font smallFont = baseFont.deriveFont(11.0f);
 			messageLabel.setFont(smallFont);
 		}
-
-		// Register configuration change listener to dynamically trigger activity spinner on settings update
-		org.neutron.app.Config.addConfigChangeListener(new org.neutron.app.ConfigChangeListener() {
-			public void onConfigChanged(final String key, final Object value) {
-				if (!javax.swing.SwingUtilities.isEventDispatchThread()) {
-					javax.swing.SwingUtilities.invokeLater(new Runnable() {
-						public void run() {
-							onConfigChanged(key, value);
-						}
-					});
-					return;
-				}
-				String valStr = (value instanceof Boolean) ? (((Boolean) value) ? "Enabled" : "Disabled") : (value != null ? value.toString() : "");
-				setText("Setting: " + key + (valStr.isEmpty() ? "" : " → " + valStr));
-			}
-		});
 	}
 
 	public void setText(final String text) {
@@ -140,6 +131,9 @@ public class SwingStatusBar extends JPanel {
 		}
 
 		String processedText = text == null ? "" : text.trim();
+		if (processedText.equalsIgnoreCase("Loading...")) {
+			processedText = "Loading";
+		}
 
 		// 1. Coordinate check
 		if (processedText.matches("^-?\\d+,-?\\d+( -?\\d+x-?\\d+)?$")) {
@@ -152,21 +146,20 @@ public class SwingStatusBar extends JPanel {
 		}
 
 		// 2. Normal status message check
+		if (processedText.startsWith("Running")) {
+			persistentMessage = "";
+		}
+
 		MessageType type = classifyMessage(processedText);
 
 		if (type == MessageType.LOADING) {
 			if (revertTimer != null) {
 				revertTimer.stop();
 			}
-			activeTransient = false;
+			activeTransient = true;
 			statusDotComponent.setVisible(false);
 			spinnerComponent.start();
-			if (processedText.equalsIgnoreCase("Loading...")) {
-				transitionToText("", false);
-			} else {
-				transitionToText(processedText, true);
-			}
-			startRevertTimer();
+			transitionToText(processedText, true);
 		} else if (type == MessageType.TRANSIENT) {
 			spinnerComponent.stop();
 			statusDotComponent.setVisible(true);
@@ -174,18 +167,23 @@ public class SwingStatusBar extends JPanel {
 			activeTransient = true;
 			transitionToText(processedText, true);
 		} else { // PERSISTENT
+			if (revertTimer != null) {
+				revertTimer.stop();
+			}
+			spinnerComponent.stop();
+			statusDotComponent.setVisible(true);
 			persistentMessage = processedText;
 			statusDotComponent.repaint();
-			if (!activeTransient) {
-				spinnerComponent.stop();
-				statusDotComponent.setVisible(true);
-				transitionToText(persistentMessage, false);
-			}
+			activeTransient = false;
+			transitionToText(persistentMessage, false);
 		}
 	}
 
 	public void setGameRunning(boolean running) {
 		statusDotComponent.setMode(running ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
+		persistentMessage = "";
+		spinnerComponent.stop();
+		statusDotComponent.setVisible(true);
 		statusDotComponent.repaint();
 	}
 
@@ -202,10 +200,10 @@ public class SwingStatusBar extends JPanel {
 	}
 
 	private MessageType classifyMessage(String text) {
-		if (text.isEmpty() || text.equalsIgnoreCase("Ready") || text.startsWith("Ready to launch") || text.startsWith("Running")) {
+		if (text.isEmpty() || text.equalsIgnoreCase("Ready") || text.startsWith("Ready to launch")) {
 			return MessageType.PERSISTENT;
 		}
-		if (text.startsWith("Loading") || text.startsWith("Downloading") || text.startsWith("Setting:") || text.startsWith("Updating") || (text.contains("...") && !text.contains("complete"))) {
+		if (text.startsWith("Loading") || text.startsWith("Downloading")) {
 			return MessageType.LOADING;
 		}
 		return MessageType.TRANSIENT;
@@ -258,20 +256,19 @@ public class SwingStatusBar extends JPanel {
 	}
 
 	private void startRevertTimer() {
-		if (org.neutron.app.Config.isFullscreen()) {
-			return;
-		}
 		if (revertTimer == null) {
 			revertTimer = new Timer(3500, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					activeTransient = false;
+					spinnerComponent.stop();
+					statusDotComponent.setVisible(true);
+					statusDotComponent.repaint();
 					transitionToText(persistentMessage, false);
 				}
 			});
 			revertTimer.setRepeats(false);
-		} else {
-			revertTimer.restart();
 		}
+		revertTimer.restart();
 	}
 
 	private void startPersistentHideTimer() {
@@ -313,13 +310,16 @@ public class SwingStatusBar extends JPanel {
 		if (persistentHideTimer != null) {
 			persistentHideTimer.stop();
 		}
+		if (fadeTimer != null) {
+			fadeTimer.stop();
+		}
 		activeTransient = false;
+		spinnerComponent.stop();
+		statusDotComponent.setVisible(true);
 		messageLabel.setText(persistentMessage);
 		currentOpacity = 1.0;
 		updateLabelColors();
-		
-		boolean isRunning = persistentMessage.startsWith("Running");
-		statusDotComponent.setMode(isRunning ? StatusDotComponent.Mode.RUNNING : StatusDotComponent.Mode.IDLE);
+		statusDotComponent.repaint();
 
 		startPersistentHideTimer();
 	}
@@ -431,7 +431,9 @@ public class SwingStatusBar extends JPanel {
 
 		public void start() {
 			angle = 0;
-			timer.start();
+			if (!timer.isRunning()) {
+				timer.start();
+			}
 			setVisible(true);
 			revalidate();
 			repaint();
