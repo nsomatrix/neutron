@@ -107,13 +107,6 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 			deviceComponent.requestFocus();
 			pressedPoint = e.getPoint();
 
-			if (e.isControlDown()) {
-				Point p = deviceCoordinate(DeviceFactory.getDevice().getDeviceDisplay(), e.getPoint());
-				SwingAutoClicker.setCoordinates(p.x, p.y);
-				repaint();
-				return;
-			}
-
 			org.neutron.app.util.SleepManager.notifyActivity();
 
 			if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
@@ -689,7 +682,6 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 					SwingPerfHUD.paint(g2d, getWidth(), getHeight());
 					SwingNetworkOverlay.paint(g2d, getWidth(), getHeight());
-					SwingAutoClicker.drawOverlay(g2d, SwingDisplayComponent.this);
 				}
 			}
 	}

@@ -156,7 +156,6 @@ public class SwingDocsDialog extends SwingDialogPanel {
 				+ "  <li><b>Network Capture</b>: Captures and inspects HTTP, socket, and datagram request logs in real-time.</li>"
 				+ "  <li><b>HUD Overlay</b>: Displays real-time game FPS and heap memory usage card over the J2ME canvas.</li>"
 				+ "  <li><b>Network Overlay</b>: Displays active connections and response ping status in corner.</li>"
-				+ "  <li><b>Tap Automator</b>: Auto-clicker configuration for keycodes and click interval coordinates.</li>"
 				+ "</ul>";
 	}
 }

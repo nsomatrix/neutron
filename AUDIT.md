@@ -1057,8 +1057,6 @@ Every tracked file in the repository (628 total) has been cataloged below.
 | 319 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/RecordStoreManagerDialog.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 320 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/ResizeDeviceDisplayDialog.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 321 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingAboutDialog.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 322 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingAutoClicker.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
-| 323 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingAutoClickerSettingsPanel.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 324 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingDeviceComponent.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 325 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingDialogPanel.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |
 | 326 | `neutron/neutron-javase-swing/src/main/java/org/neutron/app/ui/swing/SwingDialogWindow.java` | Platform-specific code | REVIEWED_NO_FINDINGS | Inspected clean | VERIFIED |

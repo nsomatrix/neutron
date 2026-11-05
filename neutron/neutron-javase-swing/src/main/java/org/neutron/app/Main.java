@@ -114,8 +114,6 @@ import org.neutron.app.ui.swing.SwingFrameRateDialog;
 import org.neutron.app.ui.swing.SwingStatusBar;
 import org.neutron.app.ui.swing.SwingPerfHUD;
 import org.neutron.app.ui.swing.SwingNetworkOverlay;
-import org.neutron.app.ui.swing.SwingAutoClicker;
-import org.neutron.app.ui.swing.SwingAutoClickerSettingsPanel;
 import org.neutron.app.ui.swing.SwingLibraryExplorerDialog;
 import org.neutron.app.ui.swing.SwingSystemInfoDialog;
 import org.neutron.app.ui.swing.SwingDevicePlatformPanel;
@@ -1492,32 +1490,18 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuNetworkOverlay);
 
-		JMenuItem menuAutoClicker = new JMenuItem("Tap Automator");
-		menuAutoClicker.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				SwingAutoClickerSettingsPanel panel = new SwingAutoClickerSettingsPanel();
-				if (SwingDialogWindow.show(Main.this, "Tap Automator Settings", panel, true)) {
-					panel.applySettings();
-					if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
-						((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
-					}
-					Common.setStatusBar("Tap Automator settings updated");
-				}
-			}
-		});
-		menuControls.add(menuAutoClicker);
-
 		JMenu menuMisc = new JMenu("Misc");
-		JMenuItem menuPlatformModifier = new JMenuItem("Device Platform Modifier");
-		menuPlatformModifier.addActionListener(new ActionListener() {
+		JMenuItem menuDevicePlatform = new JMenuItem("Device Platform");
+		menuDevicePlatform.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				Common.setStatusBar("Device Platform opened");
 				SwingDevicePlatformPanel panel = new SwingDevicePlatformPanel();
-				if (SwingDialogWindow.show(Main.this, "Device Platform Modifier", panel, true)) {
+				if (SwingDialogWindow.show(Main.this, "Device Platform", panel, true)) {
 					Common.setStatusBar("Device platform updated: " + Config.getDevicePlatform());
 				}
 			}
 		});
-		menuMisc.add(menuPlatformModifier);
+		menuMisc.add(menuDevicePlatform);
 
 		JMenuItem menuAbout = new JMenuItem("About");
 		menuAbout.addActionListener(menuAboutListener);
@@ -1554,7 +1538,6 @@ public class Main extends JFrame {
 		org.neutron.app.ui.swing.SwingPerfHUD.setEnabled(Config.isPerfHudEnabled());
 		org.neutron.app.ui.swing.SwingNetworkOverlay.setEnabled(Config.isNetworkOverlayEnabled());
 		org.neutron.device.ui.NetworkCapture.setEnabled(Config.isNetworkCaptureEnabled());
-		org.neutron.app.ui.swing.SwingAutoClicker.init();
 		syncMenuStates();
 
 		int persistedZoom = Config.getScaledDisplayZoom();

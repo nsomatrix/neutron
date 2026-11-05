@@ -83,7 +83,7 @@ public class SwingDevicePlatformPanel extends SwingDialogPanel {
 		// Description / Header
 		JPanel topPanel = new JPanel();
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
-		JLabel titleLabel = new JLabel("Device Platform Modifier");
+		JLabel titleLabel = new JLabel("Device Platform");
 		titleLabel.setFont(titleLabel.getFont().deriveFont(Font.BOLD, 14f));
 		topPanel.add(titleLabel);
 		topPanel.add(Box.createVerticalStrut(4));
