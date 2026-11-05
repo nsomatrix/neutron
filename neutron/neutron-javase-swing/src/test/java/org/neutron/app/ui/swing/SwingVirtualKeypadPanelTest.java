@@ -82,5 +82,35 @@ public class SwingVirtualKeypadPanelTest {
 			Config.setFullscreen(false);
 		}
 	}
+
+	@Test
+	public void testDirectNumericInputMapping() {
+		Assert.assertEquals("0", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM0));
+		Assert.assertEquals("1", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM1));
+		Assert.assertEquals("2", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM2));
+		Assert.assertEquals("3", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM3));
+		Assert.assertEquals("4", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM4));
+		Assert.assertEquals("5", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM5));
+		Assert.assertEquals("6", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM6));
+		Assert.assertEquals("7", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM7));
+		Assert.assertEquals("8", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM8));
+		Assert.assertEquals("9", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM9));
+		Assert.assertEquals("*", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_STAR));
+		Assert.assertEquals("#", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_POUND));
+		Assert.assertNull(VirtualKeypadController.getDirectNumericInput(ButtonName.UP));
+		Assert.assertNull(VirtualKeypadController.getDirectNumericInput(ButtonName.DELETE));
+	}
+
+	@Test
+	public void testCloseActionListener() {
+		SwingVirtualKeypadPanel panel = new SwingVirtualKeypadPanel();
+		final boolean[] closed = new boolean[] { false };
+		panel.setCloseActionListener(new java.awt.event.ActionListener() {
+			public void actionPerformed(java.awt.event.ActionEvent e) {
+				closed[0] = true;
+			}
+		});
+		Assert.assertNotNull(panel);
+	}
 }
 

@@ -11,7 +11,6 @@
 package org.neutron.app.ui.swing;
 
 import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -31,7 +30,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.UIManager;
-import org.neutron.app.Config;
 import org.neutron.device.impl.ButtonName;
 
 /**
@@ -45,28 +43,25 @@ public class SwingVirtualKeypadPanel extends JPanel {
 
 	private static final long serialVersionUID = 1L;
 
-	private CardLayout rightCardLayout;
-	private JPanel rightCardPanel;
-	private JButton modeToggleButton;
-	private boolean isFullKeypadMode = false;
+	private JButton closeButton;
+	private ActionListener closeActionListener;
 
 	public SwingVirtualKeypadPanel() {
 		setLayout(new BorderLayout(6, 4));
 		setBorder(BorderFactory.createEmptyBorder(4, 6, 6, 6));
 
-		String initialMode = Config.getVirtualButtonsMode();
-		isFullKeypadMode = "full".equalsIgnoreCase(initialMode);
-
 		initComponents();
-		updateModeView();
+	}
+
+	public void setCloseActionListener(ActionListener listener) {
+		this.closeActionListener = listener;
 	}
 
 	@Override
 	public Dimension getPreferredSize() {
 		// Return 0 width so the keypad dynamically conforms to the emulator display's width
 		// without imposing a minimum width constraint that would prevent resolutions like 240x320.
-		int h = isFullKeypadMode ? 142 : 126;
-		return new Dimension(0, h);
+		return new Dimension(0, 142);
 	}
 
 	@Override
@@ -81,7 +76,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	private void initComponents() {
-		// Top Bar: Softkeys and mode switcher evenly spaced via 1x3 GridLayout
+		// Top Bar: Softkeys and Close button evenly spaced via 1x3 GridLayout
 		JPanel topBar = new JPanel(new GridLayout(1, 3, 5, 0));
 		topBar.setOpaque(false);
 		topBar.setPreferredSize(new Dimension(0, 25));
@@ -89,7 +84,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		VirtualKeyButton lskButton = new VirtualKeyButton(ButtonName.SOFT1, "Menu", null);
 		VirtualKeyButton rskButton = new VirtualKeyButton(ButtonName.SOFT2, "Back", null);
 
-		modeToggleButton = new JButton(isFullKeypadMode ? "Full Keypad" : "Game Pad") {
+		closeButton = new JButton("Close") {
 			@Override
 			protected void paintComponent(Graphics g) {
 				Graphics2D g2 = (Graphics2D) g.create();
@@ -114,56 +109,34 @@ public class SwingVirtualKeypadPanel extends JPanel {
 				g2.dispose();
 			}
 		};
-		modeToggleButton.setFocusable(false);
-		modeToggleButton.setContentAreaFilled(false);
-		modeToggleButton.setBorderPainted(false);
-		modeToggleButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		modeToggleButton.addActionListener(new ActionListener() {
+		closeButton.setFocusable(false);
+		closeButton.setContentAreaFilled(false);
+		closeButton.setBorderPainted(false);
+		closeButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		closeButton.setToolTipText("Close virtual buttons");
+		closeButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				isFullKeypadMode = !isFullKeypadMode;
-				Config.setVirtualButtonsMode(isFullKeypadMode ? "full" : "gamepad");
-				updateModeView();
+				if (closeActionListener != null) {
+					closeActionListener.actionPerformed(e);
+				} else {
+					setVisible(false);
+				}
 			}
 		});
 
 		topBar.add(lskButton);
-		topBar.add(modeToggleButton);
+		topBar.add(closeButton);
 		topBar.add(rskButton);
 		add(topBar, BorderLayout.NORTH);
 
-		// Center body: 50% Left (8-Way D-Pad), 50% Right (Action Cluster / Keypad)
+		// Center body: 50% Left (3x4 Keypad), 50% Right (8-Way D-Pad)
 		JPanel bodyPanel = new JPanel(new GridLayout(1, 2, 6, 0));
 		bodyPanel.setOpaque(false);
 
-		// 1. 8-Way D-Pad Section
-		JPanel dpadPanel = createDPadPanel();
-		bodyPanel.add(dpadPanel);
+		bodyPanel.add(createKeypadPanel());
+		bodyPanel.add(createDPadPanel());
 
-		// 2. Right Section with CardLayout (Gamepad vs Full Keypad)
-		rightCardLayout = new CardLayout();
-		rightCardPanel = new JPanel(rightCardLayout);
-		rightCardPanel.setOpaque(false);
-
-		JPanel gamepadActionPanel = createGamepadActionPanel();
-		JPanel fullKeypadPanel = createFullKeypadPanel();
-
-		rightCardPanel.add(gamepadActionPanel, "gamepad");
-		rightCardPanel.add(fullKeypadPanel, "full");
-
-		bodyPanel.add(rightCardPanel);
 		add(bodyPanel, BorderLayout.CENTER);
-	}
-
-	private void updateModeView() {
-		if (isFullKeypadMode) {
-			modeToggleButton.setText("Full Keypad");
-			rightCardLayout.show(rightCardPanel, "full");
-		} else {
-			modeToggleButton.setText("Game Pad");
-			rightCardLayout.show(rightCardPanel, "gamepad");
-		}
-		revalidate();
-		repaint();
 	}
 
 	/**
@@ -205,60 +178,29 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	/**
-	 * Creates a responsive action cluster for arcade/action games (Key 5, Clear, *, #).
+	 * Creates the complete 3x4 mobile phone numeric keypad (1-9, *, 0, #).
 	 */
-	private JPanel createGamepadActionPanel() {
-		JPanel panel = new JPanel(new GridLayout(2, 2, 3, 3));
-		panel.setOpaque(false);
-
-		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "Action", null);
-		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "Del", null);
-		VirtualKeyButton star = new VirtualKeyButton(ButtonName.KEY_STAR, "*", null);
-		VirtualKeyButton pound = new VirtualKeyButton(ButtonName.KEY_POUND, "#", null);
-
-		panel.add(key5);
-		panel.add(clear);
-		panel.add(star);
-		panel.add(pound);
-
-		return panel;
-	}
-
-	/**
-	 * Creates the complete 3x4 mobile phone numeric keypad (1-9, *, 0, #) + Clear.
-	 */
-	private JPanel createFullKeypadPanel() {
-		JPanel wrapper = new JPanel(new BorderLayout(3, 0));
-		wrapper.setOpaque(false);
-
+	private JPanel createKeypadPanel() {
 		JPanel grid = new JPanel(new GridLayout(4, 3, 2, 2));
 		grid.setOpaque(false);
 
 		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM1, "1", null));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM2, "2", "ABC"));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM3, "3", "DEF"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM2, "2", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM3, "3", null));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM4, "4", "GHI"));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "JKL"));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM6, "6", "MNO"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM4, "4", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM5, "5", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM6, "6", null));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM7, "7", "PQRS"));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM8, "8", "TUV"));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM9, "9", "WXYZ"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM7, "7", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM8, "8", null));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM9, "9", null));
 
 		grid.add(new VirtualKeyButton(ButtonName.KEY_STAR, "*", null));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM0, "0", "+"));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM0, "0", null));
 		grid.add(new VirtualKeyButton(ButtonName.KEY_POUND, "#", null));
 
-		wrapper.add(grid, BorderLayout.CENTER);
-
-		JPanel sideBar = new JPanel(new GridLayout(2, 1, 0, 2));
-		sideBar.setOpaque(false);
-		sideBar.setPreferredSize(new Dimension(28, 0));
-		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "Del", null));
-		wrapper.add(sideBar, BorderLayout.EAST);
-
-		return wrapper;
+		return grid;
 	}
 
 	static boolean isDarkTheme() {
@@ -531,7 +473,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			} else {
 				// Single centered primary label
 				float fontSize = (primaryLabel.length() > 3) 
-						? Math.max(8.5f, Math.min(11.0f, h * 0.36f))
+						? Math.max(9.0f, Math.min(13.0f, h * 0.38f))
 						: Math.max(9.5f, Math.min(13.5f, h * 0.44f));
 				g2.setFont(getFont().deriveFont(Font.BOLD, fontSize));
 				FontMetrics fm = g2.getFontMetrics();

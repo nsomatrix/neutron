@@ -67,6 +67,14 @@ public class VirtualKeypadController {
 		}
 
 		J2SEInputMethod inputMethod = (J2SEInputMethod) dev.getInputMethod();
+		if (inputMethod != null && inputMethod.getInputMethodListener() != null) {
+			String directText = getDirectNumericInput(buttonName);
+			if (directText != null) {
+				inputMethod.clipboardPaste(directText);
+				return;
+			}
+		}
+
 		J2SEButton button = findButton(buttonName);
 		if (button != null) {
 			inputMethod.buttonPressed(button, '\0');
@@ -90,6 +98,12 @@ public class VirtualKeypadController {
 		}
 
 		J2SEInputMethod inputMethod = (J2SEInputMethod) dev.getInputMethod();
+		if (inputMethod != null && inputMethod.getInputMethodListener() != null) {
+			if (getDirectNumericInput(buttonName) != null) {
+				return;
+			}
+		}
+
 		J2SEButton button = findButton(buttonName);
 		if (button != null) {
 			inputMethod.buttonReleased(button, '\0');
@@ -108,7 +122,20 @@ public class VirtualKeypadController {
 		}
 
 		Device dev = DeviceFactory.getDevice();
-		if (dev == null || !dev.hasRepeatEvents()) {
+		if (dev == null) {
+			return;
+		}
+
+		J2SEInputMethod inputMethod = (J2SEInputMethod) dev.getInputMethod();
+		if (inputMethod != null && inputMethod.getInputMethodListener() != null) {
+			String directText = getDirectNumericInput(buttonName);
+			if (directText != null) {
+				inputMethod.clipboardPaste(directText);
+				return;
+			}
+		}
+
+		if (!dev.hasRepeatEvents()) {
 			return;
 		}
 
@@ -119,6 +146,22 @@ public class VirtualKeypadController {
 		if (ma != null && ma.getDisplayAccess() != null) {
 			ma.getDisplayAccess().keyRepeated(keyCode);
 		}
+	}
+
+	public static String getDirectNumericInput(ButtonName buttonName) {
+		if (buttonName == ButtonName.KEY_NUM0) return "0";
+		if (buttonName == ButtonName.KEY_NUM1) return "1";
+		if (buttonName == ButtonName.KEY_NUM2) return "2";
+		if (buttonName == ButtonName.KEY_NUM3) return "3";
+		if (buttonName == ButtonName.KEY_NUM4) return "4";
+		if (buttonName == ButtonName.KEY_NUM5) return "5";
+		if (buttonName == ButtonName.KEY_NUM6) return "6";
+		if (buttonName == ButtonName.KEY_NUM7) return "7";
+		if (buttonName == ButtonName.KEY_NUM8) return "8";
+		if (buttonName == ButtonName.KEY_NUM9) return "9";
+		if (buttonName == ButtonName.KEY_STAR) return "*";
+		if (buttonName == ButtonName.KEY_POUND) return "#";
+		return null;
 	}
 
 	public static J2SEButton findButton(ButtonName name) {

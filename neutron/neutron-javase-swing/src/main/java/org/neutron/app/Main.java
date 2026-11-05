@@ -1758,6 +1758,12 @@ public class Main extends JFrame {
 
 		virtualKeypadPanel = new SwingVirtualKeypadPanel();
 		virtualKeypadPanel.setVisible(Config.isVirtualButtonsEnabled());
+		virtualKeypadPanel.setCloseActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Config.setVirtualButtonsEnabled(false);
+				setVirtualButtonsVisible(false);
+			}
+		});
 
 		emulatorContainer = new JPanel(new BorderLayout());
 		emulatorContainer.add(devicePanel, BorderLayout.CENTER);

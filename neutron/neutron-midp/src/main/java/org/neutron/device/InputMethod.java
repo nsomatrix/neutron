@@ -85,6 +85,11 @@ public abstract class InputMethod
 	}
   
   
+	public InputMethodListener getInputMethodListener()
+	{
+		return inputMethodListener;
+	}
+
 	public int getInputMode()
 	{
 		return inputMode;
