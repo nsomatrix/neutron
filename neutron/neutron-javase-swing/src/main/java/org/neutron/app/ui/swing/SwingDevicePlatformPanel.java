@@ -88,7 +88,7 @@ public class SwingDevicePlatformPanel extends SwingDialogPanel {
 		topPanel.add(titleLabel);
 		topPanel.add(Box.createVerticalStrut(4));
 
-		JLabel descLabel = new JLabel("<html>Modify the <code>microedition.platform</code> string reported to J2ME games.<br>Certain games check this property to enable vendor features or optimize rendering.</html>");
+		JLabel descLabel = new JLabel("<html>Modify the <code>microedition.platform</code> string resolved to J2ME games.<br>Certain games check this property to enable vendor features or optimize rendering.</html>");
 		descLabel.setForeground(UIManager.getColor("Label.disabledForeground") != null ? UIManager.getColor("Label.disabledForeground") : Color.GRAY);
 		topPanel.add(descLabel);
 		add(topPanel, BorderLayout.NORTH);
