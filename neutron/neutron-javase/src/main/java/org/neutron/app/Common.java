@@ -24,6 +24,7 @@
  */
 package org.neutron.app;
 
+import java.awt.Dimension;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -138,6 +139,8 @@ public class Common implements Neutron, CommonInterface {
     private Object destroyNotify = new Object();
 
     private boolean exitOnMIDletDestroy = false;
+
+    private Vector lastLoadedEntries = new Vector();
 
     public Common(EmulatorContext context) {
         instance = this;
@@ -821,6 +824,7 @@ public class Common implements Neutron, CommonInterface {
                 Launcher.addMIDletEntry(entry);
                 loadedEntries.addElement(entry);
             }
+            lastLoadedEntries = (Vector) loadedEntries.clone();
             if (midletClassNameToLaunch != null) {
                 MIDletEntry matchingEntry = null;
                 for (int i = 0; i < loadedEntries.size(); i++) {
@@ -858,6 +862,53 @@ public class Common implements Neutron, CommonInterface {
     
     public void setSuiteName(String name) {
     	midletSuiteName = name;
+    }
+
+    public Vector getLoadedEntries() {
+        return lastLoadedEntries != null ? (Vector) lastLoadedEntries.clone() : new Vector();
+    }
+
+    public Dimension getOriginalDisplaySize() {
+        if (jad == null) {
+            return null;
+        }
+        String size = jad.getProperty("Nokia-MIDlet-Original-Display-Size");
+        if (size == null) {
+            size = jad.getProperty("Nokia-MIDlet-Target-Display-Size");
+        }
+        if (size == null) {
+            size = jad.getProperty("SonyEricsson-Original-Display-Size");
+        }
+        if (size == null) {
+            size = jad.getProperty("MIDlet-Display-Size");
+        }
+        if (size != null) {
+            String clean = size.replace('x', ',').replace('X', ',');
+            String[] parts = clean.split(",");
+            if (parts.length >= 2) {
+                try {
+                    int w = Integer.parseInt(parts[0].trim());
+                    int h = Integer.parseInt(parts[1].trim());
+                    if (w > 0 && h > 0) {
+                        return new Dimension(w, h);
+                    }
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+        String sw = jad.getProperty("MIDlet-Screen-Width");
+        String sh = jad.getProperty("MIDlet-Screen-Height");
+        if (sw != null && sh != null) {
+            try {
+                int w = Integer.parseInt(sw.trim());
+                int h = Integer.parseInt(sh.trim());
+                if (w > 0 && h > 0) {
+                    return new Dimension(w, h);
+                }
+            } catch (NumberFormatException e) {
+            }
+        }
+        return null;
     }
 
     public Device getDevice() {

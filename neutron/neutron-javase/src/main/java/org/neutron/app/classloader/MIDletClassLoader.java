@@ -312,6 +312,15 @@ public class MIDletClassLoader extends URLClassLoader {
 		if (className.startsWith("com.siemens.mp.")) {
 			return true;
 		}
+		if (className.startsWith("com.samsung.")) {
+			return true;
+		}
+		if (className.startsWith("com.sonyericsson.")) {
+			return true;
+		}
+		if (className.startsWith("com.motorola.")) {
+			return true;
+		}
 		if (className.startsWith("javax.")) {
 			return true;
 		}

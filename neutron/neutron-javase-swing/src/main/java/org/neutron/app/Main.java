@@ -84,6 +84,7 @@ import org.neutron.DisplayAccess;
 import org.neutron.DisplayComponent;
 import org.neutron.MIDletAccess;
 import org.neutron.MIDletBridge;
+import org.neutron.MIDletEntry;
 import org.neutron.app.capture.AnimatedGifEncoder;
 import org.neutron.app.classloader.MIDletClassLoader;
 import org.neutron.app.ui.DisplayRepaintListener;
@@ -1083,6 +1084,34 @@ public class Main extends JFrame {
 		menuTerminateProcess.addActionListener(menuCloseMidletListener);
 		menuFile.add(menuTerminateProcess);
 
+		final JMenu menuSwitchMidlet = new JMenu("Switch MIDlet...");
+		menuSwitchMidlet.addMenuListener(new MenuListener() {
+			public void menuSelected(MenuEvent e) {
+				menuSwitchMidlet.removeAll();
+				java.util.Vector entries = common != null ? common.getLoadedEntries() : null;
+				if (entries == null || entries.size() <= 1) {
+					JMenuItem emptyItem = new JMenuItem("No alternative MIDlets in suite");
+					emptyItem.setEnabled(false);
+					menuSwitchMidlet.add(emptyItem);
+				} else {
+					for (int i = 0; i < entries.size(); i++) {
+						final MIDletEntry entry = (MIDletEntry) entries.elementAt(i);
+						JMenuItem item = new JMenuItem((i + 1) + ". " + entry.getName());
+						item.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent ev) {
+								common.initMIDlet(true, entry);
+								Common.setStatusBar("Switched to MIDlet: " + entry.getName());
+							}
+						});
+						menuSwitchMidlet.add(item);
+					}
+				}
+			}
+			public void menuDeselected(MenuEvent e) {}
+			public void menuCanceled(MenuEvent e) {}
+		});
+		menuFile.add(menuSwitchMidlet);
+
 		menuFile.addSeparator();
 
 		JMRUMenu urlsMRU = new JMRUMenu("Installed Games");
@@ -1301,6 +1330,17 @@ public class Main extends JFrame {
 			}
 		});
 		menuOptions.add(menuVirtualButtons);
+
+		final JCheckBoxMenuItem menuAutoDetectResolution = new JCheckBoxMenuItem("Auto-Detect Resolution");
+		menuAutoDetectResolution.setSelected(Config.isAutoDetectResolutionEnabled());
+		menuAutoDetectResolution.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean enabled = menuAutoDetectResolution.isSelected();
+				Config.setAutoDetectResolutionEnabled(enabled);
+				Common.setStatusBar("Auto-detect resolution " + (enabled ? "enabled" : "disabled"));
+			}
+		});
+		menuOptions.add(menuAutoDetectResolution);
 
 		JMenu menuControls = new JMenu("Controls");
 		menuFullscreen = new JCheckBoxMenuItem("Fullscreen");
@@ -1566,6 +1606,22 @@ public class Main extends JFrame {
 						updateResizeButtonVisibility();
 						if (statusBar != null) {
 							statusBar.setGameRunning(gameRunning);
+						}
+						if (gameRunning && Config.isAutoDetectResolutionEnabled()) {
+							Dimension origDim = common.getOriginalDisplaySize();
+							if (origDim != null && origDim.width >= 64 && origDim.height >= 64) {
+								DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+								if (deviceDisplay != null && deviceDisplay.isResizable()) {
+									if (deviceDisplay.getFullWidth() != origDim.width || deviceDisplay.getFullHeight() != origDim.height) {
+										devicePanel.setPreferredSize(new Dimension(origDim.width, origDim.height));
+										setDeviceSize(deviceDisplay, origDim.width, origDim.height);
+										pack();
+										devicePanel.setPreferredSize(null);
+										devicePanel.requestFocus();
+										Common.setStatusBar("Auto-detected resolution: " + origDim.width + "x" + origDim.height);
+									}
+								}
+							}
 						}
 					}
 				});

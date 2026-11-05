@@ -197,6 +197,17 @@ public class FileSystemFileConnection implements FileConnection {
 				list.add(file.getName() + DIR_SEP);
 			}
 		}
+		if (list.isEmpty()) {
+			try {
+				File rootDir = new File(getRoot(fsRootConfig), "root");
+				if (!rootDir.exists()) {
+					rootDir.mkdirs();
+				}
+				list.add("root" + DIR_SEP);
+			} catch (Throwable t) {
+				list.add("root" + DIR_SEP);
+			}
+		}
 		return list.elements();
 	}
 

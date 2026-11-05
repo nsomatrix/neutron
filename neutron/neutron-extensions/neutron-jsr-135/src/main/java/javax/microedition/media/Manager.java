@@ -51,7 +51,12 @@ public final class Manager
         "audio/amr",
         "audio/amr-nb",
         "audio/amr-wb",
-        "audio/3gpp"
+        "audio/3gpp",
+        "audio/mpeg",
+        "audio/mp3",
+        "audio/x-mp3",
+        "audio/x-smaf",
+        "application/vnd.smaf"
     };
     
     public static String[] getSupportedContentTypes(String protocol)
@@ -88,6 +93,10 @@ public final class Manager
                     type = "audio/midi";
                 } else if (lower.endsWith(".wav")) {
                     type = "audio/x-wav";
+                } else if (lower.endsWith(".mp3")) {
+                    type = "audio/mpeg";
+                } else if (lower.endsWith(".mmf")) {
+                    type = "audio/x-smaf";
                 }
                 return createPlayer(is, type);
             } catch (Exception e) {
@@ -123,13 +132,19 @@ public final class Manager
                     type = "audio/basic";
                 } else if (read >= 5 && header[0] == '#' && header[1] == '!' && header[2] == 'A' && header[3] == 'M' && header[4] == 'R') {
                     type = "audio/amr";
+                } else if (header[0] == 'I' && header[1] == 'D' && header[2] == '3') {
+                    type = "audio/mpeg";
+                } else if ((header[0] & 0xFF) == 0xFF && (header[1] & 0xE0) == 0xE0) {
+                    type = "audio/mpeg";
+                } else if (header[0] == 'M' && header[1] == 'M' && header[2] == 'M' && header[3] == 'D') {
+                    type = "audio/x-smaf";
                 }
             }
         }
 
         if (type != null) {
             if (type.equalsIgnoreCase("audio/x-wav") || type.equalsIgnoreCase("audio/wav") ||
-                type.equalsIgnoreCase("audio/basic") || type.equalsIgnoreCase("audio/mpeg")) {
+                type.equalsIgnoreCase("audio/basic")) {
                 SampledAudioPlayer audPlayer = new SampledAudioPlayer();
                 audPlayer.open(stream, type);
                 vMedia.add(audPlayer);
@@ -146,6 +161,13 @@ public final class Manager
                 amrPlayer.open(stream, type);
                 vMedia.add(amrPlayer);
                 return amrPlayer;
+            } else if (type.equalsIgnoreCase("audio/mpeg") || type.equalsIgnoreCase("audio/mp3") ||
+                       type.equalsIgnoreCase("audio/x-mp3") || type.equalsIgnoreCase("audio/x-smaf") ||
+                       type.equalsIgnoreCase("application/vnd.smaf")) {
+                Mp3AudioPlayer mp3Player = new Mp3AudioPlayer();
+                mp3Player.open(stream, type);
+                vMedia.add(mp3Player);
+                return mp3Player;
             }
         }
 

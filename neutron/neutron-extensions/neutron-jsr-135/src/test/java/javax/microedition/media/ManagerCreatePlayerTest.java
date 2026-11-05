@@ -85,4 +85,26 @@ public class ManagerCreatePlayerTest {
         Player p3 = Manager.createPlayer(new ByteArrayInputStream(dummy), "audio/3gpp");
         assertNotNull("audio/3gpp player should be created", p3);
     }
+
+    @Test
+    public void testCreatePlayerAutoDetectsMp3Header() throws Exception {
+        byte[] id3Header = new byte[] { 'I', 'D', '3', 3, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0 };
+        Player p1 = Manager.createPlayer(new ByteArrayInputStream(id3Header), null);
+        assertNotNull("Auto-detected MP3 player should be created", p1);
+        assertEquals("audio/mpeg", p1.getContentType());
+        assertTrue(p1.getDuration() > 0);
+
+        byte[] mpegSync = new byte[] { (byte) 0xFF, (byte) 0xFB, (byte) 0x90, 0x64, 0, 0, 0, 0 };
+        Player p2 = Manager.createPlayer(new ByteArrayInputStream(mpegSync), null);
+        assertNotNull("Auto-detected MPEG sync player should be created", p2);
+        assertEquals("audio/mpeg", p2.getContentType());
+    }
+
+    @Test
+    public void testCreatePlayerAutoDetectsSmafHeader() throws Exception {
+        byte[] smafData = new byte[] { 'M', 'M', 'M', 'D', 0, 0, 0, 8, 0, 0, 0, 0 };
+        Player p = Manager.createPlayer(new ByteArrayInputStream(smafData), null);
+        assertNotNull("Auto-detected SMAF player should be created", p);
+        assertEquals("audio/x-smaf", p.getContentType());
+    }
 }

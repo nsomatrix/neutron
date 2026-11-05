@@ -279,9 +279,9 @@ public abstract class DeviceImpl implements Device {
 
 		loadSkinVersion(doc);
 
-		hasPointerEvents = false;
-		hasPointerMotionEvents = false;
-		hasRepeatEvents = false;
+		hasPointerEvents = true;
+		hasPointerMotionEvents = true;
+		hasRepeatEvents = true;
 
 		((FontManagerImpl) getFontManager()).setAntialiasing(false);
 
@@ -552,6 +552,11 @@ public abstract class DeviceImpl implements Device {
 				getButtons().addElement(button);
 				getSoftButtons().addElement(button);
 			}
+		}
+		if (resizable) {
+			hasPointerEvents = true;
+			hasPointerMotionEvents = true;
+			hasRepeatEvents = true;
 		}
 	}
 
