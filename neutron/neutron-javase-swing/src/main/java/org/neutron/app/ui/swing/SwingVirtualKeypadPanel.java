@@ -38,7 +38,8 @@ import org.neutron.device.impl.ButtonName;
 
 /**
  * On-screen virtual button board providing touch and mouse-driven controls
- * for all J2ME games (D-Pad, Softkeys, and full 12-key numeric keypad).
+ * for all J2ME games (8-way D-Pad, Softkeys, and full 12-key numeric keypad).
+ * Fully integrated with native Look-and-Feel / FlatLaf themes via UIManager.
  */
 public class SwingVirtualKeypadPanel extends JPanel {
 
@@ -60,25 +61,36 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		updateModeView();
 	}
 
+	@Override
+	public void updateUI() {
+		super.updateUI();
+		repaint();
+	}
+
 	private void initComponents() {
 		// Top Bar: Softkeys and mode switcher
 		JPanel topBar = new JPanel(new BorderLayout(12, 0));
 		topBar.setOpaque(false);
 
-		VirtualKeyButton lskButton = new VirtualKeyButton(ButtonName.SOFT1, "LSK", "Menu", 74, 28, false);
-		VirtualKeyButton rskButton = new VirtualKeyButton(ButtonName.SOFT2, "RSK", "Back", 74, 28, false);
+		VirtualKeyButton lskButton = new VirtualKeyButton(ButtonName.SOFT1, "LSK", "Menu", 74, 28);
+		VirtualKeyButton rskButton = new VirtualKeyButton(ButtonName.SOFT2, "RSK", "Back", 74, 28);
 
 		modeToggleButton = new JButton(isFullKeypadMode ? "Mode: Full Keypad" : "Mode: Game Pad") {
 			@Override
 			protected void paintComponent(Graphics g) {
 				Graphics2D g2 = (Graphics2D) g.create();
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				boolean dark = isDarkTheme();
-				g2.setColor(dark ? new Color(50, 54, 64) : new Color(225, 228, 235));
+
+				Color fill = getButtonBackground();
+				Color border = getBorderColor();
+				Color text = getButtonForeground();
+
+				g2.setColor(fill);
 				g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
-				g2.setColor(dark ? new Color(75, 80, 95) : new Color(195, 200, 210));
+				g2.setColor(border);
 				g2.drawRoundRect(0, 0, getWidth() - 1, getHeight() - 1, 10, 10);
-				g2.setColor(dark ? new Color(190, 195, 205) : new Color(60, 65, 75));
+
+				g2.setColor(text);
 				g2.setFont(getFont().deriveFont(Font.BOLD, 10.5f));
 				FontMetrics fm = g2.getFontMetrics();
 				int tx = (getWidth() - fm.stringWidth(getText())) / 2;
@@ -105,12 +117,12 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		topBar.add(rskButton, BorderLayout.EAST);
 		add(topBar, BorderLayout.NORTH);
 
-		// Center body: Left is D-Pad, Right is Action Cluster / Numeric Keypad
+		// Center body: Left is 8-Way D-Pad, Right is Action Cluster / Numeric Keypad
 		JPanel bodyPanel = new JPanel();
 		bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.X_AXIS));
 		bodyPanel.setOpaque(false);
 
-		// 1. D-Pad Section
+		// 1. 8-Way D-Pad Section
 		JPanel dpadPanel = createDPadPanel();
 		bodyPanel.add(dpadPanel);
 
@@ -144,7 +156,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	/**
-	 * Creates a classic 3x3 D-Pad with directional arrows and center FIRE/SELECT.
+	 * Creates a complete 8-way D-Pad (Cardinals + Diagonals + Center OK/SELECT).
 	 */
 	private JPanel createDPadPanel() {
 		JPanel panel = new JPanel(new GridLayout(3, 3, 3, 3));
@@ -152,23 +164,32 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		panel.setPreferredSize(new Dimension(135, 115));
 		panel.setMaximumSize(new Dimension(145, 125));
 
-		VirtualKeyButton up = new VirtualKeyButton(ButtonName.UP, "▲", null, 42, 36, false);
-		VirtualKeyButton down = new VirtualKeyButton(ButtonName.DOWN, "▼", null, 42, 36, false);
-		VirtualKeyButton left = new VirtualKeyButton(ButtonName.LEFT, "◀", null, 42, 36, false);
-		VirtualKeyButton right = new VirtualKeyButton(ButtonName.RIGHT, "▶", null, 42, 36, false);
-		VirtualKeyButton fire = new VirtualKeyButton(ButtonName.SELECT, "FIRE", "OK", 44, 36, true);
+		// Top row: Top-Left (↖), Up (▲), Top-Right (↗)
+		VirtualKeyButton upLeft = new VirtualKeyButton(new ButtonName[] { ButtonName.UP, ButtonName.LEFT }, "↖", null, 42, 36);
+		VirtualKeyButton up = new VirtualKeyButton(ButtonName.UP, "▲", null, 42, 36);
+		VirtualKeyButton upRight = new VirtualKeyButton(new ButtonName[] { ButtonName.UP, ButtonName.RIGHT }, "↗", null, 42, 36);
 
-		panel.add(new EmptyCell());
+		// Middle row: Left (◀), Center OK (OK), Right (▶)
+		VirtualKeyButton left = new VirtualKeyButton(ButtonName.LEFT, "◀", null, 42, 36);
+		VirtualKeyButton ok = new VirtualKeyButton(ButtonName.SELECT, "OK", null, 42, 36);
+		VirtualKeyButton right = new VirtualKeyButton(ButtonName.RIGHT, "▶", null, 42, 36);
+
+		// Bottom row: Bottom-Left (↙), Down (▼), Bottom-Right (↘)
+		VirtualKeyButton downLeft = new VirtualKeyButton(new ButtonName[] { ButtonName.DOWN, ButtonName.LEFT }, "↙", null, 42, 36);
+		VirtualKeyButton down = new VirtualKeyButton(ButtonName.DOWN, "▼", null, 42, 36);
+		VirtualKeyButton downRight = new VirtualKeyButton(new ButtonName[] { ButtonName.DOWN, ButtonName.RIGHT }, "↘", null, 42, 36);
+
+		panel.add(upLeft);
 		panel.add(up);
-		panel.add(new EmptyCell());
+		panel.add(upRight);
 
 		panel.add(left);
-		panel.add(fire);
+		panel.add(ok);
 		panel.add(right);
 
-		panel.add(new EmptyCell());
+		panel.add(downLeft);
 		panel.add(down);
-		panel.add(new EmptyCell());
+		panel.add(downRight);
 
 		return panel;
 	}
@@ -182,10 +203,10 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		panel.setPreferredSize(new Dimension(135, 115));
 		panel.setMaximumSize(new Dimension(150, 125));
 
-		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "Action", 56, 44, true);
-		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "C", "Del", 56, 44, false);
-		VirtualKeyButton star = new VirtualKeyButton(ButtonName.KEY_STAR, "*", null, 56, 44, false);
-		VirtualKeyButton pound = new VirtualKeyButton(ButtonName.KEY_POUND, "#", null, 56, 44, false);
+		VirtualKeyButton key5 = new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "Action", 56, 44);
+		VirtualKeyButton clear = new VirtualKeyButton(ButtonName.DELETE, "C", "Del", 56, 44);
+		VirtualKeyButton star = new VirtualKeyButton(ButtonName.KEY_STAR, "*", null, 56, 44);
+		VirtualKeyButton pound = new VirtualKeyButton(ButtonName.KEY_POUND, "#", null, 56, 44);
 
 		panel.add(key5);
 		panel.add(clear);
@@ -205,39 +226,120 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		JPanel grid = new JPanel(new GridLayout(4, 3, 3, 3));
 		grid.setOpaque(false);
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM1, "1", null, 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM2, "2", "ABC", 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM3, "3", "DEF", 38, 26, false));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM1, "1", null, 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM2, "2", "ABC", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM3, "3", "DEF", 38, 26));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM4, "4", "GHI", 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "JKL", 38, 26, true));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM6, "6", "MNO", 38, 26, false));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM4, "4", "GHI", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM5, "5", "JKL", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM6, "6", "MNO", 38, 26));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM7, "7", "PQRS", 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM8, "8", "TUV", 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM9, "9", "WXYZ", 38, 26, false));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM7, "7", "PQRS", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM8, "8", "TUV", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM9, "9", "WXYZ", 38, 26));
 
-		grid.add(new VirtualKeyButton(ButtonName.KEY_STAR, "*", null, 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM0, "0", "+", 38, 26, false));
-		grid.add(new VirtualKeyButton(ButtonName.KEY_POUND, "#", null, 38, 26, false));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_STAR, "*", null, 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_NUM0, "0", "+", 38, 26));
+		grid.add(new VirtualKeyButton(ButtonName.KEY_POUND, "#", null, 38, 26));
 
 		wrapper.add(grid, BorderLayout.CENTER);
 
 		JPanel sideBar = new JPanel(new GridLayout(2, 1, 0, 3));
 		sideBar.setOpaque(false);
-		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "C", "Del", 34, 46, false));
+		sideBar.add(new VirtualKeyButton(ButtonName.DELETE, "C", "Del", 34, 46));
 		wrapper.add(sideBar, BorderLayout.EAST);
 
 		return wrapper;
 	}
 
-	private static boolean isDarkTheme() {
-		Color bg = UIManager.getColor("Panel.background");
-		if (bg != null) {
-			double luminance = (0.299 * bg.getRed() + 0.587 * bg.getGreen() + 0.114 * bg.getBlue()) / 255.0;
-			return luminance < 0.5;
+	static boolean isDarkTheme() {
+		try {
+			Class flatLafClass = Class.forName("com.formdev.flatlaf.FlatLaf");
+			java.lang.reflect.Method isDarkMethod = flatLafClass.getMethod("isLafDark");
+			return (Boolean) isDarkMethod.invoke(null);
+		} catch (Exception e) {
+			Color bg = UIManager.getColor("Panel.background");
+			if (bg != null) {
+				double luminance = (0.299 * bg.getRed() + 0.587 * bg.getGreen() + 0.114 * bg.getBlue()) / 255.0;
+				return luminance < 0.5;
+			}
+			return false;
 		}
-		return true;
+	}
+
+	static Color getPanelBackground() {
+		Color c = UIManager.getColor("Panel.background");
+		return (c != null) ? c : (isDarkTheme() ? new Color(60, 63, 65) : new Color(242, 242, 242));
+	}
+
+	static Color getBorderColor() {
+		Color c = UIManager.getColor("Component.borderColor");
+		if (c == null) {
+			c = UIManager.getColor("Button.borderColor");
+		}
+		if (c == null) {
+			c = UIManager.getColor("Separator.foreground");
+		}
+		if (c == null) {
+			c = isDarkTheme() ? new Color(255, 255, 255, 30) : new Color(0, 0, 0, 35);
+		}
+		return c;
+	}
+
+	static Color getButtonBackground() {
+		Color c = UIManager.getColor("Button.background");
+		if (c != null) {
+			return c;
+		}
+		return isDarkTheme() ? new Color(76, 80, 82) : new Color(255, 255, 255);
+	}
+
+	static Color getButtonForeground() {
+		Color c = UIManager.getColor("Button.foreground");
+		if (c == null) {
+			c = UIManager.getColor("Label.foreground");
+		}
+		return (c != null) ? c : (isDarkTheme() ? new Color(187, 187, 187) : new Color(30, 30, 30));
+	}
+
+	static Color getButtonHoverBackground() {
+		Color c = UIManager.getColor("Button.hoverBackground");
+		if (c != null) {
+			return c;
+		}
+		Color base = getButtonBackground();
+		return isDarkTheme() ? lighten(base, 0.08f) : darken(base, 0.04f);
+	}
+
+	static Color getButtonPressedBackground() {
+		Color c = UIManager.getColor("Button.pressedBackground");
+		if (c == null) {
+			c = UIManager.getColor("Button.select");
+		}
+		if (c != null) {
+			return c;
+		}
+		Color base = getButtonBackground();
+		return isDarkTheme() ? lighten(base, 0.18f) : darken(base, 0.10f);
+	}
+
+	static Color getSubLabelColor() {
+		Color c = UIManager.getColor("Label.disabledForeground");
+		return (c != null) ? c : (isDarkTheme() ? new Color(150, 150, 150) : new Color(130, 130, 130));
+	}
+
+	private static Color lighten(Color c, float amount) {
+		int r = Math.min(255, (int) (c.getRed() + (255 - c.getRed()) * amount));
+		int g = Math.min(255, (int) (c.getGreen() + (255 - c.getGreen()) * amount));
+		int b = Math.min(255, (int) (c.getBlue() + (255 - c.getBlue()) * amount));
+		return new Color(r, g, b, c.getAlpha());
+	}
+
+	private static Color darken(Color c, float amount) {
+		int r = Math.max(0, (int) (c.getRed() * (1.0f - amount)));
+		int g = Math.max(0, (int) (c.getGreen() * (1.0f - amount)));
+		int b = Math.max(0, (int) (c.getBlue() * (1.0f - amount)));
+		return new Color(r, g, b, c.getAlpha());
 	}
 
 	@Override
@@ -246,18 +348,15 @@ public class SwingVirtualKeypadPanel extends JPanel {
 		Graphics2D g2 = (Graphics2D) g.create();
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-		boolean dark = isDarkTheme();
 		int w = getWidth();
 		int h = getHeight();
 
-		// Board background
-		Color bg = dark ? new Color(24, 26, 31, 245) : new Color(242, 244, 248, 245);
-		g2.setColor(bg);
+		// Board background matches native panel background exactly
+		g2.setColor(getPanelBackground());
 		g2.fillRect(0, 0, w, h);
 
-		// Top border separator line
-		Color border = dark ? new Color(48, 52, 62) : new Color(215, 218, 226);
-		g2.setColor(border);
+		// Top separator line matching native component border
+		g2.setColor(getBorderColor());
 		g2.drawLine(0, 0, w, 0);
 
 		g2.dispose();
@@ -265,25 +364,29 @@ public class SwingVirtualKeypadPanel extends JPanel {
 
 	/**
 	 * An individual virtual key button with tactile click response and repeat support.
+	 * Can trigger single or compound (diagonal) ButtonName actions.
 	 */
 	public static class VirtualKeyButton extends JComponent {
 
 		private static final long serialVersionUID = 1L;
 
-		private final ButtonName buttonName;
+		private final ButtonName[] targetButtons;
 		private final String primaryLabel;
 		private final String subLabel;
-		private final boolean isAccent;
 		private boolean isPressed = false;
 		private boolean isHovered = false;
 		private Timer repeatTimer;
 
 		public VirtualKeyButton(final ButtonName buttonName, String primaryLabel, String subLabel,
-				int prefWidth, int prefHeight, boolean isAccent) {
-			this.buttonName = buttonName;
+				int prefWidth, int prefHeight) {
+			this(new ButtonName[] { buttonName }, primaryLabel, subLabel, prefWidth, prefHeight);
+		}
+
+		public VirtualKeyButton(final ButtonName[] targetButtons, String primaryLabel, String subLabel,
+				int prefWidth, int prefHeight) {
+			this.targetButtons = targetButtons;
 			this.primaryLabel = primaryLabel;
 			this.subLabel = subLabel;
-			this.isAccent = isAccent;
 
 			setPreferredSize(new Dimension(prefWidth, prefHeight));
 			setMinimumSize(new Dimension(prefWidth - 6, prefHeight - 4));
@@ -293,11 +396,19 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			initMouseListener();
 		}
 
+		@Override
+		public void updateUI() {
+			super.updateUI();
+			repaint();
+		}
+
 		private void initMouseListener() {
 			repeatTimer = new Timer(75, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					if (isPressed) {
-						VirtualKeypadController.repeatButton(buttonName);
+					if (isPressed && targetButtons != null) {
+						for (int i = 0; i < targetButtons.length; i++) {
+							VirtualKeypadController.repeatButton(targetButtons[i]);
+						}
 					}
 				}
 			});
@@ -308,7 +419,11 @@ public class SwingVirtualKeypadPanel extends JPanel {
 				public void mousePressed(MouseEvent e) {
 					isPressed = true;
 					repaint();
-					VirtualKeypadController.pressButton(buttonName);
+					if (targetButtons != null) {
+						for (int i = 0; i < targetButtons.length; i++) {
+							VirtualKeypadController.pressButton(targetButtons[i]);
+						}
+					}
 					repeatTimer.restart();
 				}
 
@@ -339,7 +454,11 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			if (isPressed) {
 				isPressed = false;
 				repeatTimer.stop();
-				VirtualKeypadController.releaseButton(buttonName);
+				if (targetButtons != null) {
+					for (int i = 0; i < targetButtons.length; i++) {
+						VirtualKeypadController.releaseButton(targetButtons[i]);
+					}
+				}
 				repaint();
 			}
 		}
@@ -350,61 +469,24 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 
-			boolean dark = isDarkTheme();
 			int w = getWidth();
 			int h = getHeight();
 			int arc = 10;
 
-			// Determine button background color
+			// Resolve colors dynamically from native Look-and-Feel UIManager
 			Color fillColor;
-			Color borderColor;
-			Color textColor;
+			Color borderColor = getBorderColor();
+			Color textColor = getButtonForeground();
 
-			if (isAccent) {
-				if (isPressed) {
-					fillColor = new Color(29, 78, 216); // Deep blue
-					borderColor = new Color(59, 130, 246);
-				} else if (isHovered) {
-					fillColor = new Color(37, 99, 235);
-					borderColor = new Color(96, 165, 250);
-				} else {
-					fillColor = new Color(30, 64, 175);
-					borderColor = new Color(59, 130, 246);
-				}
-				textColor = Color.WHITE;
+			if (isPressed) {
+				fillColor = getButtonPressedBackground();
+			} else if (isHovered) {
+				fillColor = getButtonHoverBackground();
 			} else {
-				if (dark) {
-					if (isPressed) {
-						fillColor = new Color(70, 76, 92);
-						borderColor = new Color(110, 118, 140);
-						textColor = Color.WHITE;
-					} else if (isHovered) {
-						fillColor = new Color(48, 52, 64);
-						borderColor = new Color(80, 86, 102);
-						textColor = new Color(230, 235, 245);
-					} else {
-						fillColor = new Color(36, 39, 48);
-						borderColor = new Color(60, 65, 78);
-						textColor = new Color(210, 215, 225);
-					}
-				} else {
-					if (isPressed) {
-						fillColor = new Color(205, 212, 226);
-						borderColor = new Color(150, 160, 180);
-						textColor = new Color(15, 20, 30);
-					} else if (isHovered) {
-						fillColor = new Color(250, 252, 255);
-						borderColor = new Color(180, 188, 205);
-						textColor = new Color(30, 35, 45);
-					} else {
-						fillColor = new Color(255, 255, 255);
-						borderColor = new Color(205, 210, 222);
-						textColor = new Color(40, 45, 55);
-					}
-				}
+				fillColor = getButtonBackground();
 			}
 
-			// Draw button background
+			// Draw button background with tactile press depression
 			int yOffset = isPressed ? 1 : 0;
 			g2.setColor(fillColor);
 			g2.fillRoundRect(1, 1 + yOffset, w - 2, h - 2 - yOffset, arc, arc);
@@ -422,9 +504,9 @@ public class SwingVirtualKeypadPanel extends JPanel {
 				int py = (h / 2) + yOffset;
 				g2.drawString(primaryLabel, px, py);
 
-				// Subtitle label (smaller text)
+				// Subtitle label (smaller text matching disabled/secondary text)
 				g2.setFont(getFont().deriveFont(Font.PLAIN, 8.5f));
-				g2.setColor(isAccent ? new Color(210, 230, 255) : (dark ? new Color(145, 150, 165) : new Color(120, 125, 140)));
+				g2.setColor(getSubLabelColor());
 				FontMetrics fmSub = g2.getFontMetrics();
 				int sx = (w - fmSub.stringWidth(subLabel)) / 2;
 				int sy = (h / 2) + fmSub.getAscent() + yOffset;
@@ -442,11 +524,4 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			g2.dispose();
 		}
 	}
-
-	private static class EmptyCell extends JPanel {
-		public EmptyCell() {
-			setOpaque(false);
-		}
-	}
 }
-

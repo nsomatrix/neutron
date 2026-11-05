@@ -59,5 +59,13 @@ public class SwingVirtualKeypadPanelTest {
 			Assert.fail("Controller should safely handle button calls without active midlet: " + ex.getMessage());
 		}
 	}
+
+	@Test
+	public void testDiagonalButtonCreation() {
+		SwingVirtualKeypadPanel.VirtualKeyButton diagonalBtn = new SwingVirtualKeypadPanel.VirtualKeyButton(
+				new ButtonName[] { ButtonName.UP, ButtonName.LEFT }, "↖", null, 40, 36);
+		Assert.assertNotNull(diagonalBtn);
+		Assert.assertFalse("Button should not steal focus", diagonalBtn.isFocusable());
+	}
 }
 
