@@ -678,6 +678,37 @@ public class Config {
 		saveConfig();
 	}
 
+	public static boolean isVirtualButtonsEnabled() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return false;
+		}
+		return Boolean.parseBoolean(optionsXml.getChildString("virtualButtons", "false"));
+	}
+
+	public static void setVirtualButtonsEnabled(boolean enabled) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement vbXml = optionsXml.getChildOrNew("virtualButtons");
+		vbXml.setContent(String.valueOf(enabled));
+		saveConfig();
+		notifyConfigChanged("Virtual Buttons", enabled);
+	}
+
+	public static String getVirtualButtonsMode() {
+		XMLElement optionsXml = configXml.getChild("options");
+		if (optionsXml == null) {
+			return "gamepad";
+		}
+		return optionsXml.getChildString("virtualButtonsMode", "gamepad");
+	}
+
+	public static void setVirtualButtonsMode(String mode) {
+		XMLElement optionsXml = configXml.getChildOrNew("options");
+		XMLElement vbmXml = optionsXml.getChildOrNew("virtualButtonsMode");
+		vbmXml.setContent(mode);
+		saveConfig();
+	}
+
 	public static boolean isStdOutEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {

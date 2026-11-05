@@ -100,6 +100,7 @@ import org.neutron.app.ui.swing.ResizeDeviceDisplayDialog;
 import org.neutron.app.ui.swing.SwingAboutDialog;
 import org.neutron.app.ui.swing.EmulatorTheme;
 import org.neutron.app.ui.swing.SwingDeviceComponent;
+import org.neutron.app.ui.swing.SwingVirtualKeypadPanel;
 import org.neutron.app.ui.swing.SwingDialogWindow;
 import org.neutron.app.ui.swing.SwingDisplayComponent;
 import org.neutron.app.ui.swing.SwingErrorMessageDialogPanel;
@@ -255,6 +256,12 @@ public class Main extends JFrame {
 	private SwingStatusBar statusBar = new SwingStatusBar();
 
 	private JCheckBoxMenuItem menuShowMouseCoordinates;
+
+	private JCheckBoxMenuItem menuVirtualButtons;
+
+	private SwingVirtualKeypadPanel virtualKeypadPanel;
+
+	private JPanel emulatorContainer;
 
 	private JCheckBoxMenuItem menuFullscreen;
 
@@ -1282,6 +1289,18 @@ public class Main extends JFrame {
 		});
 		menuOptions.add(menuShowMouseCoordinates);
 
+		menuVirtualButtons = new JCheckBoxMenuItem("Virtual Buttons");
+		menuVirtualButtons.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, ActionEvent.CTRL_MASK));
+		menuVirtualButtons.setSelected(Config.isVirtualButtonsEnabled());
+		menuVirtualButtons.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean enabled = menuVirtualButtons.isSelected();
+				Config.setVirtualButtonsEnabled(enabled);
+				setVirtualButtonsVisible(enabled);
+			}
+		});
+		menuOptions.add(menuVirtualButtons);
+
 		JMenu menuControls = new JMenu("Controls");
 		menuFullscreen = new JCheckBoxMenuItem("Fullscreen");
 		menuFullscreen.setState(Config.isFullscreen());
@@ -1734,7 +1753,28 @@ public class Main extends JFrame {
 		devicePanel.addKeyListener(devicePanel);
 		addKeyListener(devicePanel);
 
-		return devicePanel;
+		virtualKeypadPanel = new SwingVirtualKeypadPanel();
+		virtualKeypadPanel.setVisible(Config.isVirtualButtonsEnabled());
+
+		emulatorContainer = new JPanel(new BorderLayout());
+		emulatorContainer.add(devicePanel, BorderLayout.CENTER);
+		emulatorContainer.add(virtualKeypadPanel, BorderLayout.SOUTH);
+
+		return emulatorContainer;
+	}
+
+	public void setVirtualButtonsVisible(boolean visible) {
+		if (virtualKeypadPanel != null) {
+			virtualKeypadPanel.setVisible(visible);
+			if (menuVirtualButtons != null) {
+				menuVirtualButtons.setSelected(visible);
+			}
+			revalidate();
+			pack();
+			if (devicePanel != null) {
+				devicePanel.requestFocus();
+			}
+		}
 	}
 
 	@Override
