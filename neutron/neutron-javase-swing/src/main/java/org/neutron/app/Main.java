@@ -871,9 +871,11 @@ public class Main extends JFrame {
 			if (deviceDisplay != null && deviceDisplay.isResizable()) {
 				devicePanel.revalidate();
 				devicePanel.repaint();
-				statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
-						+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
-						+ deviceDisplay.getFullHeight() + ")");
+				if (devicePanel.getWidth() != deviceDisplay.getFullWidth() || devicePanel.getHeight() != deviceDisplay.getFullHeight()) {
+					statusBarListener.statusBarChanged("Window size: " + devicePanel.getWidth() + "x"
+							+ devicePanel.getHeight() + " (Scaled from: " + deviceDisplay.getFullWidth() + "x"
+							+ deviceDisplay.getFullHeight() + ")");
+				}
 			}
 		}
 	};
@@ -1561,12 +1563,12 @@ public class Main extends JFrame {
 									setDeviceSize(deviceDisplay, 240, 320);
 								}
 							} else {
-								// Returning to launcher: clear surface and restore clean base mobile resolution
+								// Returning to launcher or idle screen: ensure clean mobile resolution
 								if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
 									setDeviceSize(deviceDisplay, 240, 320);
 								}
-								((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
 							}
+							deviceDisplay.repaint(0, 0, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 						}
 						devicePanel.revalidate();
 						devicePanel.repaint();
