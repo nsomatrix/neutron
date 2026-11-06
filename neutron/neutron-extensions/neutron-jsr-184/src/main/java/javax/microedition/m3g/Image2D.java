@@ -124,7 +124,6 @@ public class Image2D extends Object3D
 		 * (a fully-transparent texture is useless). Detect that degenerate case and
 		 * treat such palettes as fully opaque. Palettes with any non-zero alpha entry
 		 * (i.e. real cutout/translucency data) are left untouched.
-		 * TODO: A hack, might cause issues. Should be revisited
 		 */
 		boolean forceOpaque = false;
 		if (this.format == RGBA)

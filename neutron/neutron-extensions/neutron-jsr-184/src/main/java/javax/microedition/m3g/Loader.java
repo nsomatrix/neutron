@@ -166,8 +166,7 @@ public class Loader
 		try { return new Loader(data, offset, new Vector<String>()).load(); }
 		catch (Exception e)
 		{
-			M3GLog.log(M3GLog.LOG_ERROR, Loader.class.getPackage().getName() + "." + Loader.class.getSimpleName() + ": " + "Loader(byte[], int) could not load data.");
-			e.printStackTrace();
+			M3GLog.log(M3GLog.LOG_ERROR, Loader.class.getPackage().getName() + "." + Loader.class.getSimpleName() + ": " + "Loader(byte[], int) could not load data: " + e.getMessage());
 			throw new IOException("Invalid M3G data.");
 		}
 	}
@@ -969,7 +968,7 @@ public class Loader
 				decompresser.setInput(compressedData, 0, compressedLength);
 				int resultLength = 0;
 				try { resultLength = decompresser.inflate(uncompressedData); }
-				catch (Exception e) { e.printStackTrace(); }
+				catch (Exception e) { M3GLog.log(M3GLog.LOG_ERROR, "Zlib inflate error: " + e.getMessage()); }
 				decompresser.end();
 
 				if (resultLength != uncompressedLength) { throw new IOException("Unable to decompress data."); }
@@ -1034,7 +1033,6 @@ public class Loader
 		catch (Exception e)
 		{
 			M3GLog.log(M3GLog.LOG_ERROR, Loader.class.getPackage().getName() + "." + Loader.class.getSimpleName() + ": " + "Exception: " + e.getMessage());
-			e.printStackTrace();
 			throw new IOException("Invalid M3G data.");
 		}
 		finally

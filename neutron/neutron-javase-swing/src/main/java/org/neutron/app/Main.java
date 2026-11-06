@@ -978,7 +978,7 @@ public class Main extends JFrame {
 						ma.startApp();
 					}
 				} catch (MIDletStateChangeException ex) {
-					System.err.println(ex);
+					Logger.error("Failed to startApp() on window focus", ex);
 				}
 			}
 		}

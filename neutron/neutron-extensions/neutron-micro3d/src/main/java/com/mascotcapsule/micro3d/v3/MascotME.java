@@ -158,8 +158,9 @@ public class MascotME {
 				
 				int tmp = start;
 				start = lineEnd + 1;
+				String line = null;
 				try {
-					String line = iniText.substring(tmp, lineEnd);
+					line = iniText.substring(tmp, lineEnd);
 
 					line = line.trim();
 					if (line.length() == 0) continue;
@@ -174,12 +175,12 @@ public class MascotME {
 					
 					parseKey(key, value);
 				} catch (Exception e) {
-					e.printStackTrace();
+					org.neutron.log.Logger.debug("MascotME line parse error: " + line, e);
 				}
 			}
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			org.neutron.log.Logger.debug("MascotME config load error", e);
 		} finally {
 			try {
 				if (is != null) is.close();

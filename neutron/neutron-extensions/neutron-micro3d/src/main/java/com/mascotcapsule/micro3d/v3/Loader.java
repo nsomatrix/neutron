@@ -39,7 +39,6 @@ class Loader {
 
 	final int readUBits(int size) {
 		if (size > 25) {
-			System.out.println("readUBits(size=" + size + ')');
 			throw new IllegalArgumentException("Invalid bit size=" + size);
 		}
 		
