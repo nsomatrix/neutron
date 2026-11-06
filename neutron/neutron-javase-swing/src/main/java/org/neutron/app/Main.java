@@ -1901,6 +1901,10 @@ public class Main extends JFrame {
 				if (menuFullscreen != null) {
 					menuFullscreen.setSelected(enabled);
 				}
+				Config.setVirtualButtonsEnabled(false);
+				if (virtualKeypadPanel != null) {
+					virtualKeypadPanel.setVisible(false);
+				}
 				if (enabled) {
 					if (menuBar != null) {
 						menuBar.setVisible(false);
@@ -1911,9 +1915,6 @@ public class Main extends JFrame {
 					if (floatingMenuButton != null) {
 						updateFloatingButtonBounds();
 						floatingMenuButton.setVisible(true);
-					}
-					if (virtualKeypadPanel != null) {
-						virtualKeypadPanel.setVisible(false);
 					}
 					if (menuVirtualButtons != null) {
 						menuVirtualButtons.setEnabled(false);
@@ -1931,10 +1932,7 @@ public class Main extends JFrame {
 					}
 					if (menuVirtualButtons != null) {
 						menuVirtualButtons.setEnabled(true);
-						menuVirtualButtons.setSelected(Config.isVirtualButtonsEnabled());
-					}
-					if (virtualKeypadPanel != null) {
-						virtualKeypadPanel.setVisible(Config.isVirtualButtonsEnabled());
+						menuVirtualButtons.setSelected(false);
 					}
 				}
 				revalidate();

@@ -380,12 +380,18 @@ public class MainMenuBarTest {
             drainEdt();
             assertFalse("Virtual buttons menu must remain unselected in fullscreen", virtBtn.isSelected());
 
-            // Exit fullscreen
+            // Exit fullscreen: virtual buttons should remain disabled by default to prevent display shrinking
             main.setFullscreenMode(false);
             drainEdt();
             assertFalse("Fullscreen should be inactive", Config.isFullscreen());
             assertTrue("Virtual buttons menu should be re-enabled after exiting fullscreen", virtBtn.isEnabled());
-            assertTrue("Virtual buttons menu should restore selected state from config", virtBtn.isSelected());
+            assertFalse("Virtual buttons menu should be disabled by default after exiting fullscreen", virtBtn.isSelected());
+            assertFalse("Config virtual buttons should be false after exiting fullscreen", Config.isVirtualButtonsEnabled());
+
+            // User can manually turn virtual buttons back on
+            clickMenuItem(virtBtn);
+            assertTrue("Virtual buttons menu should be selected when manually enabled", virtBtn.isSelected());
+            assertTrue("Config virtual buttons should be true when manually enabled", Config.isVirtualButtonsEnabled());
         } finally {
             main.setFullscreenMode(false);
             Config.setVirtualButtonsEnabled(origVb);
