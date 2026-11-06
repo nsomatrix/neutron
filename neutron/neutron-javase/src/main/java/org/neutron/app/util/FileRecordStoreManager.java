@@ -120,8 +120,15 @@ public class FileRecordStoreManager implements RecordStoreManager {
 		return fileName.substring(0, fileName.length() - RECORD_STORE_SUFFIX.length());
 	}
 
+	private static void validateRecordStoreName(String recordStoreName) {
+		if (recordStoreName == null || recordStoreName.length() == 0 || recordStoreName.length() > 32) {
+			throw new IllegalArgumentException("Record store name must be between 1 and 32 characters: " + recordStoreName);
+		}
+	}
+
 	public void deleteRecordStore(final String recordStoreName) throws RecordStoreNotFoundException,
 			RecordStoreException {
+		validateRecordStoreName(recordStoreName);
 		final File storeFile = new File(getSuiteFolder(), recordStoreName2FileName(recordStoreName));
 
 		RecordStoreImpl recordStoreImpl = (RecordStoreImpl) testOpenRecordStores.get(storeFile.getName());
@@ -150,6 +157,7 @@ public class FileRecordStoreManager implements RecordStoreManager {
 	}
 
 	public RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary) throws RecordStoreException {
+		validateRecordStoreName(recordStoreName);
 		File storeFile = new File(getSuiteFolder(), recordStoreName2FileName(recordStoreName));
 
 		RecordStoreImpl recordStoreImpl;

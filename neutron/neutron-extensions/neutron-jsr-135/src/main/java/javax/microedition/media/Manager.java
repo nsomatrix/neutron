@@ -78,6 +78,9 @@ public final class Manager
         if (locator == null) {
             throw new IllegalArgumentException("locator cannot be null");
         }
+        if (TONE_DEVICE_LOCATOR.equals(locator)) {
+            return new org.neutron.media.audio.PCTonePlayer();
+        }
     	// should we simulate video capturing?
     	if (locator.startsWith("capture://video")) {
     		return new VideoCapturePlayer(locator);

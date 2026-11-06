@@ -45,7 +45,14 @@ public class MemoryRecordStoreManager implements RecordStoreManager {
 		return "Memory record store";
 	}
 
+	private static void validateRecordStoreName(String recordStoreName) {
+		if (recordStoreName == null || recordStoreName.length() == 0 || recordStoreName.length() > 32) {
+			throw new IllegalArgumentException("Record store name must be between 1 and 32 characters: " + recordStoreName);
+		}
+	}
+
 	public void deleteRecordStore(String recordStoreName) throws RecordStoreNotFoundException, RecordStoreException {
+		validateRecordStoreName(recordStoreName);
 		RecordStoreImpl recordStoreImpl = (RecordStoreImpl) recordStores.get(recordStoreName);
 		if (recordStoreImpl == null) {
 			throw new RecordStoreNotFoundException(recordStoreName);
@@ -60,6 +67,7 @@ public class MemoryRecordStoreManager implements RecordStoreManager {
 
 	public RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary)
 			throws RecordStoreNotFoundException {
+		validateRecordStoreName(recordStoreName);
 		RecordStoreImpl recordStoreImpl = (RecordStoreImpl) recordStores.get(recordStoreName);
 		if (recordStoreImpl == null) {
 			if (!createIfNecessary) {

@@ -83,5 +83,56 @@ public class MemoryRecordStoreManagerTest {
         assertEquals(0, freshStore.getNumRecords());
         freshStore.closeRecordStore();
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testOpenRecordStoreNullNameThrowsIllegalArgumentException() throws Exception {
+        manager.openRecordStore(null, true);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testOpenRecordStoreEmptyNameThrowsIllegalArgumentException() throws Exception {
+        manager.openRecordStore("", true);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testOpenRecordStoreNameExceeding32CharsThrowsIllegalArgumentException() throws Exception {
+        manager.openRecordStore("123456789012345678901234567890123", true);
+    }
+
+    @Test
+    public void testOpenRecordStoreNameExact32CharsAllowed() throws Exception {
+        String name32 = "12345678901234567890123456789012";
+        RecordStore store = manager.openRecordStore(name32, true);
+        assertNotNull(store);
+        assertEquals(name32, store.getName());
+        store.closeRecordStore();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testRecordEnumerationDestroyThrowsIllegalStateExceptionOnNextRecord() throws Exception {
+        RecordStore store = manager.openRecordStore("enumDestroyTest", true);
+        byte[] data = "payload".getBytes("UTF-8");
+        store.addRecord(data, 0, data.length);
+
+        RecordEnumeration re = store.enumerateRecords(null, null, false);
+        assertEquals(1, re.numRecords());
+        re.destroy();
+
+        // Any call after destroy() MUST throw IllegalStateException
+        re.nextRecord();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testRecordEnumerationDestroyThrowsIllegalStateExceptionOnNextRecordId() throws Exception {
+        RecordStore store = manager.openRecordStore("enumDestroyTest2", true);
+        byte[] data = "payload".getBytes("UTF-8");
+        store.addRecord(data, 0, data.length);
+
+        RecordEnumeration re = store.enumerateRecords(null, null, false);
+        re.destroy();
+
+        // Any call after destroy() MUST throw IllegalStateException
+        re.nextRecordId();
+    }
 }
 

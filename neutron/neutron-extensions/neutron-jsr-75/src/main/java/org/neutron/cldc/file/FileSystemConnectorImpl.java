@@ -58,7 +58,7 @@ public class FileSystemConnectorImpl extends ConnectorAdapter implements Impleme
 		this.fsRoot = fsRoot;
 	}
 
-	public Connection open(final String name, int mode, boolean timeouts) throws IOException {
+	public Connection open(final String name, final int mode, boolean timeouts) throws IOException {
 		// file://<host>/<path>
 		if (!name.startsWith(PROTOCOL)) {
 			throw new IOException("Invalid Protocol " + name);
@@ -67,7 +67,7 @@ public class FileSystemConnectorImpl extends ConnectorAdapter implements Impleme
 		Connection con = (Connection) doPrivilegedIO(new PrivilegedExceptionAction() {
 			public Object run() throws IOException {
 				return new FileSystemFileConnection(fsRoot, name.substring(PROTOCOL.length()),
-						FileSystemConnectorImpl.this);
+						FileSystemConnectorImpl.this, mode);
 			}
 		}, acc);
 		openConnection.add(con);

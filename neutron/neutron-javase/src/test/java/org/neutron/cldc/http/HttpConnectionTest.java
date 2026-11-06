@@ -27,5 +27,29 @@ public class HttpConnectionTest {
             conn.close();
         }
     }
+
+    @Test
+    public void testDefaultRequestMethodIsGet() throws Exception {
+        Connection conn = new Connection();
+        try {
+            conn.openConnection("http://example.com/path", 0, false);
+            // MIDP 2.0 specification: default HTTP request method MUST be GET
+            assertEquals("GET", conn.getRequestMethod());
+        } finally {
+            conn.close();
+        }
+    }
+
+    @Test
+    public void testSetRequestMethodPost() throws Exception {
+        Connection conn = new Connection();
+        try {
+            conn.openConnection("http://example.com/path", 0, false);
+            conn.setRequestMethod(javax.microedition.io.HttpConnection.POST);
+            assertEquals("POST", conn.getRequestMethod());
+        } finally {
+            conn.close();
+        }
+    }
 }
 

@@ -43,9 +43,16 @@ public class RecordEnumerationImpl implements RecordEnumeration
 	private RecordFilter filter;
 	private RecordComparator comparator;
 	private boolean keepUpdated;
+	private boolean destroyed = false;
 
 	private Vector enumerationRecords = new Vector();
 	private int currentRecord;    
+
+	private void checkNotDestroyed() {
+		if (destroyed) {
+			throw new IllegalStateException("RecordEnumeration has been destroyed");
+		}
+	}    
     
 	private RecordListener recordListener = new RecordListener() 
     {
@@ -82,6 +89,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public int numRecords()
     {
+        checkNotDestroyed();
         return enumerationRecords.size();
     }
 
@@ -89,6 +97,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
     public byte[] nextRecord() 
     		throws InvalidRecordIDException, RecordStoreNotOpenException, RecordStoreException
     {
+        checkNotDestroyed();
         if (!recordStoreImpl.isOpen()) {
             throw new RecordStoreNotOpenException();
         }
@@ -107,6 +116,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
     public int nextRecordId() 
     		throws InvalidRecordIDException
     {
+        checkNotDestroyed();
         if (currentRecord >= numRecords()) {
             throw new InvalidRecordIDException();
         }
@@ -121,6 +131,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
     public byte[] previousRecord() 
     		throws InvalidRecordIDException, RecordStoreNotOpenException, RecordStoreException
     {
+        checkNotDestroyed();
         if (!recordStoreImpl.isOpen()) {
             throw new RecordStoreNotOpenException();
         }
@@ -138,6 +149,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
     public int previousRecordId() 
     		throws InvalidRecordIDException
     {
+        checkNotDestroyed();
         if (currentRecord <= 0) {
             throw new InvalidRecordIDException();
         }
@@ -151,6 +163,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public boolean hasNextElement()
     {
+        checkNotDestroyed();
         if (currentRecord >= numRecords()) {
             return false;
         } else {
@@ -161,6 +174,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public boolean hasPreviousElement()
     {
+        checkNotDestroyed();
         if (currentRecord <= 0) {
             return false;
         } else {
@@ -171,12 +185,14 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public void reset()
     {
+        checkNotDestroyed();
         currentRecord = 0;
     }
 
 
     public void rebuild()
     {
+        checkNotDestroyed();
         enumerationRecords.removeAllElements();
 
         //
@@ -230,6 +246,7 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public void keepUpdated(boolean keepUpdated)
     {
+        checkNotDestroyed();
         if (keepUpdated) {
             if (!this.keepUpdated) {
                 rebuild();
@@ -245,12 +262,23 @@ public class RecordEnumerationImpl implements RecordEnumeration
 
     public boolean isKeptUpdated()
     {
+        checkNotDestroyed();
         return keepUpdated;
     }
 
 
     public void destroy()
     {
+        if (destroyed) {
+            return;
+        }
+        destroyed = true;
+        if (keepUpdated && recordListener != null && recordStoreImpl != null) {
+            recordStoreImpl.removeRecordListener(recordListener);
+        }
+        if (enumerationRecords != null) {
+            enumerationRecords.removeAllElements();
+        }
     }
 
 

@@ -110,5 +110,67 @@ public class SpriteTest {
         assertEquals(50, sprite.getWidth());
         assertEquals(30, sprite.getHeight());
     }
-}
 
+    @Test
+    public void testReferencePixelCoordinatesWithTransforms() {
+        // Raw frame: width=20, height=40
+        Image img = new StubImage(20, 40);
+        Sprite sprite = new Sprite(img, 20, 40);
+        sprite.setPosition(100, 100);
+        sprite.defineReferencePixel(5, 10);
+
+        // TRANS_NONE: ref = (5, 10), world = (105, 110)
+        assertEquals(105, sprite.getRefPixelX());
+        assertEquals(110, sprite.getRefPixelY());
+
+        // TRANS_MIRROR: W-1-refX = 19-5 = 14, Y = 10
+        sprite.setTransform(Sprite.TRANS_MIRROR);
+        // After setTransform, sprite moves so reference pixel in world coordinates is PRESERVED
+        assertEquals(105, sprite.getRefPixelX());
+        assertEquals(110, sprite.getRefPixelY());
+
+        // Now move sprite explicitly
+        sprite.setPosition(0, 0);
+        // At (0, 0) with TRANS_MIRROR: refX' = 14, refY' = 10
+        assertEquals(14, sprite.getRefPixelX());
+        assertEquals(10, sprite.getRefPixelY());
+
+        // TRANS_ROT90 at (0, 0): X' = H - 1 - refY = 40 - 1 - 10 = 29; Y' = refX = 5
+        sprite.setTransform(Sprite.TRANS_ROT90);
+        sprite.setPosition(0, 0);
+        assertEquals(29, sprite.getRefPixelX());
+        assertEquals(5, sprite.getRefPixelY());
+
+        // TRANS_ROT180 at (0, 0): X' = W - 1 - refX = 14; Y' = H - 1 - refY = 29
+        sprite.setTransform(Sprite.TRANS_ROT180);
+        sprite.setPosition(0, 0);
+        assertEquals(14, sprite.getRefPixelX());
+        assertEquals(29, sprite.getRefPixelY());
+
+        // TRANS_ROT270 at (0, 0): X' = refY = 10; Y' = W - 1 - refX = 14
+        sprite.setTransform(Sprite.TRANS_ROT270);
+        sprite.setPosition(0, 0);
+        assertEquals(10, sprite.getRefPixelX());
+        assertEquals(14, sprite.getRefPixelY());
+    }
+
+    @Test
+    public void testSetRefPixelPositionPreservesTransformedLocation() {
+        Image img = new StubImage(20, 40);
+        Sprite sprite = new Sprite(img, 20, 40);
+        sprite.defineReferencePixel(5, 10);
+        sprite.setTransform(Sprite.TRANS_MIRROR_ROT90);
+
+        // Setting reference pixel to world (200, 300) must ensure getRefPixelX/Y return (200, 300)
+        sprite.setRefPixelPosition(200, 300);
+        assertEquals(200, sprite.getRefPixelX());
+        assertEquals(300, sprite.getRefPixelY());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testCollidesWithNullImageThrowsNullPointerException() {
+        Image img = new StubImage(20, 20);
+        Sprite sprite = new Sprite(img, 20, 20);
+        sprite.collidesWith((Image) null, 0, 0, false);
+    }
+}

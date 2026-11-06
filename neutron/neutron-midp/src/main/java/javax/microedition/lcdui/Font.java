@@ -205,7 +205,18 @@ public final class Font
 
 
 	public int hashCode() {
-		return style + size + face;
+		return (face << 8) | (size << 4) | style;
+	}
+
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Font)) {
+			return false;
+		}
+		Font other = (Font) obj;
+		return this.face == other.face && this.style == other.style && this.size == other.size;
 	}	
 	
 }

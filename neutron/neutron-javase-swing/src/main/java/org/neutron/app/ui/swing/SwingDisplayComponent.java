@@ -385,12 +385,12 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 	static int getCompatibleImageType(BufferedImage img) {
 		int type = img.getType();
-		if (type == BufferedImage.TYPE_CUSTOM) {
-			return (img.getColorModel() != null && img.getColorModel().hasAlpha())
-					? BufferedImage.TYPE_INT_ARGB
-					: BufferedImage.TYPE_INT_RGB;
+		if (type == BufferedImage.TYPE_INT_ARGB || type == BufferedImage.TYPE_INT_RGB || type == BufferedImage.TYPE_INT_ARGB_PRE) {
+			return type;
 		}
-		return type;
+		return (img.getColorModel() != null && img.getColorModel().hasAlpha())
+				? BufferedImage.TYPE_INT_ARGB
+				: BufferedImage.TYPE_INT_RGB;
 	}
 
 	BufferedImage getScale2xImage(BufferedImage src, int[] srcData) {

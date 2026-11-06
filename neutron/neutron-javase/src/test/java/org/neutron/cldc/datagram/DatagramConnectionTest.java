@@ -89,5 +89,16 @@ public class DatagramConnectionTest {
             serverConn.close();
         }
     }
+
+    @Test
+    public void testDatagramReadFully() throws Exception {
+        DatagramImpl dgram = new DatagramImpl(64);
+        byte[] original = new byte[] { 10, 20, 30, 40, 50, 60 };
+        dgram.write(original);
+
+        byte[] dest = new byte[6];
+        dgram.readFully(dest, 0, 6);
+        assertArrayEquals(original, dest);
+    }
 }
 

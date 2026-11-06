@@ -234,4 +234,46 @@ public class FileConnectionTest extends TestCase {
 			// Expected: root escape blocked
 		}
 	}
+
+	public void testReadOnlyModeEnforcement() throws Exception {
+		FileConnection fconn = (FileConnection) Connector.open("file:///test/dir1/f1.txt", Connector.READ);
+		try {
+			assertTrue(fconn.exists());
+			// Reading input stream should succeed
+			InputStream is = fconn.openInputStream();
+			assertNotNull(is);
+			is.close();
+
+			// Writing operations should throw IllegalModeException
+			try {
+				fconn.openOutputStream();
+				fail("IllegalModeException expected on openOutputStream in READ mode");
+			} catch (IllegalModeException e) {
+				// Expected
+			}
+
+			try {
+				fconn.truncate(0);
+				fail("IllegalModeException expected on truncate in READ mode");
+			} catch (IllegalModeException e) {
+				// Expected
+			}
+
+			try {
+				fconn.delete();
+				fail("IllegalModeException expected on delete in READ mode");
+			} catch (IllegalModeException e) {
+				// Expected
+			}
+
+			try {
+				fconn.setWritable(true);
+				fail("IllegalModeException expected on setWritable in READ mode");
+			} catch (IllegalModeException e) {
+				// Expected
+			}
+		} finally {
+			fconn.close();
+		}
+	}
 }

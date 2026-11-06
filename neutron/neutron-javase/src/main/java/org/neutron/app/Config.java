@@ -27,9 +27,11 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -187,9 +189,9 @@ public class Config {
 		File configFile = new File(getConfigPath(), "config2.xml");
 
 		getConfigPath().mkdirs();
-		FileWriter fw = null;
+		Writer fw = null;
 		try {
-			fw = new FileWriter(configFile);
+			fw = new OutputStreamWriter(new FileOutputStream(configFile), "UTF-8");
 			configXml.write(fw);
 			fw.close();
 		} catch (IOException ex) {

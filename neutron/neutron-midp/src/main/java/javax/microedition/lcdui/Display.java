@@ -46,7 +46,9 @@ public class Display {
 
 	public static final int LIST_ELEMENT = 1;
 
-	public static final int CHOICE_GROUP_ELEMENT = 2;
+	public static final int CHOICEGROUP_ELEMENT = 2;
+
+	public static final int CHOICE_GROUP_ELEMENT = CHOICEGROUP_ELEMENT;
 
 	public static final int ALERT = 3;
 
@@ -517,14 +519,17 @@ public class Display {
 	}
 
 	public int getBestImageWidth(int imageType) {
-		// TODO implement
-		return 0;
+		if (imageType != LIST_ELEMENT && imageType != CHOICEGROUP_ELEMENT && imageType != ALERT) {
+			throw new IllegalArgumentException("Invalid imageType: " + imageType);
+		}
+		return (imageType == ALERT) ? 32 : 16;
 	}
 
 	public int getBestImageHeight(int imageType) {
-
-		// TODO implement
-		return 0;
+		if (imageType != LIST_ELEMENT && imageType != CHOICEGROUP_ELEMENT && imageType != ALERT) {
+			throw new IllegalArgumentException("Invalid imageType: " + imageType);
+		}
+		return (imageType == ALERT) ? 32 : 16;
 	}
 
 	public Displayable getCurrent() {

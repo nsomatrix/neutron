@@ -125,11 +125,18 @@ public class ConnectorImpl extends ConnectorAdapter {
 	}
 
 	private Connection openSecure(String name, int mode, boolean timeouts) throws IOException {
+		if (name == null) {
+			throw new IllegalArgumentException("Connection name cannot be null");
+		}
+		int colonIndex = name.indexOf(':');
+		if (colonIndex == -1) {
+			throw new IllegalArgumentException("Invalid connection URL (missing protocol colon): " + name);
+		}
 		String className = null;
 		String protocol = null;
 		try {
 			try {
-				protocol = name.substring(0, name.indexOf(':'));
+				protocol = name.substring(0, colonIndex);
 				className = "org.neutron.cldc." + protocol + ".Connection";
 				Class cl = Class.forName(className);
 				Object inst = cl.newInstance();
@@ -143,7 +150,7 @@ public class ConnectorImpl extends ConnectorAdapter {
 					className = "com.sun.cdc.io.j2me." + protocol + ".Protocol";
 					Class cl = Class.forName(className);
 					ConnectionBaseInterface base = (ConnectionBaseInterface) cl.newInstance();
-					return base.openPrim(name.substring(name.indexOf(':') + 1), mode, timeouts);
+					return base.openPrim(name.substring(colonIndex + 1), mode, timeouts);
 				} catch (ClassNotFoundException ex) {
 					Logger.debug("connection [" + protocol + "] class not found", e);
 					Logger.debug("connection [" + protocol + "] class not found", ex);

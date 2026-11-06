@@ -289,7 +289,85 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param format
      */
     public void drawPixels(int pix[], boolean trans, int off, int scanlen, int x, int y, int width, int height, int manipulation, int format) {
-        throw new IllegalArgumentException();
+        if (pix == null) {
+            throw new NullPointerException();
+        }
+        if (width < 0 || height < 0) {
+            throw new IllegalArgumentException();
+        }
+        if (width == 0 || height == 0) {
+            return;
+        }
+        if (format != TYPE_INT_8888_ARGB && format != TYPE_INT_888_RGB) {
+            throw new IllegalArgumentException("Unsupported pixel format: " + format);
+        }
+
+        boolean processAlpha = trans && (format == TYPE_INT_8888_ARGB);
+
+        if (manipulation == 0) {
+            graphics.drawRGB(pix, off, scanlen, x, y, width, height, processAlpha);
+            return;
+        }
+
+        int dW = width;
+        int dH = height;
+        if (manipulation == ROTATE_90 || manipulation == ROTATE_270 ||
+            manipulation == (FLIP_HORIZONTAL | ROTATE_90) || manipulation == (FLIP_HORIZONTAL | ROTATE_270) ||
+            manipulation == (FLIP_VERTICAL | ROTATE_90) || manipulation == (FLIP_VERTICAL | ROTATE_270)) {
+            dW = height;
+            dH = width;
+        }
+
+        int[] transformed = new int[dW * dH];
+        for (int row = 0; row < height; row++) {
+            int srcRow = off + row * scanlen;
+            for (int col = 0; col < width; col++) {
+                int pixel = pix[srcRow + col];
+                int dstX = col;
+                int dstY = row;
+                switch (manipulation) {
+                    case FLIP_HORIZONTAL:
+                        dstX = width - 1 - col;
+                        dstY = row;
+                        break;
+                    case FLIP_VERTICAL:
+                        dstX = col;
+                        dstY = height - 1 - row;
+                        break;
+                    case ROTATE_90:
+                        dstX = height - 1 - row;
+                        dstY = col;
+                        break;
+                    case ROTATE_180:
+                    case (FLIP_HORIZONTAL | FLIP_VERTICAL):
+                        dstX = width - 1 - col;
+                        dstY = height - 1 - row;
+                        break;
+                    case ROTATE_270:
+                        dstX = row;
+                        dstY = width - 1 - col;
+                        break;
+                    case (FLIP_HORIZONTAL | ROTATE_90):
+                        dstX = height - 1 - row;
+                        dstY = width - 1 - col;
+                        break;
+                    case (FLIP_HORIZONTAL | ROTATE_180):
+                        dstX = col;
+                        dstY = height - 1 - row;
+                        break;
+                    case (FLIP_HORIZONTAL | ROTATE_270):
+                        dstX = row;
+                        dstY = col;
+                        break;
+                    default:
+                        dstX = col;
+                        dstY = row;
+                        break;
+                }
+                transformed[dstY * dW + dstX] = pixel;
+            }
+        }
+        graphics.drawRGB(transformed, 0, dW, x, y, dW, dH, processAlpha);
     }
     
     /** Not supported

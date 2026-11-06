@@ -158,7 +158,14 @@ public class ImplFactory {
 	 * @return UTL scheme
 	 */
 	public static String getCGFScheme(String name) {
-		return name.substring(0, name.indexOf(':'));
+		if (name == null) {
+			throw new IllegalArgumentException("Connection URL cannot be null");
+		}
+		int colonIndex = name.indexOf(':');
+		if (colonIndex == -1) {
+			throw new IllegalArgumentException("No protocol specified in URL: " + name);
+		}
+		return name.substring(0, colonIndex);
 	}
 
 	/**

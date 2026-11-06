@@ -49,6 +49,7 @@ class SampledAudioPlayer implements Player, LineListener
 	private Vector vListeners = null;           // All PlayerListeners for this audio
 	private String strType = null;
 	private boolean lineListenerAdded = false;
+	private int state = UNREALIZED;
 	
 	public boolean open( InputStream stream, String type ) 
 	{
@@ -102,6 +103,7 @@ class SampledAudioPlayer implements Player, LineListener
 	public void close() 
 	{
 		Manager.mediaDone( this );
+		state = CLOSED;
 		if( clip != null )
 		{
 			if (lineListenerAdded) {
@@ -132,7 +134,9 @@ class SampledAudioPlayer implements Player, LineListener
 	}
 
 	public long getDuration() {
-		// TODO Auto-generated method stub
+		if (clip != null) {
+			return clip.getMicrosecondLength();
+		}
 		return 0;
 	}
 
@@ -143,16 +147,19 @@ class SampledAudioPlayer implements Player, LineListener
 	}
 
 	public int getState() {
-		// TODO Auto-generated method stub
-		return 0;
+		return state;
 	}
 
 	public void prefetch() throws MediaException {
-		// TODO Auto-generated method stub
+		if (state < PREFETCHED) {
+			state = PREFETCHED;
+		}
 	}
 
 	public void realize() throws MediaException {
-		// TODO Auto-generated method stub
+		if (state < REALIZED) {
+			state = REALIZED;
+		}
 	}
 
 	public synchronized void removePlayerListener(PlayerListener playerListener) 
@@ -184,12 +191,16 @@ class SampledAudioPlayer implements Player, LineListener
 				lineListenerAdded = true;
 			}
 			clip.start();
+			state = STARTED;
 		}
 	}
 
 	public void stop() throws MediaException {
 		if( clip != null )
 			clip.stop();
+		if (state == STARTED) {
+			state = PREFETCHED;
+		}
 	}
 
 	private J2SEVolumeControl volumeControl = new J2SEVolumeControl();
@@ -209,7 +220,10 @@ class SampledAudioPlayer implements Player, LineListener
 	{
 		if (event.getType().equals(LineEvent.Type.STOP))
 		{
-			close();
+			state = PREFETCHED;
+			if (clip != null) {
+				clip.setMicrosecondPosition(0);
+			}
 			java.util.List copy = null;
 			synchronized (this) {
 				if (vListeners != null && !vListeners.isEmpty()) {

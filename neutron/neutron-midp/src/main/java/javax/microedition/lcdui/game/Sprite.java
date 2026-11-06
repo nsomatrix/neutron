@@ -121,7 +121,7 @@ public class Sprite extends Layer {
     
     public final boolean collidesWith(Image image, int iX, int iY, boolean pixelLevel) {
         if (image == null)
-            throw new IllegalArgumentException();
+            throw new NullPointerException();
         
         // only check collision if visible
         if (!this.isVisible())
@@ -180,58 +180,63 @@ public class Sprite extends Layer {
         refY = y;
     }
     
+    public static int getTransformedRefX(int transform, int refX, int refY, int width, int height) {
+        switch (transform) {
+            case TRANS_NONE:
+                return refX;
+            case TRANS_MIRROR:
+                return width - 1 - refX;
+            case TRANS_ROT180:
+                return width - 1 - refX;
+            case TRANS_MIRROR_ROT180:
+                return refX;
+            case TRANS_ROT90:
+                return height - 1 - refY;
+            case TRANS_ROT270:
+                return refY;
+            case TRANS_MIRROR_ROT90:
+                return height - 1 - refY;
+            case TRANS_MIRROR_ROT270:
+                return refY;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    public static int getTransformedRefY(int transform, int refX, int refY, int width, int height) {
+        switch (transform) {
+            case TRANS_NONE:
+                return refY;
+            case TRANS_MIRROR:
+                return refY;
+            case TRANS_ROT180:
+                return height - 1 - refY;
+            case TRANS_MIRROR_ROT180:
+                return height - 1 - refY;
+            case TRANS_ROT90:
+                return refX;
+            case TRANS_ROT270:
+                return width - 1 - refX;
+            case TRANS_MIRROR_ROT90:
+                return width - 1 - refX;
+            case TRANS_MIRROR_ROT270:
+                return refX;
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
     public int getRefPixelX() {
-        return getX() + refX;
+        return getX() + getTransformedRefX(transform, refX, refY, rawFrameWidth, rawFrameHeight);
     }
     
     public int getRefPixelY() {
-        return getY() + refY;
+        return getY() + getTransformedRefY(transform, refX, refY, rawFrameWidth, rawFrameHeight);
     }
 
     public void setRefPixelPosition(int x, int y) {
-        int curRefX, curRefY;
-        int width = rawFrameWidth;
-        int height = rawFrameHeight;
-
-        switch(transform) {
-            case TRANS_NONE:
-                curRefX = refX;
-                curRefY = refY;
-                break;
-            case TRANS_MIRROR_ROT180:
-                curRefX = width - refX;
-                curRefY = height - refY;
-                break;
-            case TRANS_MIRROR:
-                curRefX = width - refX;
-                curRefY = refY;
-                break;
-            case TRANS_ROT180:
-                curRefX = refX;
-                curRefY = height - refY;
-                break;
-            case TRANS_MIRROR_ROT270:
-                curRefX = height - refY;
-                curRefY = refX;
-                break;
-            case TRANS_ROT90:
-                curRefX = height - refY;
-                curRefY = width - refX;
-                break;
-            case TRANS_ROT270:
-                curRefX = refY;
-                curRefY = refX;
-                break;
-            case TRANS_MIRROR_ROT90:
-                curRefX = refY;
-                curRefY = width - refX;
-                break;
-            default: // cant really happen, but the return keeps the
-                    // compiler happy (otherwise it'll report variable
-                    // may not be initialized)
-                return;
-        }
-
+        int curRefX = getTransformedRefX(transform, refX, refY, rawFrameWidth, rawFrameHeight);
+        int curRefY = getTransformedRefY(transform, refX, refY, rawFrameWidth, rawFrameHeight);
         setPosition(x - curRefX, y - curRefY);
     }
    
@@ -401,100 +406,15 @@ public class Sprite extends Layer {
                transform == TRANS_MIRROR_ROT90 || transform == TRANS_MIRROR_ROT270;
     }
     
-    public void setTransform (int transform) {
+    public void setTransform(int transform) {
         if (this.transform == transform)
             return;
         
-        int width = rawFrameWidth;
-        int height = rawFrameHeight;
-        int currentTransform = this.transform;
-        
-        // calculate the coordinates of refPixel in the new transform
-        // relative to x, y
-        
-        int newRefX, newRefY;
+        int newRefX = getTransformedRefX(transform, refX, refY, rawFrameWidth, rawFrameHeight);
+        int newRefY = getTransformedRefY(transform, refX, refY, rawFrameWidth, rawFrameHeight);
+        int curRefX = getTransformedRefX(this.transform, refX, refY, rawFrameWidth, rawFrameHeight);
+        int curRefY = getTransformedRefY(this.transform, refX, refY, rawFrameWidth, rawFrameHeight);
 
-        switch(transform) {
-            case TRANS_NONE:
-                newRefX = refX;
-                newRefY = refY;
-                break;
-            case TRANS_MIRROR_ROT180:
-                newRefX = width - refX;
-                newRefY = height - refY;
-                break;
-            case TRANS_MIRROR:
-                newRefX = width - refX;
-                newRefY = refY;
-                break;
-            case TRANS_ROT180:
-                newRefX = refX;
-                newRefY = height - refY;
-                break;
-            case TRANS_MIRROR_ROT270:
-                newRefX = height - refY;
-                newRefY = refX;
-                break;
-            case TRANS_ROT90:
-                newRefX = height - refY;
-                newRefY = width - refX;
-                break;
-            case TRANS_ROT270:
-                newRefX = refY;
-                newRefY = refX;
-                break;
-            case TRANS_MIRROR_ROT90:
-                newRefX = refY;
-                newRefY = width - refX;
-                break;
-            default:
-                throw new IllegalArgumentException();
-        }
-
-        // calculate the coordinates of refPixel in the current transform
-        // relative to x, y
-        
-        int curRefX, curRefY;
-
-        switch(currentTransform) {
-            case TRANS_NONE:
-                curRefX = refX;
-                curRefY = refY;
-                break;
-            case TRANS_MIRROR_ROT180:
-                curRefX = width - refX;
-                curRefY = height - refY;
-                break;
-            case TRANS_MIRROR:
-                curRefX = width - refX;
-                curRefY = refY;
-                break;
-            case TRANS_ROT180:
-                curRefX = refX;
-                curRefY = height - refY;
-                break;
-            case TRANS_MIRROR_ROT270:
-                curRefX = height - refY;
-                curRefY = refX;
-                break;
-            case TRANS_ROT90:
-                curRefX = height - refY;
-                curRefY = width - refX;
-                break;
-            case TRANS_ROT270:
-                curRefX = refY;
-                curRefY = refX;
-                break;
-            case TRANS_MIRROR_ROT90:
-                curRefX = refY;
-                curRefY = width - refX;
-                break;
-            default: // cant really happen, but the return keeps the
-                    // compiler happy (otherwise it'll report variable
-                    // may not be initialized)
-                return;
-        }
-        
         // now change position to keep the refPixel in place
         move(curRefX - newRefX, curRefY - newRefY);
         this.transform = transform;

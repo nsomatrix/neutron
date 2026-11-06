@@ -72,12 +72,11 @@ public class RecordStoreImpl extends RecordStore
 
 	public RecordStoreImpl(RecordStoreManager recordStoreManager, String recordStoreName) 
 	{
-		this.recordStoreManager = recordStoreManager;
-		if (recordStoreName.length() <= 32) {
-			this.recordStoreName = recordStoreName;			
-		} else {
-			this.recordStoreName = recordStoreName.substring(0, 32);			
+		if (recordStoreName == null || recordStoreName.length() == 0 || recordStoreName.length() > 32) {
+			throw new IllegalArgumentException("Record store name must be between 1 and 32 characters: " + recordStoreName);
 		}
+		this.recordStoreManager = recordStoreManager;
+		this.recordStoreName = recordStoreName;
 		this.open = false;
 	}
 	

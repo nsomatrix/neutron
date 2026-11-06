@@ -157,4 +157,22 @@ public class ManagerCreatePlayerTest {
         } catch (IllegalArgumentException expected) {
         }
     }
+
+    @Test
+    public void testCreatePlayerToneDeviceLocator() throws Exception {
+        Player player = Manager.createPlayer(Manager.TONE_DEVICE_LOCATOR);
+        assertNotNull("Tone player should be instantiated for device://tone", player);
+        assertTrue(player instanceof org.neutron.media.audio.PCTonePlayer);
+
+        Control c1 = player.getControl("ToneControl");
+        Control c2 = player.getControl("javax.microedition.media.control.ToneControl");
+        assertNotNull("ToneControl by short name should not be null", c1);
+        assertNotNull("ToneControl by FQCN should not be null", c2);
+        assertSame("ToneControl instances should be identical", c1, c2);
+
+        Control[] controls = player.getControls();
+        assertNotNull("getControls() must not return null", controls);
+        assertEquals(1, controls.length);
+        assertSame(c1, controls[0]);
+    }
 }

@@ -213,7 +213,12 @@ class MidiAudioPlayer implements Player, MetaEventListener
         	}
         	else
         	{
-    			close();
+    			state = PREFETCHED;
+    			if (sequencer != null) {
+    				sequencer.stop();
+    				sequencer.setMicrosecondPosition(0);
+    			}
+    			iLoopCount = 1;
     			java.util.List copy = null;
     			synchronized (this) {
     				if (vListeners != null && !vListeners.isEmpty()) {

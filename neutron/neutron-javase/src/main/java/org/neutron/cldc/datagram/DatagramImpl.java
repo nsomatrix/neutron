@@ -219,7 +219,7 @@ public class DatagramImpl implements Datagram {
 	}
 
 	public void readFully(byte[] b, int off, int len) throws IOException {
-		dis.read(b, off, len);
+		dis.readFully(b, off, len);
 	}
 
 	public int readInt() throws IOException {

@@ -48,5 +48,18 @@ public class FontTest {
     public void testInvalidSizeThrowsIllegalArgumentException() {
         Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, 999);
     }
+
+    @Test
+    public void testFontEqualsAndHashCode() {
+        Font defaultFont = Font.getDefaultFont();
+        Font systemPlainMedium = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_PLAIN, Font.SIZE_MEDIUM);
+
+        // Before fix, Font lacked equals() so identity comparison failed if default wasn't same ref
+        assertEquals(defaultFont, systemPlainMedium);
+        assertEquals(defaultFont.hashCode(), systemPlainMedium.hashCode());
+
+        Font boldFont = Font.getFont(Font.FACE_SYSTEM, Font.STYLE_BOLD, Font.SIZE_MEDIUM);
+        assertNotEquals(defaultFont, boldFont);
+    }
 }
 

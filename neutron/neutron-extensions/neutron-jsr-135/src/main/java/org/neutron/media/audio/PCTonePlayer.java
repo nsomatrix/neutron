@@ -93,7 +93,13 @@ public class PCTonePlayer extends BasicPlayer
    
    public Control getControl(String controlType)
    {
-      if(controlType.equals(CONTROL_TYPE))
+      if (controlType == null)
+      {
+         return null;
+      }
+      if (controlType.equals(CONTROL_TYPE) || 
+          controlType.equals("javax.microedition.media.control.ToneControl") ||
+          controlType.endsWith(".ToneControl"))
       {
          return this.pcToneControl;
       }
@@ -105,7 +111,7 @@ public class PCTonePlayer extends BasicPlayer
    
    public Control[] getControls()
    {
-      return null;
+      return new Control[] { this.pcToneControl };
    }
    
    public boolean isRunning()

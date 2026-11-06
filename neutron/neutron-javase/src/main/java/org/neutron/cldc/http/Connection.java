@@ -69,7 +69,6 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 		if (readTimeout > 0) {
 			cn.setReadTimeout(readTimeout);
 		}
-		cn.setDoOutput(true);
 		// J2ME do not follow redirects. Test this url
 		// http://www.neutron.org/test/r/
 		if (cn instanceof HttpURLConnection) {
@@ -376,6 +375,7 @@ public class Connection implements HttpConnection, ConnectionImplementation {
 			throw new IOException();
 		}
 
+		cn.setDoOutput(true);
 		connected = true;
 		org.neutron.device.ui.NetworkCapture.logEvent(
 			org.neutron.device.ui.NetworkCapture.Type.HTTP, getURL(), getRequestMethod(), "STREAM_OUT"

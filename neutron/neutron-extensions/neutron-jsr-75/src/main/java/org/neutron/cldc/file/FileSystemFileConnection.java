@@ -43,8 +43,10 @@ import java.util.Enumeration;
 import java.util.Vector;
 import java.util.regex.Pattern;
 
+import javax.microedition.io.Connector;
 import javax.microedition.io.file.ConnectionClosedException;
 import javax.microedition.io.file.FileConnection;
+import javax.microedition.io.file.IllegalModeException;
 
 public class FileSystemFileConnection implements FileConnection {
 
@@ -77,9 +79,15 @@ public class FileSystemFileConnection implements FileConnection {
 	/* The context to be used when acessing filesystem */
 	private AccessControlContext acc;
 
+	private int mode = Connector.READ_WRITE;
+
 	private static boolean java15 = false;
 
 	FileSystemFileConnection(String fsRootConfig, String name, FileSystemConnectorImpl notifyClosed) throws IOException {
+		this(fsRootConfig, name, notifyClosed, Connector.READ_WRITE);
+	}
+
+	FileSystemFileConnection(String fsRootConfig, String name, FileSystemConnectorImpl notifyClosed, int mode) throws IOException {
 		// <host>/<path>
 		int hostEnd = name.indexOf(DIR_SEP);
 		if (hostEnd == -1) {
@@ -87,6 +95,7 @@ public class FileSystemFileConnection implements FileConnection {
 		}
 		this.fsRootConfig = fsRootConfig;
 		this.notifyClosed = notifyClosed;
+		this.mode = mode;
 
 		host = name.substring(0, hostEnd);
 		fullPath = name.substring(hostEnd + 1);
@@ -246,8 +255,15 @@ public class FileSystemFileConnection implements FileConnection {
 		});
 	}
 
+	private void checkWritableMode() {
+		if (mode == Connector.READ) {
+			throw new IllegalModeException("Connection was opened in READ mode");
+		}
+	}
+
 	public void create() throws IOException {
 		throwClosed();
+		checkWritableMode();
 		doPrivilegedIO(new PrivilegedExceptionAction() {
 			public Object run() throws IOException {
 				if (!file.createNewFile()) {
@@ -260,6 +276,7 @@ public class FileSystemFileConnection implements FileConnection {
 
 	public void delete() throws IOException {
 		throwClosed();
+		checkWritableMode();
 		doPrivilegedIO(new PrivilegedExceptionAction() {
 			public Object run() throws IOException {
 				if (!file.delete()) {
@@ -387,6 +404,7 @@ public class FileSystemFileConnection implements FileConnection {
 
 	public void mkdir() throws IOException {
 		throwClosed();
+		checkWritableMode();
 		doPrivilegedIO(new PrivilegedExceptionAction() {
 			public Object run() throws IOException {
 				if (!file.mkdir()) {
@@ -491,6 +509,7 @@ public class FileSystemFileConnection implements FileConnection {
 
 	private OutputStream openOutputStream(final boolean append) throws IOException {
 		throwClosed();
+		checkWritableMode();
 		throwOpenDirectory();
 
 		if (this.opendOutputStream != null) {
@@ -531,6 +550,7 @@ public class FileSystemFileConnection implements FileConnection {
 
     private OutputStream openOutputStream(boolean appendToFile, final long byteOffset) throws IOException {
         throwClosed();
+        checkWritableMode();
         throwOpenDirectory();
 
         if (this.opendOutputStream != null) {
@@ -557,6 +577,7 @@ public class FileSystemFileConnection implements FileConnection {
 
 	public void rename(final String newName) throws IOException {
 		throwClosed();
+		checkWritableMode();
 		if (newName.indexOf(DIR_SEP) != -1) {
 			throw new IllegalArgumentException("Name contains path specification " + newName);
 		}
@@ -580,6 +601,7 @@ public class FileSystemFileConnection implements FileConnection {
 
 	public void setHidden(boolean hidden) throws IOException {
 		throwClosed();
+		checkWritableMode();
 	}
 
 	private void fileSetJava16(String mehtodName, final Boolean param) throws IOException {
@@ -633,11 +655,13 @@ public class FileSystemFileConnection implements FileConnection {
 
 	public void setReadable(boolean readable) throws IOException {
 		throwClosed();
+		checkWritableMode();
 		fileSetJava16("setReadable", new Boolean(readable));
 	}
 
 	public void setWritable(boolean writable) throws IOException {
 		throwClosed();
+		checkWritableMode();
 		if (!writable) {
 			doPrivilegedIO(new PrivilegedExceptionAction() {
 				public Object run() throws IOException {
@@ -652,6 +676,7 @@ public class FileSystemFileConnection implements FileConnection {
 
 	public void truncate(final long byteOffset) throws IOException {
 		throwClosed();
+		checkWritableMode();
 		doPrivilegedIO(new PrivilegedExceptionAction() {
 			public Object run() throws IOException {
 				RandomAccessFile raf = new RandomAccessFile(file, "rw");
