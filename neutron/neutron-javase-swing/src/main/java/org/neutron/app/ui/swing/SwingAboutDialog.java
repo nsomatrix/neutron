@@ -199,7 +199,7 @@ public class SwingAboutDialog extends SwingDialogPanel {
 				+ "<p>Equipped with graphics scaling, advanced network options, proxy controls, dynamic look-and-feel support, and screen recording capabilities.</p>"
 				+ "<p><b>Project Links:</b></p>"
 				+ "<ul>"
-				+ "  <li><b>Lead Developer :</b> Manish K</li>"
+				+ "  <li><b>CoreDev :</b> Manish K</li>"
 				+ "  <li><b>Vendor :</b> NSOMatrix</li>"
 				+ "  <li><b>Website :</b> <a href=\"https://neutron-emu.vercel.app\">https://neutron-emu.vercel.app</a></li>"
 				+ "  <li><b>Git :</b> <a href=\"https://github.com/nsomatrix/neutron\">https://github.com/nsomatrix/neutron</a></li>"

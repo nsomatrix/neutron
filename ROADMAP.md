@@ -65,7 +65,7 @@ flowchart LR
   3. **Build & Packaging Integration:**
      - Register in `settings.gradle`.
      - Add implementation dependency to `neutron-javase-swing` and `neutron-core`.
-     - Package into standalone fat distribution jars (`neutron-javase-swing-1.3.0.jar` and `neutron-core-1.3.0.jar`).
+     - Package into standalone fat distribution jars (`neutron-javase-swing-1.4.0.jar` and `neutron-core-1.4.0.jar`).
 
 ---
 

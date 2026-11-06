@@ -18,9 +18,24 @@ interface Release {
 
 const releases: Release[] = [
   {
+    version: "1.4.0",
+    date: "2026-11-06",
+    tag: "latest",
+    changes: [
+      { type: "changed", description: "Released updated application binaries (neutron-1.4.0.jar & neutron-core-1.4.0.jar)" },
+      { type: "fixed", description: "J2ME Core & Math Integrity: Corrected Sprite reference pixel coordinates and transform matrix calculations across all 8 orientations" },
+      { type: "added", description: "JSR-184 M3G: Implemented full binary .m3g chunk stream parser with Zlib deflation and Adler-32 integrity validation" },
+      { type: "fixed", description: "MMAPI Audio: Non-destructive end-of-media player lifecycle restoration with seamless repeat playback and tone generator binding" },
+      { type: "added", description: "Nokia UI DirectGraphics: Implemented 32-bit ARGB drawPixels with rotational and mirror manipulation support" },
+      { type: "fixed", description: "JSR-75 FileConnection: Enforced strict read-only mode validation (IllegalModeException) and blocked path-traversal escapes" },
+      { type: "fixed", description: "GCF Networking: Preserved default HTTP GET method semantics until explicit output stream creation" },
+      { type: "changed", description: "Project metadata: Updated developer role attribution to CoreDev" }
+    ],
+  },
+  {
     version: "1.3.0",
     date: "2026-10-22",
-    tag: "latest",
+    tag: "stable",
     changes: [
       { type: "changed", description: "Released updated application binaries (neutron-1.3.0.jar & neutron-core-1.3.0.jar)" },
       { type: "changed", description: "Streamlined Performance HUD with dynamic autoscaling badge and clean live FPS readout" },
