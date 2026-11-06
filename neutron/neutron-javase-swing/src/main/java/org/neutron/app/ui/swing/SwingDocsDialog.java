@@ -154,7 +154,7 @@ public class SwingDocsDialog extends SwingDialogPanel {
 				+ "  <li><b>Frame Rate</b>: Set game refresh rate limit (Unlimited, 60, 30, 20, 15 FPS) to save power.</li>"
 				+ "  <li><b>Emulation Speed</b>: Adjust virtual CPU clock ticks (0.5x Slow Motion up to 8.0x Fast-Forward).</li>"
 				+ "  <li><b>Network Capture</b>: Captures and inspects HTTP, socket, and datagram request logs in real-time.</li>"
-				+ "  <li><b>HUD Overlay</b>: Displays real-time game FPS and heap memory usage card over the J2ME canvas.</li>"
+				+ "  <li><b>Stats Overlay</b>: Displays real-time game FPS and heap memory usage card over the J2ME canvas.</li>"
 				+ "  <li><b>Network Overlay</b>: Displays active connections and response ping status in corner.</li>"
 				+ "</ul>";
 	}

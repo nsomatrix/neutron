@@ -359,24 +359,28 @@ public class Main extends JFrame {
 		}
 	};
 
+	public JFileChooser getFileChooser() {
+		if (fileChooser == null) {
+			ExtensionFileFilter fileFilter = new ExtensionFileFilter("MIDlet files");
+			fileFilter.addExtension("jad");
+			fileFilter.addExtension("jar");
+			fileChooser = new JFileChooser();
+			fileChooser.setFileFilter(fileFilter);
+			fileChooser.setDialogTitle("Load Jar File");
+			fileChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentJadDirectory")));
+		}
+		return fileChooser;
+	}
+
 	private ActionListener menuOpenMIDletFileListener = new ActionListener() {
 		public void actionPerformed(ActionEvent ev) {
-			if (fileChooser == null) {
-				ExtensionFileFilter fileFilter = new ExtensionFileFilter("MIDlet files");
-				fileFilter.addExtension("jad");
-				fileFilter.addExtension("jar");
-				fileChooser = new JFileChooser();
-				fileChooser.setFileFilter(fileFilter);
-				fileChooser.setDialogTitle("Open MIDlet File...");
-				fileChooser.setCurrentDirectory(new File(Config.getRecentDirectory("recentJadDirectory")));
-			} else {
-				fileChooser.updateUI();
-			}
+			JFileChooser chooser = getFileChooser();
+			chooser.updateUI();
 
-			int returnVal = fileChooser.showOpenDialog(Main.this);
+			int returnVal = chooser.showOpenDialog(Main.this);
 			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				Config.setRecentDirectory("recentJadDirectory", fileChooser.getCurrentDirectory().getAbsolutePath());
-				String url = IOUtils.getCanonicalFileURL(fileChooser.getSelectedFile());
+				Config.setRecentDirectory("recentJadDirectory", chooser.getCurrentDirectory().getAbsolutePath());
+				String url = IOUtils.getCanonicalFileURL(chooser.getSelectedFile());
 				Common.openMIDletUrlSafe(url, new Runnable() {
 					public void run() {
 						SwingUtilities.invokeLater(new Runnable() {
@@ -1485,7 +1489,7 @@ public class Main extends JFrame {
 		});
 		menuControls.add(menuNetworkCapture);
 
-		menuHudOverlay = new JCheckBoxMenuItem("HUD Overlay", Config.isPerfHudEnabled());
+		menuHudOverlay = new JCheckBoxMenuItem("Stats Overlay", Config.isPerfHudEnabled());
 		menuHudOverlay.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				boolean enabled = menuHudOverlay.isSelected();
@@ -1494,7 +1498,7 @@ public class Main extends JFrame {
 				if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
 					((SwingDisplayComponent) devicePanel.getDisplayComponent()).repaint();
 				}
-				Common.setStatusBar("HUD Overlay: " + (enabled ? "Enabled" : "Disabled"));
+				Common.setStatusBar("Stats Overlay: " + (enabled ? "Enabled" : "Disabled"));
 			}
 		});
 		menuControls.add(menuHudOverlay);

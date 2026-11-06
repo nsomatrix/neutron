@@ -63,4 +63,4 @@ java -Xmx256m -jar neutron.jar game.jar
 
 1. **Use Nearest Neighbor Filter** — This is the fastest scaling mode. Complex filters like CRT Scanlines or LCD Grid require additional CPU rendering cycles.
 2. **Use the Latest JRE** — Running Neutron on newer runtimes (such as OpenJDK 17 or 21) provides updated garbage collection performance and execution optimization.
-3. **Disable HUD Overlays** — Performance diagnostics (`<perfHudEnabled>`) and Network latency counters (`<networkOverlayEnabled>`) cause additional text rendering passes. Disable them if you require maximum frames-per-second.
+3. **Disable Stats & Network Overlays** — Performance diagnostics (`<perfHudEnabled>`) and Network latency counters (`<networkOverlayEnabled>`) cause additional text rendering passes. Disable them if you require maximum frames-per-second.

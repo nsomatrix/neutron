@@ -134,6 +134,8 @@ public class MainMenuBarTest {
         JMenuItem runJar = findMenuItem(runMenu, "Run JAR File");
         assertNotNull("Run JAR File item must exist", runJar);
         assertTrue("Run JAR File should be enabled", runJar.isEnabled());
+        assertNotNull("FileChooser should initialize", main.getFileChooser());
+        assertEquals("FileChooser title must be 'Load Jar File'", "Load Jar File", main.getFileChooser().getDialogTitle());
 
         // Run from URL
         JMenuItem runUrl = findMenuItem(runMenu, "Run from URL");
@@ -465,14 +467,14 @@ public class MainMenuBarTest {
     public void testControlsMenuOverlays() throws Exception {
         JMenu controlsMenu = findMenu("Controls");
 
-        JCheckBoxMenuItem hud = (JCheckBoxMenuItem) findMenuItem(controlsMenu, "HUD Overlay");
-        assertNotNull("HUD Overlay item must exist", hud);
+        JCheckBoxMenuItem hud = (JCheckBoxMenuItem) findMenuItem(controlsMenu, "Stats Overlay");
+        assertNotNull("Stats Overlay item must exist", hud);
         boolean origHud = Config.isPerfHudEnabled();
         try {
             clickMenuItem(hud);
-            assertEquals("HUD overlay toggled", !origHud, Config.isPerfHudEnabled());
+            assertEquals("Stats overlay toggled", !origHud, Config.isPerfHudEnabled());
             clickMenuItem(hud);
-            assertEquals("HUD overlay reverted", origHud, Config.isPerfHudEnabled());
+            assertEquals("Stats overlay reverted", origHud, Config.isPerfHudEnabled());
         } finally {
             Config.setPerfHudEnabled(origHud);
         }
