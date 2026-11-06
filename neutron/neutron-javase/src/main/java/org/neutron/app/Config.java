@@ -675,6 +675,7 @@ public class Config {
 
 	public static void setFullscreen(boolean enabled) {
 		fullscreen = enabled;
+		notifyConfigChanged("Fullscreen", enabled);
 	}
 
 	public static boolean isVirtualButtonsEnabled() {
@@ -864,24 +865,36 @@ public class Config {
 		setAirplaneModeEnabled(!enabled);
 	}
 
-	public static int getScaledDisplayZoom() {
+	public static boolean isDualZoomEnabled() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return -1;
+			return false;
+		}
+		String dualZoom = optionsXml.getChildString("dualZoom", null);
+		if (dualZoom != null) {
+			return Boolean.parseBoolean(dualZoom);
 		}
 		try {
-			return Integer.parseInt(optionsXml.getChildString("scaledDisplayZoom", "-1"));
+			return Integer.parseInt(optionsXml.getChildString("scaledDisplayZoom", "-1")) == 2;
 		} catch (NumberFormatException e) {
-			return -1;
+			return false;
 		}
 	}
 
-	public static void setScaledDisplayZoom(int zoom) {
+	public static void setDualZoomEnabled(boolean enabled) {
 		XMLElement optionsXml = configXml.getChildOrNew("options");
-		XMLElement zoomXml = optionsXml.getChildOrNew("scaledDisplayZoom");
-		zoomXml.setContent(String.valueOf(zoom));
+		optionsXml.getChildOrNew("dualZoom").setContent(String.valueOf(enabled));
+		optionsXml.getChildOrNew("scaledDisplayZoom").setContent(String.valueOf(enabled ? 2 : -1));
 		saveConfig();
-		notifyConfigChanged("Display Zoom", zoom);
+		notifyConfigChanged("DualZoom", enabled);
+	}
+
+	public static int getScaledDisplayZoom() {
+		return isDualZoomEnabled() ? 2 : -1;
+	}
+
+	public static void setScaledDisplayZoom(int zoom) {
+		setDualZoomEnabled(zoom == 2);
 	}
 
 	public static boolean isNetworkOverlayEnabled() {

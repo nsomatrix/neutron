@@ -1482,5 +1482,9 @@ Following commit `2d3000557e9bf6ec11200d6c7c3e45c79597dbbd`, 25 commits introduc
 4. **NX-040 (COMPREHENSIVE - Automated Test Suites):**
    - Added `AudioPlayerListenerTest.java` verifying lock-free callback dispatch, CME immunity, and cleanup across JSR-135 players.
    - Added `MainMenuBarTest.java` verifying all menu items and submenus across `Run`, `Config`, `Controls`, `Misc`, zoom levels, graphics filters, memory limits, FPS controls, overlays, and platform presets.
-   - 100% repository-wide test execution passing (140 tests across 35 test suites, 0 failures, 0 errors).
+5. **NX-041 (MEDIUM - Fullscreen Virtual Button Isolation & Stuck-Key Prevention):**
+   - *Target:* `Main.java`, `VirtualKeypadController.java`, `SwingVirtualKeypadPanel.java`, `Config.java`.
+   - *Finding:* Entering fullscreen mode did not disable the virtual keypad or its menu item, allowing screen space consumption and shortcut activation in fullscreen. Furthermore, if a button was pressed down immediately prior to fullscreen activation, suppressing releases would cause permanently stuck keys in the running MIDlet.
+   - *Remediation:* Enforced automatic panel hiding and menu item disabling on fullscreen transition while preserving the user's persisted config preference. Implemented `releaseAllButtons()` on `SwingVirtualKeypadPanel.setVisible(false)` to immediately halt repeat timers and dispatch key releases. Allowed `releaseButton` to always execute safely so no key events are orphaned. Wired `Config.setFullscreen()` to `notifyConfigChanged("Fullscreen", ...)`.
+   - *Verification:* Verified via `testVirtualButtonsDisabledInFullscreenMode` in `MainMenuBarTest.java` and `testVirtualButtonsDisabledInFullscreen` + `testPanelReleaseAllButtonsOnHide` in `SwingVirtualKeypadPanelTest.java`. 100% repository-wide tests passing (143/143 tests).
 

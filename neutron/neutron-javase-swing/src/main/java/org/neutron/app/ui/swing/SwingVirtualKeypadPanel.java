@@ -58,6 +58,28 @@ public class SwingVirtualKeypadPanel extends JPanel {
 	}
 
 	@Override
+	public void setVisible(boolean visible) {
+		if (!visible) {
+			releaseAllButtons();
+		}
+		super.setVisible(visible);
+	}
+
+	public void releaseAllButtons() {
+		stopAllPresses(this);
+	}
+
+	private void stopAllPresses(java.awt.Container container) {
+		for (java.awt.Component comp : container.getComponents()) {
+			if (comp instanceof VirtualKeyButton) {
+				((VirtualKeyButton) comp).stopPress();
+			} else if (comp instanceof java.awt.Container) {
+				stopAllPresses((java.awt.Container) comp);
+			}
+		}
+	}
+
+	@Override
 	public Dimension getPreferredSize() {
 		// Return 0 width so the keypad dynamically conforms to the emulator display's width
 		// without imposing a minimum width constraint that would prevent resolutions like 240x320.
@@ -402,7 +424,7 @@ public class SwingVirtualKeypadPanel extends JPanel {
 			});
 		}
 
-		private void stopPress() {
+		void stopPress() {
 			if (isPressed) {
 				isPressed = false;
 				repeatTimer.stop();

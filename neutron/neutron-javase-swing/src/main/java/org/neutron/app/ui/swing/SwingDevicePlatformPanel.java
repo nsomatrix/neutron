@@ -68,7 +68,7 @@ public class SwingDevicePlatformPanel extends SwingDialogPanel {
 		new PlatformPreset("Sony Ericsson W995", "SonyEricssonW995/R1HA"),
 		new PlatformPreset("Motorola RAZR V3", "Motorola-V3"),
 		new PlatformPreset("Samsung Star (GT-S5230)", "SAMSUNG-GT-S5230"),
-		new PlatformPreset("Custom...", "")
+		new PlatformPreset("Custom", "")
 	};
 
 	private JComboBox presetComboBox;
@@ -188,7 +188,7 @@ public class SwingDevicePlatformPanel extends SwingDialogPanel {
 				}
 				if (!matched) {
 					updatingProgrammatically = true;
-					presetComboBox.setSelectedIndex(PRESETS.length - 1); // Custom...
+					presetComboBox.setSelectedIndex(PRESETS.length - 1); // Custom
 					updatingProgrammatically = false;
 				}
 			}
@@ -211,7 +211,7 @@ public class SwingDevicePlatformPanel extends SwingDialogPanel {
 			}
 		}
 		if (!found) {
-			presetComboBox.setSelectedIndex(PRESETS.length - 1); // Custom...
+			presetComboBox.setSelectedIndex(PRESETS.length - 1); // Custom
 		}
 		updatingProgrammatically = false;
 	}

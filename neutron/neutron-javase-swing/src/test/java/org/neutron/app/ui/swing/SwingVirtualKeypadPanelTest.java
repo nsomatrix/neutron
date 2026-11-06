@@ -84,6 +84,30 @@ public class SwingVirtualKeypadPanelTest {
 	}
 
 	@Test
+	public void testVirtualButtonsDisabledInFullscreen() {
+		try {
+			Config.setFullscreen(true);
+			Assert.assertTrue(Config.isFullscreen());
+			// Controller calls in fullscreen should be safely ignored / no-op
+			VirtualKeypadController.pressButton(ButtonName.UP);
+			VirtualKeypadController.repeatButton(ButtonName.UP);
+			VirtualKeypadController.releaseButton(ButtonName.UP);
+		} finally {
+			Config.setFullscreen(false);
+		}
+	}
+
+	@Test
+	public void testPanelReleaseAllButtonsOnHide() {
+		SwingVirtualKeypadPanel panel = new SwingVirtualKeypadPanel();
+		panel.setVisible(true);
+		Assert.assertTrue(panel.isVisible());
+		panel.releaseAllButtons();
+		panel.setVisible(false);
+		Assert.assertFalse(panel.isVisible());
+	}
+
+	@Test
 	public void testDirectNumericInputMapping() {
 		Assert.assertEquals("0", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM0));
 		Assert.assertEquals("1", VirtualKeypadController.getDirectNumericInput(ButtonName.KEY_NUM1));

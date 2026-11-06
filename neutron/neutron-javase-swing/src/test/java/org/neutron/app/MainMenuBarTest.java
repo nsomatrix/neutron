@@ -1,11 +1,13 @@
 package org.neutron.app;
 
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -67,6 +69,22 @@ public class MainMenuBarTest {
             JMenuItem item = parent.getItem(i);
             if (item instanceof JMenu && name.equalsIgnoreCase(item.getText())) {
                 return (JMenu) item;
+            }
+        }
+        return null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T extends Component> T findChildComponent(Container container, Class<T> clazz) {
+        for (Component c : container.getComponents()) {
+            if (clazz.isInstance(c)) {
+                return (T) c;
+            }
+            if (c instanceof Container) {
+                T found = findChildComponent((Container) c, clazz);
+                if (found != null) {
+                    return found;
+                }
             }
         }
         return null;
@@ -156,30 +174,42 @@ public class MainMenuBarTest {
     }
 
     @Test
-    public void testConfigMenuScaledDisplay() throws Exception {
+    public void testConfigMenuDualZoom() throws Exception {
         JMenu configMenu = findMenu("Config");
         assertNotNull(configMenu);
 
-        JMenu scaledDisplay = findSubMenu(configMenu, "Scaled Display");
-        assertNotNull("Scaled Display submenu must exist", scaledDisplay);
-        assertEquals("Scaled Display should offer 3 zoom levels (x 2, x 3, x 4)", 3, scaledDisplay.getItemCount());
+        // Submenu Scaled Display must no longer exist
+        assertNull("Submenu Scaled Display should be removed", findSubMenu(configMenu, "Scaled Display"));
 
-        JMenuItem z2 = findMenuItem(scaledDisplay, "x 2");
-        JMenuItem z3 = findMenuItem(scaledDisplay, "x 3");
-        JMenuItem z4 = findMenuItem(scaledDisplay, "x 4");
-        assertNotNull(z2);
-        assertNotNull(z3);
-        assertNotNull(z4);
+        // Single checkable DualZoom menu item must exist
+        JCheckBoxMenuItem dualZoom = (JCheckBoxMenuItem) findMenuItem(configMenu, "DualZoom");
+        assertNotNull("DualZoom menu item must exist", dualZoom);
 
-        int origZoom = Config.getScaledDisplayZoom();
+        boolean orig = Config.isDualZoomEnabled();
         try {
-            clickMenuItem(z2);
-            assertEquals("Config zoom should be 2", 2, Config.getScaledDisplayZoom());
+            clickMenuItem(dualZoom);
+            assertEquals("DualZoom should be enabled in Config", !orig, Config.isDualZoomEnabled());
+            assertEquals("DualZoom zoom level should be 2 when enabled", !orig ? 2 : -1, Config.getScaledDisplayZoom());
 
-            clickMenuItem(z2);
-            assertEquals("Config zoom should be -1 after untoggling", -1, Config.getScaledDisplayZoom());
+            if (!orig) {
+                // Verify window title has no "(2x)"
+                boolean foundFrame = false;
+                for (java.awt.Frame frame : java.awt.Frame.getFrames()) {
+                    if (frame.getTitle() != null && frame.getTitle().contains("DualZoom")) {
+                        foundFrame = true;
+                        assertEquals(main.getTitle() + " - DualZoom", frame.getTitle());
+                        assertFalse("Title must not contain '(2x)'", frame.getTitle().contains("(2x)"));
+                    }
+                }
+                assertTrue("DualZoom frame must be found among active frames", foundFrame);
+            }
+
+            clickMenuItem(dualZoom);
+            assertEquals("DualZoom should revert in Config", orig, Config.isDualZoomEnabled());
+            assertEquals("DualZoom zoom level should revert to original", orig ? 2 : -1, Config.getScaledDisplayZoom());
         } finally {
-            Config.setScaledDisplayZoom(origZoom);
+            Config.setDualZoomEnabled(orig);
+            main.setDualZoomVisible(orig);
         }
     }
 
@@ -299,16 +329,66 @@ public class MainMenuBarTest {
         JCheckBoxMenuItem fs = (JCheckBoxMenuItem) findMenuItem(controlsMenu, "Fullscreen");
         assertNotNull("Fullscreen toggle item must exist", fs);
 
+        JMenu configMenu = findMenu("Config");
+        JCheckBoxMenuItem virtBtn = (JCheckBoxMenuItem) findMenuItem(configMenu, "Virtual Buttons");
+        assertNotNull(virtBtn);
+
         try {
             clickMenuItem(fs);
             assertTrue("Config fullscreen should be true", Config.isFullscreen());
             assertFalse("MenuBar should be hidden in fullscreen", menuBar.isVisible());
+            assertFalse("Virtual buttons item should be disabled in fullscreen", virtBtn.isEnabled());
+            assertFalse("Virtual buttons item should be unselected in fullscreen", virtBtn.isSelected());
 
             clickMenuItem(fs);
             assertFalse("Config fullscreen should be false", Config.isFullscreen());
             assertTrue("MenuBar should be restored", menuBar.isVisible());
+            assertTrue("Virtual buttons item should be re-enabled after exiting fullscreen", virtBtn.isEnabled());
         } finally {
             main.setFullscreenMode(false);
+        }
+    }
+
+    @Test
+    public void testVirtualButtonsDisabledInFullscreenMode() throws Exception {
+        JMenu configMenu = findMenu("Config");
+        JCheckBoxMenuItem virtBtn = (JCheckBoxMenuItem) findMenuItem(configMenu, "Virtual Buttons");
+        assertNotNull(virtBtn);
+
+        boolean origVb = Config.isVirtualButtonsEnabled();
+        try {
+            // First ensure virtual buttons are enabled in windowed mode
+            main.setFullscreenMode(false);
+            Config.setVirtualButtonsEnabled(true);
+            main.setVirtualButtonsVisible(true);
+            drainEdt();
+            assertTrue("Virtual buttons should be enabled in windowed mode", Config.isVirtualButtonsEnabled());
+            assertTrue("Virtual buttons menu should be enabled", virtBtn.isEnabled());
+            assertTrue("Virtual buttons menu should be selected", virtBtn.isSelected());
+
+            // Switch to fullscreen
+            main.setFullscreenMode(true);
+            drainEdt();
+            assertTrue("Fullscreen should be active", Config.isFullscreen());
+            assertFalse("Virtual buttons menu should be disabled in fullscreen", virtBtn.isEnabled());
+            assertFalse("Virtual buttons menu should be unselected in fullscreen", virtBtn.isSelected());
+
+            // Attempting to show virtual buttons in fullscreen should be blocked
+            main.setVirtualButtonsVisible(true);
+            drainEdt();
+            assertFalse("Virtual buttons menu must remain unselected in fullscreen", virtBtn.isSelected());
+
+            // Exit fullscreen
+            main.setFullscreenMode(false);
+            drainEdt();
+            assertFalse("Fullscreen should be inactive", Config.isFullscreen());
+            assertTrue("Virtual buttons menu should be re-enabled after exiting fullscreen", virtBtn.isEnabled());
+            assertTrue("Virtual buttons menu should restore selected state from config", virtBtn.isSelected());
+        } finally {
+            main.setFullscreenMode(false);
+            Config.setVirtualButtonsEnabled(origVb);
+            main.setVirtualButtonsVisible(origVb);
+            drainEdt();
         }
     }
 
@@ -424,6 +504,11 @@ public class MainMenuBarTest {
         SwingDevicePlatformPanel platformPanel = new SwingDevicePlatformPanel();
         assertNotNull(platformPanel);
         assertTrue(platformPanel.check(false));
+
+        JComboBox<?> presetCombo = findChildComponent(platformPanel, JComboBox.class);
+        assertNotNull("Preset combo box must exist in Device Platform dialog", presetCombo);
+        Object lastPreset = presetCombo.getItemAt(presetCombo.getItemCount() - 1);
+        assertEquals("Custom", lastPreset.toString());
 
         SwingAboutDialog aboutPanel = new SwingAboutDialog();
         assertNotNull(aboutPanel);

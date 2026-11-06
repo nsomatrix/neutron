@@ -224,7 +224,9 @@ public class Main extends JFrame {
 			menuSleepMode.setSelected(Config.isSleepModeEnabled());
 		}
 		if (menuVirtualButtons != null) {
-			menuVirtualButtons.setSelected(Config.isVirtualButtonsEnabled());
+			boolean isFs = Config.isFullscreen();
+			menuVirtualButtons.setEnabled(!isFs);
+			menuVirtualButtons.setSelected(!isFs && Config.isVirtualButtonsEnabled());
 		}
 		if (menuShowMouseCoordinates != null) {
 			menuShowMouseCoordinates.setSelected(Config.isShowMouseCoordinates());
@@ -232,23 +234,20 @@ public class Main extends JFrame {
 		if (menuFullscreen != null) {
 			menuFullscreen.setSelected(Config.isFullscreen());
 		}
-		if (zoomLevels != null) {
-			int currentZoom = Config.getScaledDisplayZoom();
-			for (int i = 0; i < zoomLevels.length; ++i) {
-				if (zoomLevels[i] != null) {
-					zoomLevels[i].setSelected((i + 2) == currentZoom);
-				}
-			}
+		if (menuDualZoom != null) {
+			menuDualZoom.setSelected(Config.isDualZoomEnabled());
 		}
 	}
 
 	private JFrame scaledDisplayFrame;
 
+	private DisplayRepaintListener updateDualZoomRepaintListener;
+
 	private JMenu menuTheme;
 
 	private JMenu menuFilter;
 
-	private JCheckBoxMenuItem[] zoomLevels;
+	private JCheckBoxMenuItem menuDualZoom;
 
 	private SwingDeviceComponent devicePanel;
 
@@ -708,157 +707,160 @@ public class Main extends JFrame {
 		}
 	};
 
-	private ActionListener menuScaledDisplayListener = new ActionListener() {
-		private DisplayRepaintListener updateScaledImageListener;
-
-		public void actionPerformed(ActionEvent e) {
-			final JCheckBoxMenuItem selectedZoomLevelMenuItem = (JCheckBoxMenuItem) e.getSource();
-			if (selectedZoomLevelMenuItem.isSelected()) {
-				for (int i = 0; i < zoomLevels.length; ++i) {
-					if (zoomLevels[i] != e.getSource()) {
-						zoomLevels[i].setSelected(false);
-					}
-				}
-				final int scale = Integer.parseInt(e.getActionCommand());
-				if (scaledDisplayFrame != null) {
+	public void setDualZoomVisible(boolean enabled) {
+		final int scale = 2;
+		if (enabled) {
+			if (scaledDisplayFrame != null) {
+				if (updateDualZoomRepaintListener != null && emulatorContext != null && emulatorContext.getDisplayComponent() != null) {
 					((SwingDisplayComponent) emulatorContext.getDisplayComponent())
-							.removeDisplayRepaintListener(updateScaledImageListener);
-					scaledDisplayFrame.dispose();
+							.removeDisplayRepaintListener(updateDualZoomRepaintListener);
 				}
-				scaledDisplayFrame = new JFrame(getTitle());
-				scaledDisplayFrame.setContentPane(new JLabel(new ImageIcon()));
-				updateScaledImageListener = new DisplayRepaintListener() {
-					public void repaintInvoked(Object repaintObject) {
-						updateScaledImage(scale, scaledDisplayFrame);
-						scaledDisplayFrame.validate();
+				scaledDisplayFrame.dispose();
+			}
+			scaledDisplayFrame = new JFrame(getTitle() + " - DualZoom");
+			scaledDisplayFrame.setContentPane(new JLabel(new ImageIcon()));
+			updateDualZoomRepaintListener = new DisplayRepaintListener() {
+				public void repaintInvoked(Object repaintObject) {
+					updateScaledImage(scale, scaledDisplayFrame);
+					scaledDisplayFrame.validate();
+				}
+			};
+			scaledDisplayFrame.addWindowListener(new WindowAdapter() {
+				public void windowClosing(WindowEvent event) {
+					if (menuDualZoom != null) {
+						menuDualZoom.setSelected(false);
 					}
-				};
-				scaledDisplayFrame.addWindowListener(new WindowAdapter() {
-					public void windowClosing(WindowEvent event) {
-						selectedZoomLevelMenuItem.setSelected(false);
-						menuScaledDisplayListener.actionPerformed(new ActionEvent(selectedZoomLevelMenuItem, ActionEvent.ACTION_PERFORMED, selectedZoomLevelMenuItem.getActionCommand()));
-					}
-				});
-				scaledDisplayFrame.getContentPane().addMouseListener(new MouseListener() {
-					private MouseListener receiver = ((SwingDisplayComponent) emulatorContext.getDisplayComponent())
-							.getMouseListener();
+					setDualZoomVisible(false);
+				}
+			});
+			scaledDisplayFrame.getContentPane().addMouseListener(new MouseListener() {
+				private MouseListener receiver = (emulatorContext != null && emulatorContext.getDisplayComponent() != null)
+						? ((SwingDisplayComponent) emulatorContext.getDisplayComponent()).getMouseListener() : null;
 
-					public void mouseClicked(MouseEvent e) {
-						receiver.mouseClicked(createAdaptedMouseEvent(e, scale));
-					}
+				public void mouseClicked(MouseEvent e) {
+					if (receiver != null) receiver.mouseClicked(createAdaptedMouseEvent(e, scale));
+				}
 
-					public void mousePressed(MouseEvent e) {
-						receiver.mousePressed(createAdaptedMouseEvent(e, scale));
-					}
+				public void mousePressed(MouseEvent e) {
+					if (receiver != null) receiver.mousePressed(createAdaptedMouseEvent(e, scale));
+				}
 
-					public void mouseReleased(MouseEvent e) {
-						receiver.mouseReleased(createAdaptedMouseEvent(e, scale));
-					}
+				public void mouseReleased(MouseEvent e) {
+					if (receiver != null) receiver.mouseReleased(createAdaptedMouseEvent(e, scale));
+				}
 
-					public void mouseEntered(MouseEvent e) {
-						receiver.mouseEntered(createAdaptedMouseEvent(e, scale));
-					}
+				public void mouseEntered(MouseEvent e) {
+					if (receiver != null) receiver.mouseEntered(createAdaptedMouseEvent(e, scale));
+				}
 
-					public void mouseExited(MouseEvent e) {
-						receiver.mouseExited(createAdaptedMouseEvent(e, scale));
-					}
-				});
-				scaledDisplayFrame.getContentPane().addMouseMotionListener(new MouseMotionListener() {
-					private MouseMotionListener receiver = ((SwingDisplayComponent) emulatorContext
-							.getDisplayComponent()).getMouseMotionListener();
+				public void mouseExited(MouseEvent e) {
+					if (receiver != null) receiver.mouseExited(createAdaptedMouseEvent(e, scale));
+				}
+			});
+			scaledDisplayFrame.getContentPane().addMouseMotionListener(new MouseMotionListener() {
+				private MouseMotionListener receiver = (emulatorContext != null && emulatorContext.getDisplayComponent() != null)
+						? ((SwingDisplayComponent) emulatorContext.getDisplayComponent()).getMouseMotionListener() : null;
 
-					public void mouseDragged(MouseEvent e) {
-						receiver.mouseDragged(createAdaptedMouseEvent(e, scale));
-					}
+				public void mouseDragged(MouseEvent e) {
+					if (receiver != null) receiver.mouseDragged(createAdaptedMouseEvent(e, scale));
+				}
 
-					public void mouseMoved(MouseEvent e) {
-						receiver.mouseMoved(createAdaptedMouseEvent(e, scale));
-					}
-				});
-				scaledDisplayFrame.getContentPane().addMouseWheelListener(new MouseWheelListener() {
-					private MouseWheelListener receiver = ((SwingDisplayComponent) emulatorContext
-							.getDisplayComponent()).getMouseWheelListener();
+				public void mouseMoved(MouseEvent e) {
+					if (receiver != null) receiver.mouseMoved(createAdaptedMouseEvent(e, scale));
+				}
+			});
+			scaledDisplayFrame.getContentPane().addMouseWheelListener(new MouseWheelListener() {
+				private MouseWheelListener receiver = (emulatorContext != null && emulatorContext.getDisplayComponent() != null)
+						? ((SwingDisplayComponent) emulatorContext.getDisplayComponent()).getMouseWheelListener() : null;
 
-					public void mouseWheelMoved(MouseWheelEvent e) {
-						MouseWheelEvent adaptedEvent = createAdaptedMouseWheelEvent(e, scale);
-						receiver.mouseWheelMoved(adaptedEvent);
-					}
-				});
+				public void mouseWheelMoved(MouseWheelEvent e) {
+					if (receiver != null) receiver.mouseWheelMoved(createAdaptedMouseWheelEvent(e, scale));
+				}
+			});
+			if (devicePanel != null) {
 				scaledDisplayFrame.addKeyListener(devicePanel);
+			}
 
-				updateScaledImage(scale, scaledDisplayFrame);
+			updateScaledImage(scale, scaledDisplayFrame);
+			if (emulatorContext != null && emulatorContext.getDisplayComponent() != null) {
 				((SwingDisplayComponent) emulatorContext.getDisplayComponent())
-						.addDisplayRepaintListener(updateScaledImageListener);
-				scaledDisplayFrame.setIconImage(getIconImage());
-				scaledDisplayFrame.setResizable(false);
-				Point location = getLocation();
-				Dimension size = getSize();
-				Rectangle window = Config.getWindow("scaledDisplay", new Rectangle(location.x + size.width, location.y,
-						0, 0));
-				scaledDisplayFrame.setLocation(window.x, window.y);
-				Config.setWindow("scaledDisplay", new Rectangle(scaledDisplayFrame.getX(), scaledDisplayFrame.getY(),
-						0, 0), false);
-				Config.setScaledDisplayZoom(scale);
-				scaledDisplayFrame.pack();
-				scaledDisplayFrame.setVisible(true);
-				Common.setStatusBar("Scaled Display Zoom: " + scale + "x");
-			} else {
-				if (updateScaledImageListener != null && emulatorContext != null && emulatorContext.getDisplayComponent() != null) {
-					((SwingDisplayComponent) emulatorContext.getDisplayComponent())
-							.removeDisplayRepaintListener(updateScaledImageListener);
-				}
-				if (scaledDisplayFrame != null) {
-					scaledDisplayFrame.dispose();
-					scaledDisplayFrame = null;
-				}
-				Config.setScaledDisplayZoom(-1);
-				Common.setStatusBar("Scaled Display Zoom: Off");
+						.addDisplayRepaintListener(updateDualZoomRepaintListener);
 			}
+			scaledDisplayFrame.setIconImage(getIconImage());
+			scaledDisplayFrame.setResizable(false);
+			Point location = getLocation();
+			Dimension size = getSize();
+			Rectangle window = Config.getWindow("scaledDisplay", new Rectangle(location.x + size.width, location.y,
+					0, 0));
+			scaledDisplayFrame.setLocation(window.x, window.y);
+			Config.setWindow("scaledDisplay", new Rectangle(scaledDisplayFrame.getX(), scaledDisplayFrame.getY(),
+					0, 0), false);
+			Config.setDualZoomEnabled(true);
+			if (menuDualZoom != null) {
+				menuDualZoom.setSelected(true);
+			}
+			scaledDisplayFrame.pack();
+			scaledDisplayFrame.setVisible(true);
+			Common.setStatusBar("DualZoom: Enabled");
+		} else {
+			if (updateDualZoomRepaintListener != null && emulatorContext != null && emulatorContext.getDisplayComponent() != null) {
+				((SwingDisplayComponent) emulatorContext.getDisplayComponent())
+						.removeDisplayRepaintListener(updateDualZoomRepaintListener);
+			}
+			if (scaledDisplayFrame != null) {
+				scaledDisplayFrame.dispose();
+				scaledDisplayFrame = null;
+			}
+			Config.setDualZoomEnabled(false);
+			if (menuDualZoom != null) {
+				menuDualZoom.setSelected(false);
+			}
+			Common.setStatusBar("DualZoom: Disabled");
 		}
+	}
 
-		private MouseEvent createAdaptedMouseEvent(MouseEvent e, int scale) {
-			return new MouseEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() / scale, e
-					.getY()
-					/ scale, e.getClickCount(), e.isPopupTrigger(), e.getButton());
-		}
+	private MouseEvent createAdaptedMouseEvent(MouseEvent e, int scale) {
+		return new MouseEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() / scale, e
+				.getY()
+				/ scale, e.getClickCount(), e.isPopupTrigger(), e.getButton());
+	}
 
-		private MouseWheelEvent createAdaptedMouseWheelEvent(MouseWheelEvent e, int scale) {
-			return new MouseWheelEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() / scale, e
-					.getY()
-					/ scale, e.getClickCount(), e.isPopupTrigger(), e.getScrollType(), e.getScrollAmount(), e
-					.getWheelRotation());
-		}
+	private MouseWheelEvent createAdaptedMouseWheelEvent(MouseWheelEvent e, int scale) {
+		return new MouseWheelEvent(e.getComponent(), e.getID(), e.getWhen(), e.getModifiers(), e.getX() / scale, e
+				.getY()
+				/ scale, e.getClickCount(), e.isPopupTrigger(), e.getScrollType(), e.getScrollAmount(), e
+				.getWheelRotation());
+	}
 
-		private void updateScaledImage(int scale, JFrame scaledLCDFrame) {
-			if (emulatorContext == null || emulatorContext.getDisplayComponent() == null || scaledLCDFrame == null) {
-				return;
-			}
-			SwingDisplayComponent sdc = (SwingDisplayComponent) emulatorContext.getDisplayComponent();
-			J2SEGraphicsSurface graphicsSurface = sdc.getGraphicsSurface();
-			if (graphicsSurface == null) {
-				return;
-			}
-			
-			BufferedImage img = graphicsSurface.getImage();
-			if (img == null) {
-				return;
-			}
-			int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
-			BufferedImage scaledImg = new BufferedImage(Math.max(1, img.getWidth() * scale), Math.max(1, img.getHeight() * scale), imgType);
-			Graphics2D imgGraphics = scaledImg.createGraphics();
-			imgGraphics.scale(scale, scale);
-			imgGraphics.drawImage(img, 0, 0, null);
-			imgGraphics.dispose();
-			
-			if (scaledLCDFrame.getContentPane() instanceof JLabel) {
-				JLabel label = (JLabel) scaledLCDFrame.getContentPane();
-				if (label.getIcon() instanceof ImageIcon) {
-					((ImageIcon) label.getIcon()).setImage(scaledImg);
-					label.repaint();
-				}
+	private void updateScaledImage(int scale, JFrame scaledLCDFrame) {
+		if (emulatorContext == null || emulatorContext.getDisplayComponent() == null || scaledLCDFrame == null) {
+			return;
+		}
+		SwingDisplayComponent sdc = (SwingDisplayComponent) emulatorContext.getDisplayComponent();
+		J2SEGraphicsSurface graphicsSurface = sdc.getGraphicsSurface();
+		if (graphicsSurface == null) {
+			return;
+		}
+		
+		BufferedImage img = graphicsSurface.getImage();
+		if (img == null) {
+			return;
+		}
+		int imgType = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
+		BufferedImage scaledImg = new BufferedImage(Math.max(1, img.getWidth() * scale), Math.max(1, img.getHeight() * scale), imgType);
+		Graphics2D imgGraphics = scaledImg.createGraphics();
+		imgGraphics.scale(scale, scale);
+		imgGraphics.drawImage(img, 0, 0, null);
+		imgGraphics.dispose();
+		
+		if (scaledLCDFrame.getContentPane() instanceof JLabel) {
+			JLabel label = (JLabel) scaledLCDFrame.getContentPane();
+			if (label.getIcon() instanceof ImageIcon) {
+				((ImageIcon) label.getIcon()).setImage(scaledImg);
+				label.repaint();
 			}
 		}
-	};
+	}
 
 	private StatusBarListener statusBarListener = new StatusBarListener() {
 		public void statusBarChanged(final String text) {
@@ -1202,17 +1204,14 @@ public class Main extends JFrame {
 
 		JMenu menuOptions = new JMenu("Config");
 
-		JMenu menuScaleLCD = new JMenu("Scaled Display");
-		menuOptions.add(menuScaleLCD);
-		int currentZoom = Config.getScaledDisplayZoom();
-		zoomLevels = new JCheckBoxMenuItem[3];
-		for (int i = 0; i < zoomLevels.length; ++i) {
-			zoomLevels[i] = new JCheckBoxMenuItem("x " + (i + 2));
-			zoomLevels[i].setActionCommand("" + (i + 2));
-			zoomLevels[i].setState((i + 2) == currentZoom);
-			zoomLevels[i].addActionListener(menuScaledDisplayListener);
-			menuScaleLCD.add(zoomLevels[i]);
-		}
+		menuDualZoom = new JCheckBoxMenuItem("DualZoom");
+		menuDualZoom.setState(Config.isDualZoomEnabled());
+		menuDualZoom.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				setDualZoomVisible(menuDualZoom.isSelected());
+			}
+		});
+		menuOptions.add(menuDualZoom);
 
 		menuRecordStoreManager = new JCheckBoxMenuItem("Record Store Manager");
 		menuRecordStoreManager.setState(false);
@@ -1324,9 +1323,15 @@ public class Main extends JFrame {
 
 		menuVirtualButtons = new JCheckBoxMenuItem("Virtual Buttons");
 		menuVirtualButtons.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_B, ActionEvent.CTRL_MASK));
-		menuVirtualButtons.setSelected(Config.isVirtualButtonsEnabled());
+		boolean isFs = Config.isFullscreen();
+		menuVirtualButtons.setEnabled(!isFs);
+		menuVirtualButtons.setSelected(!isFs && Config.isVirtualButtonsEnabled());
 		menuVirtualButtons.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				if (Config.isFullscreen()) {
+					menuVirtualButtons.setSelected(false);
+					return;
+				}
 				boolean enabled = menuVirtualButtons.isSelected();
 				Config.setVirtualButtonsEnabled(enabled);
 				setVirtualButtonsVisible(enabled);
@@ -1559,13 +1564,6 @@ public class Main extends JFrame {
 		org.neutron.device.ui.NetworkCapture.setEnabled(Config.isNetworkCaptureEnabled());
 		syncMenuStates();
 
-		int persistedZoom = Config.getScaledDisplayZoom();
-		if (persistedZoom >= 2 && persistedZoom <= 4) {
-			int index = persistedZoom - 2;
-			zoomLevels[index].setSelected(true);
-			menuScaledDisplayListener.actionPerformed(new ActionEvent(zoomLevels[index], ActionEvent.ACTION_PERFORMED, zoomLevels[index].getActionCommand()));
-		}
-
 		boolean sleepEnabled = Config.isSleepModeEnabled();
 		menuSleepMode.setState(sleepEnabled);
 		org.neutron.app.util.SleepManager.setSleepEnabled(sleepEnabled);
@@ -1794,6 +1792,11 @@ public class Main extends JFrame {
 
 		// Set initial fullscreen mode
 		setFullscreenMode(Config.isFullscreen());
+
+		if (Config.isDualZoomEnabled()) {
+			menuDualZoom.setSelected(true);
+			setDualZoomVisible(true);
+		}
 	}
 
 	protected Component createContents(Container parent) {
@@ -1802,7 +1805,7 @@ public class Main extends JFrame {
 		addKeyListener(devicePanel);
 
 		virtualKeypadPanel = new SwingVirtualKeypadPanel();
-		virtualKeypadPanel.setVisible(Config.isVirtualButtonsEnabled());
+		virtualKeypadPanel.setVisible(!Config.isFullscreen() && Config.isVirtualButtonsEnabled());
 		virtualKeypadPanel.setCloseActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Config.setVirtualButtonsEnabled(false);
@@ -1818,6 +1821,12 @@ public class Main extends JFrame {
 	}
 
 	public void setVirtualButtonsVisible(boolean visible) {
+		if (visible && Config.isFullscreen()) {
+			if (menuVirtualButtons != null) {
+				menuVirtualButtons.setSelected(false);
+			}
+			return;
+		}
 		if (virtualKeypadPanel != null) {
 			if (virtualKeypadPanel.isVisible() == visible) {
 				return;
@@ -1899,6 +1908,13 @@ public class Main extends JFrame {
 						updateFloatingButtonBounds();
 						floatingMenuButton.setVisible(true);
 					}
+					if (virtualKeypadPanel != null) {
+						virtualKeypadPanel.setVisible(false);
+					}
+					if (menuVirtualButtons != null) {
+						menuVirtualButtons.setEnabled(false);
+						menuVirtualButtons.setSelected(false);
+					}
 				} else {
 					if (menuBar != null) {
 						menuBar.setVisible(true);
@@ -1909,6 +1925,13 @@ public class Main extends JFrame {
 					if (floatingMenuButton != null) {
 						floatingMenuButton.setVisible(false);
 					}
+					if (menuVirtualButtons != null) {
+						menuVirtualButtons.setEnabled(true);
+						menuVirtualButtons.setSelected(Config.isVirtualButtonsEnabled());
+					}
+					if (virtualKeypadPanel != null) {
+						virtualKeypadPanel.setVisible(Config.isVirtualButtonsEnabled());
+					}
 				}
 				revalidate();
 				repaint();
@@ -1917,7 +1940,11 @@ public class Main extends JFrame {
 		if (SwingUtilities.isEventDispatchThread()) {
 			updateRunnable.run();
 		} else {
-			SwingUtilities.invokeLater(updateRunnable);
+			try {
+				SwingUtilities.invokeAndWait(updateRunnable);
+			} catch (Exception ex) {
+				SwingUtilities.invokeLater(updateRunnable);
+			}
 		}
 	}
 
@@ -1935,6 +1962,14 @@ public class Main extends JFrame {
 		if (statusBarHideTimer != null) {
 			statusBarHideTimer.stop();
 			statusBarHideTimer = null;
+		}
+		if (updateDualZoomRepaintListener != null && emulatorContext != null && emulatorContext.getDisplayComponent() != null) {
+			((SwingDisplayComponent) emulatorContext.getDisplayComponent())
+					.removeDisplayRepaintListener(updateDualZoomRepaintListener);
+		}
+		if (scaledDisplayFrame != null) {
+			scaledDisplayFrame.dispose();
+			scaledDisplayFrame = null;
 		}
 		super.dispose();
 	}

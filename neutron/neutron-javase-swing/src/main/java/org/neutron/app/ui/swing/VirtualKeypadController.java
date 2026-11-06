@@ -15,6 +15,7 @@ import javax.microedition.lcdui.Command;
 import org.neutron.DisplayAccess;
 import org.neutron.MIDletAccess;
 import org.neutron.MIDletBridge;
+import org.neutron.app.Config;
 import org.neutron.app.util.SleepManager;
 import org.neutron.device.Device;
 import org.neutron.device.DeviceFactory;
@@ -33,6 +34,9 @@ import org.neutron.device.j2se.J2SESoftButton;
 public class VirtualKeypadController {
 
 	public static void pressButton(ButtonName buttonName) {
+		if (Config.isFullscreen()) {
+			return;
+		}
 		SleepManager.notifyActivity();
 		if (MIDletBridge.getCurrentMIDlet() == null) {
 			return;
@@ -117,6 +121,9 @@ public class VirtualKeypadController {
 	}
 
 	public static void repeatButton(ButtonName buttonName) {
+		if (Config.isFullscreen()) {
+			return;
+		}
 		if (MIDletBridge.getCurrentMIDlet() == null) {
 			return;
 		}

@@ -133,7 +133,7 @@ public class SwingDocsDialog extends SwingDialogPanel {
 	private String getConfigMenuHtml() {
 		return "<h3>Display & Emulator Settings</h3>"
 				+ "<ul>"
-				+ "  <li><b>Scaled Display</b>: Launches a separate frame scaled to 2x, 3x, or 4x (great for High-DPI screens).</li>"
+				+ "  <li><b>DualZoom</b>: Launches a secondary 2x scaled display frame (great for High-DPI screens and multi-monitor setups).</li>"
 				+ "  <li><b>Record Store Manager</b>: View and delete keys stored in the RMS J2ME database (saves, highscores).</li>"
 				+ "  <li><b>Log Console</b>: Open developer logging window to inspect output, warnings, and error traces.</li>"
 				+ "  <li><b>Sleep Mode</b> (<code>Ctrl+L</code>): Pause threads on idle to drastically lower CPU usage.</li>"
