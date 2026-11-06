@@ -1,19 +1,26 @@
 /*
-	This file is part of FreeJ2ME.
-
-	FreeJ2ME is free software: you can redistribute it and/or modify
-	it under the terms of the GNU General Public License as published by
-	the Free Software Foundation, either version 3 of the License, or
-	(at your option) any later version.
-
-	FreeJ2ME is distributed in the hope that it will be useful,
-	but WITHOUT ANY WARRANTY; without even the implied warranty of
-	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-	GNU General Public License for more details.
-
-	You should have received a copy of the GNU General Public License
-	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
-*/
+ * Neutron 
+ * 
+ *  It is licensed under the following two licenses as alternatives:
+ *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
+ *    2. Apache License (the "AL") Version 2.0
+ *
+ *  You may not use this file except in compliance with at least one of
+ *  the above two licenses.
+ *
+ *  You may obtain a copy of the LGPL at
+ *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ *
+ *  You may obtain a copy of the AL at
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the LGPL or the AL for the specific language governing permissions and
+ *  limitations.
+ * 
+ */
 package javax.microedition.m3g;
 
 import java.util.Hashtable;
@@ -38,7 +45,7 @@ public class Graphics3D
 	 */
 	private static final short DEPTH_CLEAR_VALUE = (short) 32767;
 
-	// Flag values for FJ2ME+ rendering overrides (bilinear, AA, dithering, etc)
+	// Flag values for Neutron rendering overrides (bilinear, AA, dithering, etc)
 	public static final int MODE_FORCE_DISABLE = 0;
 	public static final int MODE_APP_CONTROLLED = 1;
 	public static final int MODE_FORCE_ENABLE  = 2;
@@ -54,7 +61,7 @@ public class Graphics3D
 	public static boolean M3GRenderUntexturedPolygons = false;
 	public static boolean M3GRenderWireframe = false;
 
-	// Pre-computed 1/N lookup table for span sizes 1 to 32. FreeJ2ME+ will
+	// Pre-computed 1/N lookup table for span sizes 1 to 32. Neutron will
 	// allow configurable span sizes for piecewise linear perspective correction
 	// from 8 to 32 pixels in the future, so by precalculating these here at
 	// the start, we don't need to keep throwing fastReciprocals on the inner
@@ -698,7 +705,7 @@ public class Graphics3D
 		final int windingOrder = (pmode != null) ? pmode.getWinding() : PolygonMode.WINDING_CCW;
 		final boolean twoSidedLighting = (pmode != null) && pmode.isTwoSidedLightingEnabled();
 		final boolean localCameraLight = (pmode != null) && pmode.isLocalCameraLightingEnabled();
-		// these ones can be overridden by FJ2ME+
+		// these ones can be overridden by Neutron
 		boolean doAntiAlias = (m3gAntiAliasingMode == MODE_FORCE_ENABLE)
 			|| (m3gAntiAliasingMode == MODE_APP_CONTROLLED && (this.hints & ANTIALIAS) != 0);
 		boolean perspectiveCorrection = (pmode != null) && pmode.isPerspectiveCorrectionEnabled();
@@ -1934,7 +1941,7 @@ public class Graphics3D
 
 				int screenX = px + viewx;
 
-				// Both are actually rather similar due to how FreeJ2ME+ implements these
+				// Both are actually rather similar due to how Neutron implements these
 				if (isImageTarget)
 				{
 					destImg.image[destImg.isPOT ? (screenY << destImg.widthShift) + screenX :

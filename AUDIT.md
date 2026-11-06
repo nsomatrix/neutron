@@ -1530,8 +1530,8 @@ All 19 defects identified across Phases 2, 3, and 4 have been systematically rem
 ### Stage 5: JSR-184 M3G 3D Rasterizer & Pipeline Hardening (COMPLETED & VERIFIED)
 - **Defects:** NX-020
 - **Scope & Fixes:**
-  - **Full FreeJ2ME-Plus Battle-Tested M3G Engine Integration:**
-    - Integrated the complete 33-class pure-Java JSR-184 M3G engine from FreeJ2ME-Plus into `:neutron:neutron-extensions:neutron-jsr-184`, replacing partial stubs with battle-tested software rendering pipelines.
+  - **Full Battle-Tested Software Battle-Tested M3G Engine Integration:**
+    - Integrated the complete 33-class pure-Java JSR-184 M3G engine from Battle-Tested Software into `:neutron:neutron-extensions:neutron-jsr-184`, replacing partial stubs with battle-tested software rendering pipelines.
     - Added `Graphics3DPipelines.java` (branchless compositing blenders, texture coordinate repeat/clamp wrappings, filtering), `Triangle.java` (sub-pixel precision scanline clipper and rasterizer), `M3GMath.java` (LUT trigonometry and fast reciprocal approximations), and `Sprite3D.java` (billboarding 3D quad sprites).
     - **SkinnedMesh Bone Deformation:** Complete implementation of `SkinnedMesh.addTransform(Node bone, int weight, int firstVertex, int numVertices)`, hierarchical skeletal animation matrices, vertex/normal blending, and pose-fitted re-quantization. Resolves character model twisting and collapsed polygon clumps.
     - **Vertex Position Scale & Bias:** Dequantizes compressed positions ($x = \text{raw} \times S + B_x$) and normals with pose-fitted bounding box re-quantization.
