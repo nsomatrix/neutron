@@ -109,7 +109,6 @@ import org.neutron.app.ui.swing.SwingLogConsoleDialog;
 import org.neutron.app.ui.swing.SwingVideoSettingsPanel;
 import org.neutron.app.ui.swing.SwingProxySettingsPanel;
 import org.neutron.app.ui.swing.SwingNetworkCapturePanel;
-import org.neutron.app.ui.swing.SwingEmulationSpeedDialog;
 import org.neutron.app.ui.swing.SwingFrameRateDialog;
 import org.neutron.app.ui.swing.SwingStatusBar;
 import org.neutron.app.ui.swing.SwingPerfHUD;
@@ -1429,7 +1428,7 @@ public class Main extends JFrame {
 
 		final JMenu menuEmulationSpeed = new JMenu("Emulation Speed");
 		final ButtonGroup speedGroup = new ButtonGroup();
-		final double[] mainSpeeds = { 0.50, 1.00, 2.00, 5.00, 10.00 };
+		final double[] mainSpeeds = { 0.50, 1.00, 1.50, 2.00, 3.00 };
 		final JRadioButtonMenuItem[] speedItems = new JRadioButtonMenuItem[mainSpeeds.length];
 
 		for (int i = 0; i < mainSpeeds.length; i++) {
@@ -1445,33 +1444,15 @@ public class Main extends JFrame {
 			speedGroup.add(speedItems[i]);
 			menuEmulationSpeed.add(speedItems[i]);
 		}
-		menuEmulationSpeed.addSeparator();
-		final JRadioButtonMenuItem configureSpeedItem = new JRadioButtonMenuItem("Custom");
-		configureSpeedItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				SwingEmulationSpeedDialog dialog = new SwingEmulationSpeedDialog(Main.this);
-				dialog.setVisible(true);
-			}
-		});
-		speedGroup.add(configureSpeedItem);
-		menuEmulationSpeed.add(configureSpeedItem);
 
 		menuEmulationSpeed.addMenuListener(new MenuListener() {
 			public void menuSelected(MenuEvent e) {
 				double curSpeed = Config.getSpeedMultiplier();
-				boolean matched = false;
 				for (int i = 0; i < mainSpeeds.length; i++) {
 					if (Math.abs(curSpeed - mainSpeeds[i]) < 0.001) {
 						speedItems[i].setSelected(true);
-						matched = true;
 						break;
 					}
-				}
-				if (!matched) {
-					configureSpeedItem.setText(String.format(java.util.Locale.US, "Custom (%.2fx)", curSpeed));
-					configureSpeedItem.setSelected(true);
-				} else {
-					configureSpeedItem.setText("Custom");
 				}
 			}
 			public void menuDeselected(MenuEvent e) {}

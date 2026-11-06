@@ -768,6 +768,9 @@ public class Config {
 		notifyConfigChanged("FPS Limit", maxFps);
 	}
 
+	public static final double MIN_SPEED_MULTIPLIER = 0.25;
+	public static final double MAX_SPEED_MULTIPLIER = 3.00;
+
 	public static double getSpeedMultiplier() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
@@ -775,18 +778,20 @@ public class Config {
 		}
 		String val = optionsXml.getChildString("speedMultiplier", "1.0");
 		try {
-			return Double.parseDouble(val);
+			double parsed = Double.parseDouble(val);
+			return Math.max(MIN_SPEED_MULTIPLIER, Math.min(MAX_SPEED_MULTIPLIER, parsed));
 		} catch (NumberFormatException e) {
 			return 1.0;
 		}
 	}
 
 	public static void setSpeedMultiplier(double multiplier) {
+		double clamped = Math.max(MIN_SPEED_MULTIPLIER, Math.min(MAX_SPEED_MULTIPLIER, multiplier));
 		XMLElement optionsXml = configXml.getChildOrNew("options");
 		XMLElement multiplierXml = optionsXml.getChildOrNew("speedMultiplier");
-		multiplierXml.setContent(String.valueOf(multiplier));
+		multiplierXml.setContent(String.valueOf(clamped));
 		saveConfig();
-		notifyConfigChanged("Emulation Speed", multiplier + "x");
+		notifyConfigChanged("Emulation Speed", clamped + "x");
 	}
 
 	public static boolean isPerfHudEnabled() {

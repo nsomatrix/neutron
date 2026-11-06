@@ -453,8 +453,8 @@ public class MainMenuBarTest {
         JMenu speedMenu = findSubMenu(controlsMenu, "Emulation Speed");
         assertNotNull("Emulation Speed submenu must exist", speedMenu);
 
-        String[] labels = { "0.50x", "1.00x", "2.00x", "5.00x", "10.00x" };
-        double[] values = { 0.50, 1.00, 2.00, 5.00, 10.00 };
+        String[] labels = { "0.50x", "1.00x", "1.50x", "2.00x", "3.00x" };
+        double[] values = { 0.50, 1.00, 1.50, 2.00, 3.00 };
 
         double origSpeed = Config.getSpeedMultiplier();
         try {
@@ -464,6 +464,19 @@ public class MainMenuBarTest {
                 clickMenuItem(item);
                 assertEquals("Config speed multiplier should update", values[i], Config.getSpeedMultiplier(), 0.001);
             }
+
+            // Verify Custom item is removed
+            assertNull("Custom speed item must be removed", findMenuItem(speedMenu, "Custom"));
+
+            // Verify safety clamping to 3.00x max limit
+            Config.setSpeedMultiplier(5.00);
+            assertEquals("Speed multiplier must be clamped to 3.00x max limit", 3.00, Config.getSpeedMultiplier(), 0.001);
+
+            Config.setSpeedMultiplier(10.00);
+            assertEquals("Speed multiplier must be clamped to 3.00x max limit", 3.00, Config.getSpeedMultiplier(), 0.001);
+
+            Config.setSpeedMultiplier(0.10);
+            assertEquals("Speed multiplier must be clamped to 0.25x min limit", 0.25, Config.getSpeedMultiplier(), 0.001);
         } finally {
             Config.setSpeedMultiplier(origSpeed);
         }
