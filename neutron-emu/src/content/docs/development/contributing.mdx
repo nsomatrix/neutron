@@ -1,86 +1,68 @@
 ---
 title: Contributing
-description: How to contribute to Neutron development.
+description: How to contribute bug fixes, 3D enhancements, and new extensions to Neutron.
 order: 16
 ---
 
-## How to Contribute
+## Community & Contributions
 
-We welcome contributions of all kinds — code, documentation, bug reports, and feature requests.
+We welcome contributions of all forms — from bug reports and mobile game compatibility tests to 3D rasterizer optimizations and documentation improvements.
+
+---
 
 ## Getting Started
 
-1. Fork the repository on GitHub
-2. Clone your fork locally
-3. Create a feature branch
-4. Make your changes
-5. Submit a pull request
+1. Fork the official repository on GitHub: [https://github.com/nsomatrix/neutron](https://github.com/nsomatrix/neutron)
+2. Clone your fork locally:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/neutron.git
+   cd neutron
+   ```
+3. Create a descriptive feature branch:
+   ```bash
+   git checkout -b feature/my-new-feature
+   ```
+4. Build and verify the project:
+   ```bash
+   ./gradlew build
+   ```
 
-```bash
-# Fork and clone
-git clone https://github.com/YOUR_USERNAME/neutron.git
-cd neutron
+---
 
-# Create a branch
-git checkout -b feature/my-feature
+## Commit Guidelines
 
-# Make changes and commit
-git add .
-git commit -m "feat: add my feature"
+We use clear, conventional commit messages:
 
-# Push and create a PR
-git push origin feature/my-feature
-```
+| Prefix | Focus Area |
+|--------|------------|
+| `feat:` | New feature, API extension, or UI capability |
+| `fix:` | Bug fix, math correction, or spec compliance fix |
+| `docs:` | Documentation website or markdown updates |
+| `refactor:` | Code restructuring without behavior changes |
+| `test:` | Adding unit tests or test MIDlets |
+| `perf:` | Performance and memory optimizations |
 
-## Commit Convention
+---
 
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
+## Coding Standards
 
-| Prefix | Description |
-|--------|-------------|
-| `feat:` | New feature |
-| `fix:` | Bug fix |
-| `docs:` | Documentation |
-| `refactor:` | Code refactoring |
-| `test:` | Adding tests |
-| `chore:` | Maintenance |
-| `perf:` | Performance |
+- **Java Baseline:** Java 8 language compatibility (`sourceCompatibility = 1.8`, `targetCompatibility = 1.8`) to ensure lightweight portable execution.
+- **Indentation:** Standard 4 spaces or tabs consistent with surrounding module files.
+- **Spec Integrity:** Keep MIDP 2.0 and CLDC 1.1 spec methods compliant. If adding OEM extensions, provide clean fallbacks when device capabilities are absent.
+- **Documentation:** When introducing new configuration parameters in `Config.java`, document them in `config2.xml` tables across the documentation pages.
 
-## Code Style
+---
 
-- Use 4-space indentation
-- Follow Java naming conventions
-- Add JavaDoc for public APIs
-- Keep methods focused and small
-- Write tests for new functionality
+## Submitting Pull Requests
 
-## Pull Request Process
-
-1. Ensure your branch is up to date with `main`
-2. Run the full test suite: `./gradlew test`
-3. Update documentation if needed
-4. Fill out the PR template
-5. Wait for code review
-
-<Callout type="info">
-First-time contributors should look for issues labeled `good first issue` on GitHub.
-</Callout>
-
-## Reporting Bugs
-
-When reporting bugs, include:
-
-- Neutron version (`neutron version`)
-- Operating system and version
-- Java version (`java -version`)
-- Steps to reproduce
-- Expected vs actual behavior
-- MIDlet name (if applicable)
-
-## Feature Requests
-
-Open a GitHub issue with the `enhancement` label. Include:
-
-- Use case description
-- Expected behavior
-- Any relevant examples or references
+1. Make sure all unit tests pass:
+   ```bash
+   ./gradlew test
+   ```
+2. If working on the web documentation site (`neutron-emu`):
+   ```bash
+   cd neutron-emu
+   npm run build
+   ```
+3. Push your branch to GitHub and open a Pull Request against the `main` branch.
+4. Describe your changes clearly, linking any relevant games or issues tested.

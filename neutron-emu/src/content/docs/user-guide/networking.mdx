@@ -1,69 +1,65 @@
 ---
-title: Networking
-description: HTTP, socket, and datagram networking support in Neutron.
+title: Networking & Connectivity
+description: Generic Connection Framework (GCF), HTTP/socket protocols, Airplane Mode, and X-Proxy.
 order: 9
 ---
 
 ## Network Overview
 
-Neutron supports the full Generic Connection Framework (GCF) networking stack, including HTTP/HTTPS, TCP sockets, and UDP datagrams.
+Neutron implements the Java ME **Generic Connection Framework (GCF)** located in `javax.microedition.io.*`. It bridges mobile network requests directly to host Java SE network sockets, supporting HTTP, HTTPS, TCP streaming sockets, and UDP datagrams.
 
-## HTTP Connections
+---
+
+## Supported GCF Protocols
+
+| Connection URL | Interface | Underlying Implementation |
+|----------------|-----------|---------------------------|
+| `http://...` | `HttpConnection` | Full HTTP 1.1 request/response handling. |
+| `https://...` | `HttpsConnection` | SSL/TLS encrypted traffic using host truststores. |
+| `socket://host:port` | `SocketConnection` | Direct TCP streaming socket. |
+| `serversocket://:port`| `ServerSocketConnection` | Bound listening TCP server socket. |
+| `datagram://host:port`| `UDPDatagramConnection` | UDP datagram sending and receiving. |
+| `sms://...` | `MessageConnection` (JSR-120) | Emulated wireless messaging connection. |
+
+### Strict HTTP GET / POST Handling
+
+In Neutron v1.4.0, HTTP connections strictly maintain the default `GET` request method unless `conn.setRequestMethod(HttpConnection.POST)` or an explicit `openOutputStream()` is invoked, matching physical phone specifications.
 
 ```java
-HttpConnection conn = (HttpConnection) Connector.open(
-    "http://example.com/api/data"
-);
+// Example HTTP Connection in MIDlet code
+HttpConnection conn = (HttpConnection) Connector.open("http://example.com/api/highscore");
 conn.setRequestMethod(HttpConnection.GET);
 
-int rc = conn.getResponseCode();
-if (rc == HttpConnection.HTTP_OK) {
+int responseCode = conn.getResponseCode();
+if (responseCode == HttpConnection.HTTP_OK) {
     InputStream is = conn.openInputStream();
-    // Read response...
+    // Read response payload...
     is.close();
 }
 conn.close();
 ```
 
-## Socket Connections
+---
 
-```java
-SocketConnection conn = (SocketConnection) Connector.open(
-    "socket://example.com:8080"
-);
+## Network Controls & Diagnostics
 
-OutputStream os = conn.openOutputStream();
-os.write("Hello".getBytes());
-os.flush();
+Neutron provides dedicated tools in the **Controls** menu for monitoring and regulating network traffic:
 
-InputStream is = conn.openInputStream();
-// Read response...
+### 1. Airplane Mode
+Quickly toggle all network communication on or off. When enabled in **Controls → Airplane Mode**, outbound socket and HTTP connections are temporarily blocked, enabling you to test how games handle network dropouts without killing the emulator.
 
-conn.close();
-```
+### 2. X-Proxy Settings
+Route all GCF network activity through an HTTP or SOCKS proxy:
+- Open **Controls → X-Proxy**.
+- Configure Proxy Type (`HTTP` or `SOCKS`), Host IP/Domain, and Port.
+- Enable Proxy Authentication if your proxy server requires credentials.
+- Settings are automatically persisted under `<options>` in `config2.xml`.
 
-## Proxy Configuration
+### 3. Network Traffic Overlay
+Toggle **Controls → Network Overlay** to display a real-time HUD showing:
+- Active open network connections.
+- Data throughput (bytes sent / received).
+- Live latency and ping counters.
 
-Configure network proxy for all connections:
-
-```toml title="config.toml"
-[network]
-proxy_enabled = true
-proxy_type = "socks5"    # "http", "socks4", "socks5"
-proxy_host = "127.0.0.1"
-proxy_port = 1080
-proxy_username = ""      # For authenticated proxies
-proxy_password = ""
-```
-
-## Security
-
-<Callout type="warning">
-Enable the `allow_network` toggle with caution. Untrusted MIDlets may attempt to connect to external servers or exfiltrate data.
-</Callout>
-
-### Network Controls
-
-- **Global Toggle** — Enable/disable all network access via `allow_network`
-- **Connection Tracking** — Monitor active connections in real-time
-- **Automatic Cleanup** — All connections are terminated when a MIDlet exits
+### 4. Packet Capture Dialog
+Open **Controls → Network Capture** to inspect raw HTTP requests, response headers, and socket communication payloads in real time.

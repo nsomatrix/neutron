@@ -1,95 +1,107 @@
 ---
-title: Graphics
-description: Display rendering, resolution management, and graphics API support in Neutron.
+title: Graphics & Display
+description: Display scaling, xBRZ filtering, CRT/LCD shaders, and 3D graphics in Neutron.
 order: 6
 ---
 
-## Display System
+## Display Subsystem Overview
 
-Neutron implements a complete LCDUI and Game API rendering pipeline that accurately emulates the display behavior of real Java ME devices.
+Neutron incorporates a graphics pipeline engineered to execute classic 2D LCDUI and intensive 3D mobile games while scaling cleanly onto modern, high-resolution desktop monitors.
 
-## Canvas Rendering
+---
 
-The `Canvas` class provides a low-level drawing surface for custom graphics:
+## 2D Canvas & Game API
+
+Neutron implements the complete MIDP 2.0 Graphics specification:
+
+- **Direct Pixel Access:** Fast software blitting and RGB rasterization.
+- **GameCanvas:** Hardware double-buffered canvas supporting asynchronous keyboard states (`getKeyStates()`) and zero-flicker graphics flushing.
+- **Sprite & Collision Handling:** Accurate frame-based animations, collision detection (bounding box and pixel-level), and full matrix orientation transforms:
+  - `TRANS_NONE`, `TRANS_ROT90`, `TRANS_ROT180`, `TRANS_ROT270`
+  - `TRANS_MIRROR`, `TRANS_MIRROR_ROT90`, `TRANS_MIRROR_ROT180`, `TRANS_MIRROR_ROT270`
+  - Exact reference pixel coordinate calculations preserving sprite positioning across all rotations.
 
 ```java
-public class MyCanvas extends Canvas {
-    protected void paint(Graphics g) {
-        // Clear background
-        g.setColor(0x000000);
-        g.fillRect(0, 0, getWidth(), getHeight());
-
-        // Draw a circle
-        g.setColor(0xFF0000);
-        g.fillArc(50, 50, 40, 40, 0, 360);
+// Example MIDP 2.0 GameCanvas implementation
+public class MyGameCanvas extends GameCanvas implements Runnable {
+    public MyGameCanvas() {
+        super(true); // Double-buffered
     }
-}
-```
-
-## Game API
-
-Neutron fully supports the MIDP 2.0 Game API:
-
-### GameCanvas
-
-```java
-public class MyGame extends GameCanvas implements Runnable {
-    private boolean running = true;
 
     public void run() {
         Graphics g = getGraphics();
         while (running) {
-            // Game logic
             int keyStates = getKeyStates();
-            update(keyStates);
+            if ((keyStates & LEFT_PRESSED) != 0) player.move(-2, 0);
+            if ((keyStates & RIGHT_PRESSED) != 0) player.move(2, 0);
 
-            // Render
-            render(g);
+            // Paint layers
+            layerManager.paint(g, 0, 0);
             flushGraphics();
 
-            // Frame timing
-            try { Thread.sleep(16); }
-            catch (InterruptedException e) {}
+            try { Thread.sleep(16); } catch (InterruptedException e) {}
         }
     }
 }
 ```
 
-### Sprites and Layers
+---
 
-Full `Sprite`, `TiledLayer`, and `LayerManager` support:
+## 3D Graphics Pipelines
 
-```java
-Sprite player = new Sprite(playerImage, 32, 32);
-player.setPosition(100, 100);
-player.setFrame(0);
+Neutron provides dedicated support for mobile 3D game engines:
 
-LayerManager layers = new LayerManager();
-layers.append(player);
-layers.append(background);
-layers.paint(g, 0, 0);
-```
+### 1. MascotCapsule Micro3D v3 (`com.mascotcapsule.micro3d.v3.*`)
+A pure-Java software rasterizer implementation supporting:
+- 3D Figure model rendering (`.mbac` format)
+- Action skeletal animation tables (`.mtac` format)
+- Bone transformations and affine matrices (`AffineTrans`)
+- Spherical environment mapping and dynamic lighting
+- Sub-pixel rasterization with perspective-correct texture mapping
 
-## Display Configuration
+### 2. JSR-184 Mobile 3D Graphics (M3G)
+A full implementation of the Java ME standard 3D specification:
+- Binary `.m3g` chunk stream parser with Zlib inflation and Adler-32 checksum integrity checks.
+- Immediate mode and retained mode scene graphs.
+- Scene components: `World`, `Camera`, `Light`, `Background`, `Fog`, `Mesh`, `SkinnedMesh`, `MorphingMesh`, `Appearance`, `Material`, `Texture2D`, `CompositingMode`, and `PolygonMode`.
+- Keyframe animation tracks with `AnimationController`.
 
-Configure the display via the configuration file or CLI:
+### 3. Nokia UI DirectGraphics (`com.nokia.mid.ui.*`)
+- Extended `DirectGraphics` operations: `drawPixels`, `getPixels`, and `drawPolygon`.
+- 32-bit ARGB rasterization supporting custom alpha blends and rotation flags.
 
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `width` | 240 | Virtual screen width |
-| `height` | 320 | Virtual screen height |
-| `scale` | 2 | Display scale factor |
-| `vsync` | true | Vertical sync |
-| `fps_limit` | 60 | Maximum frame rate |
+---
 
-<Callout type="tip">
-For pixel-art games, use integer scaling (1x, 2x, 3x) with nearest-neighbor filtering to maintain sharp pixels.
-</Callout>
+## Scaling Filters & Shader Effects
 
-## Fullscreen Mode
+Neutron features a suite of real-time post-processing shaders and scaling algorithms accessible under **Config → Graphics Filter**:
 
-Toggle fullscreen with `F11` or via the menu. In fullscreen mode:
+| Filter | Category | Description |
+|--------|----------|-------------|
+| **Nearest Neighbor** | Raw Pixel | Clean nearest-neighbor scaling preserving sharp square pixels. Fastest execution speed. |
+| **xBRZ (2x, 3x, 4x, 5x, 6x)** | HD Pixel-Art | High-definition rule-based edge detection and blending. Smooths curves and diagonals without blurring. |
+| **Scale2x** | Pixel Art | Classic EPX / AdvanceMAME algorithm for doubling pixel resolution. |
+| **Bilinear / Bicubic** | Interpolation | Smooth mathematical anti-aliased texture filtering. |
+| **CRT Scanlines** | Retro Simulation | Simulates horizontal phosphor raster lines of classic CRT monitors. |
+| **LCD Grid** | Handheld Simulation | Recreates the authentic physical subpixel matrix grid of retro phone displays. |
 
-- The status bar auto-hides after 3 seconds
-- Move the mouse to the top edge to reveal controls
-- Press `Escape` to exit fullscreen
+---
+
+## Video Post-Processing Controls
+
+Under **Config → Video Settings**, you can calibrate display output in real-time:
+
+- **Brightness & Contrast:** Adjust dynamic range and shadows.
+- **Gamma Correction:** Correct dark gamma curves from vintage color profiles.
+- **Saturation:** Reduce to 0% for classic monochrome display emulation or boost for vibrant LCD colors.
+- **Sharpness:** High-pass filter for enhanced edge clarity.
+- **Phosphor Ghosting:** Emulates the slow liquid crystal response times of early mobile monochrome and CSTN screens.
+- **Color Inversion:** Invert screen colors for accessibility or specialized testing.
+
+---
+
+## Fullscreen & Display Modes
+
+- **Borderless Fullscreen (`F11`):** Completely hides the window border, title bar, and system taskbar. Move your mouse to the top to access the floating menu button.
+- **DualZoom Mode:** Doubles canvas scale in a dedicated pop-out viewport.
+- **Mouse Coordinates HUD:** Display real-time pointer coordinates directly over the active canvas.

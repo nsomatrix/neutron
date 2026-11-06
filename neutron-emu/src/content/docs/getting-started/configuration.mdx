@@ -1,42 +1,57 @@
 ---
 title: Configuration
-description: Configure Neutron to match your workflow and preferences.
+description: Configure Neutron preferences, graphics filters, memory limits, and XML settings.
 order: 4
 ---
 
 ## Configuration File
 
-Neutron stores its user configuration in an XML file named `config2.xml` located in the user's home directory.
+Neutron stores user configurations, window dimensions, recent directories, and display options in an XML file named `config2.xml` located in the user configuration directory:
 
-| Platform | Path |
-|----------|------|
-| Windows | `%USERPROFILE%\.neutron\config2.xml` |
-| macOS | `~/.neutron/config2.xml` |
-| Linux | `~/.neutron/config2.xml` |
+| Platform | Configuration Directory Path | File Name |
+|----------|------------------------------|-----------|
+| **Windows** | `%USERPROFILE%\.neutron\` (e.g. `C:\Users\<user>\.neutron\`) | `config2.xml` |
+| **macOS** | `~/.neutron/` (`/Users/<user>/.neutron/`) | `config2.xml` |
+| **Linux** | `~/.neutron/` (`/home/<user>/.neutron/`) | `config2.xml` |
 
-If you specify an instance ID using the `--id [ID]` command-line option, Neutron will store its configuration under `~/.neutron/[ID]/config2.xml`.
+If you specify an isolated environment ID using `--id [ProfileID]`, the settings file will reside under `~/.neutron/[ProfileID]/config2.xml`.
 
-## Example Configuration
+---
 
-Here is an example structure of a `config2.xml` file representing user preferences:
+## Example `config2.xml`
+
+Here is an authentic `config2.xml` representation showing the supported configuration parameters:
 
 ```xml title="config2.xml"
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
   <options>
-    <theme>FlatLaf macOS Light</theme>
-    <graphicsFilter>Nearest Neighbor</graphicsFilter>
+    <!-- Swing Look & Feel Theme -->
+    <theme>FlatLaf Dark</theme>
+    <devicePlatform>Neutron</devicePlatform>
+
+    <!-- Canvas Scaling and Shader Filters -->
+    <graphicsFilter>xBRZ 2x</graphicsFilter>
+    <scaledDisplayZoom>-1</scaledDisplayZoom>
+    <showMouseCoordinates>false</showMouseCoordinates>
+
+    <!-- CPU and Frame Control -->
     <sleepMode>false</sleepMode>
-    <memoryLimit>64</memoryLimit>
     <maxFps>-1</maxFps>
     <speedMultiplier>1.0</speedMultiplier>
+
+    <!-- Diagnostics and Controls -->
+    <memoryLimit>64</memoryLimit>
     <perfHudEnabled>false</perfHudEnabled>
-    <networkAccess>true</networkAccess>
     <networkOverlayEnabled>false</networkOverlayEnabled>
-    <showMouseCoordinates>false</showMouseCoordinates>
-    <scaledDisplayZoom>-1</scaledDisplayZoom>
-    
-    <!-- Proxy Settings -->
+    <virtualButtonsMode>gamepad</virtualButtonsMode>
+
+    <!-- Network Connectivity -->
+    <networkAccess>true</networkAccess>
+    <airplaneMode>false</airplaneMode>
+    <networkCaptureEnabled>false</networkCaptureEnabled>
+
+    <!-- Network Proxy (X-Proxy) -->
     <proxyEnabled>false</proxyEnabled>
     <proxyType>HTTP</proxyType> <!-- HTTP or SOCKS -->
     <proxyHost></proxyHost>
@@ -44,8 +59,8 @@ Here is an example structure of a `config2.xml` file representing user preferenc
     <proxyAuthEnabled>false</proxyAuthEnabled>
     <proxyUsername></proxyUsername>
     <proxyPassword></proxyPassword>
-    
-    <!-- Video Processing Settings -->
+
+    <!-- Hardware Video Post-Processing -->
     <brightness>0</brightness>
     <contrast>100</contrast>
     <gamma>1.0</gamma>
@@ -54,47 +69,62 @@ Here is an example structure of a `config2.xml` file representing user preferenc
     <ghosting>0</ghosting>
     <invert>false</invert>
   </options>
-  <system-properties>
-    <system-property name="avetana.forceNativeLibrary" value="true" />
-  </system-properties>
 </config>
 ```
 
+---
+
 ## Settings Reference
 
-All settings under the `&lt;options&gt;` tag can be updated through the emulator's GUI menus or edited manually in the XML file while the emulator is closed.
+All configuration options can be modified directly within the emulator GUI via the **Config** and **Controls** menus, or edited in `config2.xml` while the emulator is closed.
 
-### Interface & Graphics
+### 1. Interface & Themes
 
-| Property | Values | Default | Description |
-|----------|--------|---------|-------------|
-| `&lt;theme&gt;` | `FlatLaf Dark`, `FlatLaf Light`, `FlatLaf IntelliJ`, `FlatLaf Dracula`, `FlatLaf macOS Dark`, `FlatLaf macOS Light`, `System Look and Feel` | `FlatLaf macOS Light` | The Swing look-and-feel stylesheet theme. |
-| `&lt;graphicsFilter&gt;` | `Nearest Neighbor`, `Bilinear`, `Bicubic`, `Scale2x`, `CRT Scanlines`, `LCD Grid` | `Nearest Neighbor` | The scaling filter and shader effect used on the Canvas. |
-| `&lt;showMouseCoordinates&gt;` | `true`, `false` | `false` | Show pointer coordinates overlay on the display. |
-| `&lt;scaledDisplayZoom&gt;` | `2`, `3`, `4`, `-1` | `-1` | Set integer zoom scaling factor (`-1` to disable). |
+| Element | Supported Values | Default | Description |
+|---------|------------------|---------|-------------|
+| `<theme>` | `FlatLaf Dark`, `FlatLaf Light`, `FlatLaf IntelliJ`, `FlatLaf Dracula`, `FlatLaf macOS Dark`, `FlatLaf macOS Light`, `System Look and Feel` | `FlatLaf Dark` | Desktop GUI look-and-feel stylesheet. |
+| `<devicePlatform>` | `Neutron`, `Nokia`, `SonyEricsson`, custom string | `Neutron` | Value returned by `System.getProperty("microedition.platform")`. |
+| `<virtualButtonsMode>` | `gamepad`, `full` | `gamepad` | Layout style for the on-screen touch/mouse keypad. |
 
-### Performance & Limits
+### 2. Graphics & Video Post-Processing
 
-| Property | Values | Default | Description |
-|----------|--------|---------|-------------|
-| `&lt;memoryLimit&gt;` | `0`, `32`, `64`, `128`, `256`, `512` | `64` | Memory allocation limit in MB (0 = Unlimited). |
-| `&lt;maxFps&gt;` | `-1`, `60`, `30`, `20`, `15` | `-1` | Frame rate limiter (-1 = Unlimited). |
-| `&lt;speedMultiplier&gt;` | `0.5`, `1.0`, `1.5`, `2.0`, `3.0` | `1.0` | Simulation speed scaling factor (clamped up to 3.0x for stability). |
-| `&lt;sleepMode&gt;` | `true`, `false` | `false` | Enable thread sleeping to reduce CPU usage. |
-| `&lt;perfHudEnabled&gt;` | `true`, `false` | `false` | Display performance diagnostics (Stats Overlay). |
+| Element | Supported Values | Default | Description |
+|---------|------------------|---------|-------------|
+| `<graphicsFilter>` | `Nearest Neighbor`, `Bilinear`, `Bicubic`, `xBRZ 2x`, `xBRZ 3x`, `xBRZ 4x`, `xBRZ 5x`, `xBRZ 6x`, `Scale2x`, `CRT Scanlines`, `LCD Grid` | `Nearest Neighbor` | High-definition scaler or CRT/LCD raster simulation effect. |
+| `<scaledDisplayZoom>` | `2`, `3`, `4`, `-1` | `-1` | Display integer magnification factor (`-1` = auto/window fit). |
+| `<showMouseCoordinates>` | `true`, `false` | `false` | Real-time X/Y pointer coordinates HUD overlay. |
+| `<brightness>` | `-100` to `100` | `0` | Canvas brightness offset. |
+| `<contrast>` | `0` to `200` | `100` | Canvas contrast percentage. |
+| `<gamma>` | `0.1` to `3.0` | `1.0` | Gamma curve correction factor. |
+| `<saturation>` | `0` to `200` | `100` | Color saturation level (0 = grayscale). |
+| `<sharpness>` | `0` to `10` | `0` | Unsharp edge contrast mask strength. |
+| `<ghosting>` | `0` to `90` | `0` | Recreates retro passive-matrix LCD response lag. |
+| `<invert>` | `true`, `false` | `false` | Inverts RGB color values. |
 
-### Network & Proxy
+### 3. Performance, Memory & Timing
 
-| Property | Values | Default | Description |
-|----------|--------|---------|-------------|
-| `&lt;networkAccess&gt;` | `true`, `false` | `true` | Globally toggle MIDlet Internet access. |
-| `&lt;networkOverlayEnabled&gt;` | `true`, `false` | `false` | Display network latency and activity overlay. |
-| `&lt;proxyEnabled&gt;` | `true`, `false` | `false` | Enable proxy forwarding for outbound connections. |
-| `&lt;proxyType&gt;` | `HTTP`, `SOCKS` | `HTTP` | Protocol of the proxy server. |
-| `&lt;proxyHost&gt;` | String | (empty) | Host address of the proxy server. |
-| `&lt;proxyPort&gt;` | Integer | `8080` | Port of the proxy server. |
-| `&lt;proxyAuthEnabled&gt;` | `true`, `false` | `false` | Enable authentication credentials for the proxy. |
+| Element | Supported Values | Default | Description |
+|---------|------------------|---------|-------------|
+| `<memoryLimit>` | `0`, `32`, `64`, `128`, `256`, `512` | `64` | Emulated J2ME heap limit in MB (`0` = unlimited). |
+| `<maxFps>` | `-1`, `60`, `30`, `15` (or custom) | `-1` | Live frame rate limiter (`-1` = unthrottled host speed). |
+| `<speedMultiplier>` | `0.5`, `1.0`, `1.5`, `2.0`, `3.0` | `1.0` | Emulation loop clock multiplier. |
+| `<sleepMode>` | `true`, `false` | `false` | Thread sleeping when idle (`Ctrl+L`), reducing host CPU usage. |
+| `<perfHudEnabled>` | `true`, `false` | `false` | Diagnostic stats badge displaying real-time FPS and frame timings. |
+
+### 4. Networking & Proxy
+
+| Element | Supported Values | Default | Description |
+|---------|------------------|---------|-------------|
+| `<networkAccess>` | `true`, `false` | `true` | Master toggle allowing MIDlet outbound GCF network connections. |
+| `<airplaneMode>` | `true`, `false` | `false` | Instantly isolates network requests without closing active connections. |
+| `<networkOverlayEnabled>` | `true`, `false` | `false` | Live ping and network transmission activity overlay. |
+| `<networkCaptureEnabled>` | `true`, `false` | `false` | Records HTTP/TCP socket packet exchanges for inspection. |
+| `<proxyEnabled>` | `true`, `false` | `false` | Routes GCF traffic through an HTTP or SOCKS proxy. |
+| `<proxyType>` | `HTTP`, `SOCKS` | `HTTP` | Proxy protocol type. |
+| `<proxyHost>` | Hostname or IP | (empty) | Proxy host address. |
+| `<proxyPort>` | Port number | `8080` | Proxy port. |
+| `<proxyAuthEnabled>` | `true`, `false` | `false` | Enables Basic HTTP or SOCKS5 credential authentication. |
 
 <Callout type="warning">
-Do not modify the configuration file while the emulator is running, as it will overwrite changes upon saving on exit.
+Always edit `config2.xml` while Neutron is completely shut down. If the emulator is running, your manual edits will be overwritten when the application saves its state on exit.
 </Callout>

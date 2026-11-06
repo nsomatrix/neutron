@@ -1,76 +1,92 @@
 ---
-title: Audio
-description: Audio playback, MIDI support, and sound configuration in Neutron.
+title: Audio Subsystem
+description: MMAPI playback, MIDI synthesis, AMR support, and tone generation in Neutron.
 order: 7
 ---
 
-## Audio System Overview
+## Audio Architecture Overview
 
-Neutron provides comprehensive audio support through the Mobile Media API (MMAPI), supporting PCM audio, MIDI, and tone generation.
+Neutron emulates the Java ME Mobile Media API (MMAPI / JSR-135) through native Java Sound synthesizers and audio players. It supports multi-channel audio mixing, non-destructive looping, dynamic volume adjustments, and programmatic tone synthesis.
+
+---
 
 ## Supported Formats
 
-| Format | Extension | Notes |
-|--------|-----------|-------|
-| WAV | `.wav` | 8/16-bit PCM, mono/stereo |
-| AU | `.au` | Sun Audio format |
-| MIDI | `.mid`, `.midi` | Standard MIDI files |
-| Tone | N/A | Programmatic tone sequences |
+| Audio Format | MIME Type / File Extension | Implementation Engine | Typical Usage |
+|--------------|----------------------------|-----------------------|---------------|
+| **WAV (PCM)** | `audio/x-wav`, `.wav` | `SampledAudioPlayer` / Java Sound PCM | Sound effects, dialogue, ambient audio. |
+| **AU (Sun Audio)** | `audio/basic`, `.au` | `SampledAudioPlayer` | Vintage sampled audio clips. |
+| **AMR (Adaptive Multi-Rate)** | `audio/amr`, `.amr` | `AmrAudioPlayer` | Mobile narrowband voice clips and ringtones. |
+| **MIDI** | `audio/midi`, `.mid`, `.midi` | Java Sound `MidiSystem` Sequencer | Polyphonic background music tracks. |
+| **Tone Sequences** | `audio/x-tone-seq`, programmatic | `TonePlayer` / Audio Synthesizer | Retro chiptune beeps, alerts, and ringtones. |
 
-## Playing Audio
+---
 
-### Using the Player API
+## MMAPI Usage Examples
+
+### 1. Playing Sampled Audio (WAV / AMR)
 
 ```java
 import javax.microedition.media.*;
+import javax.microedition.media.control.VolumeControl;
+import java.io.InputStream;
 
-// Create a player from a resource
-InputStream is = getClass().getResourceAsStream("/sound.wav");
-Player player = Manager.createPlayer(is, "audio/wav");
+InputStream is = getClass().getResourceAsStream("/sfx/explosion.wav");
+Player player = Manager.createPlayer(is, "audio/x-wav");
+
+// Realize and allocate system resources
 player.realize();
 player.prefetch();
+
+// Adjust volume
+VolumeControl vc = (VolumeControl) player.getControl("VolumeControl");
+if (vc != null) {
+    vc.setLevel(85); // Range: 0 to 100
+}
+
+// Start playback
 player.start();
 ```
 
-### Volume Control
+### 2. Looping MIDI Background Music
+
+Neutron supports non-destructive loop count semantics (`player.setLoopCount(-1)` for infinite looping):
 
 ```java
-VolumeControl vc = (VolumeControl) player.getControl("VolumeControl");
-vc.setLevel(75); // 0-100
+InputStream midiStream = getClass().getResourceAsStream("/music/theme.mid");
+Player bgmPlayer = Manager.createPlayer(midiStream, "audio/midi");
+bgmPlayer.realize();
+bgmPlayer.prefetch();
+bgmPlayer.setLoopCount(-1); // Seamless continuous repeat
+bgmPlayer.start();
 ```
 
-### Tone Generation
+### 3. Programmatic Tone Synthesis
+
+Trigger hardware frequency tones directly using the MIDP Manager:
 
 ```java
-// Play a single tone (note, duration, volume)
-Manager.playTone(69, 500, 100); // A4 for 500ms at full volume
+// PlayTone(int note, int durationMs, int volume)
+// Note 60 is Middle C; duration in milliseconds; volume 0-100
+Manager.playTone(60, 250, 100);
 ```
 
-## Configuration
+---
 
-```toml title="config.toml"
-[audio]
-enabled = true
-volume = 80
-sample_rate = 44100
-buffer_size = 1024
-```
+## Audio Extensions (JSR-234 AMMS)
 
-<Callout type="info">
-Lower buffer sizes reduce audio latency but may cause crackle on slower systems. Start with 1024 and decrease if needed.
-</Callout>
+Neutron includes support for the **Advanced Multimedia Supplements (JSR-234 AMMS)** standard under `javax.microedition.amms.*`:
 
-## Troubleshooting
+- **3D Positional Audio:** Spectator orientation and sound source coordinates via `LocationControl` and `OrientationControl`.
+- **Audio Effects:** Dynamic equalization and environmental reverberation via `EqualizerControl` and `ReverbControl`.
 
-### No audio output
+---
 
-1. Check that audio is enabled in the configuration
-2. Verify your system's audio output device
-3. On Linux, ensure `libasound2` is installed
-4. Try increasing the buffer size
+## Troubleshooting & Audio Configuration
 
-### Audio crackling
-
-- Increase `buffer_size` to 2048 or 4096
-- Close other audio-intensive applications
-- Check CPU usage during playback
+- **Linux Sound Server:** Ensure the ALSA library is installed:
+  ```bash
+  sudo apt install libasound2
+  ```
+- **Volume Levels:** Master volume can be adjusted directly from your host operating system mixer or in-game volume settings.
+- **Repeat Playback:** In v1.4.0, MMAPI player lifecycles feature automated stream rewinding, eliminating crashes when sound clips are re-triggered rapidly in arcade games.

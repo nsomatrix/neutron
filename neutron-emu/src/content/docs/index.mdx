@@ -1,42 +1,47 @@
 ---
 title: Introduction
-description: Welcome to Neutron — the modern Java ME emulator built for developers and retro gaming enthusiasts.
+description: Welcome to Neutron — the modern, high-performance Java ME emulator.
 order: 0
 ---
 
 ## What is Neutron?
 
-Neutron is a fast, isolated, and lightweight Java ME (Micro Edition) emulator that lets you run MIDP 2.0 and CLDC 1.1 applications on modern desktop platforms. Whether you're a developer testing legacy applications or a retro gaming enthusiast revisiting classic mobile games, Neutron provides the tools you need.
+**Neutron** is a fast, accurate, and lightweight Java ME (Micro Edition) emulator designed to run classic MIDP/CLDC applications and mobile games on modern desktop platforms (Windows, macOS, and Linux).
 
-## Key Features
+Originally born to modernize mobile Java preservation, Neutron combines direct host JVM execution speeds with a contemporary FlatLaf desktop interface, extensive mobile 3D engine support (MascotCapsule Micro3D v3 and JSR-184 M3G), high-definition pixel-art shaders (xBRZ), and comprehensive developer diagnostics.
 
-- **High Performance** — Direct execution on the host Java Virtual Machine for native execution speed
-- **Isolated Emulation** — Full MIDP 2.0 and CLDC 1.1 specification compliance
-- **Cross Platform** — Runs on Windows, macOS, and Linux
-- **Modern UI** — Clean, themeable interface with dark mode support
-- **Developer Tools** — Built-in logging, CLI support, and advanced configurations
-- **Open Source** — Free and open source under the LGPL license
+---
 
-## Quick Links
+## Key Highlights
+
+- **Native Execution Performance** — Runs MIDlets directly on modern Java Virtual Machines with zero CPU emulation overhead.
+- **CLDC 1.1 & MIDP 2.0 Compliance** — Full LCDUI user interface components, Game API canvas rendering, and RMS database persistence.
+- **3D Graphics Support** — Built-in pure-Java software rasterizers for **MascotCapsule Micro3D v3** and **JSR-184 (M3G)**.
+- **High-Definition Scalers** — Crisp **xBRZ (up to 6x)**, Scale2x, retro **CRT scanlines**, and handheld **LCD subpixel grids**.
+- **Interactive Virtual Keypad (`Ctrl+B`)** — On-screen 8-way directional pad, diagonals, softkeys, and 12-key numeric keyboard for touchscreens and mice.
+- **Audio Subsystem** — Comprehensive MMAPI support for WAV, Sun AU, AMR voice, Java Sound MIDI synthesizer, and tone sequences.
+- **Developer Diagnostics** — Performance HUD (live FPS & frame timings), Log Console, GCF Network Capture, and RMS Record Store Manager.
+- **Open Source** — Dual-licensed under the **GNU LGPL v2.1** and **Apache License 2.0**.
+
+---
+
+## Quick Navigation
 
 | Resource | Description |
 |----------|-------------|
-| [Installation](/docs/getting-started/installation) | Download and install Neutron |
-| [Quick Start](/docs/getting-started/quick-start) | Get running in under 5 minutes |
-| [Configuration](/docs/getting-started/configuration) | Customize Neutron to your needs |
-| [Features](/docs/user-guide/features) | Explore all capabilities |
-| [CLI Reference](/docs/advanced/cli) | Command-line interface docs |
-| [Contributing](/docs/development/contributing) | Help improve Neutron |
+| [Installation](/docs/getting-started/installation) | Download pre-built JARs for Windows, macOS, and Linux |
+| [Quick Start](/docs/getting-started/quick-start) | Get up and running with your favorite games in under 5 minutes |
+| [Configuration](/docs/getting-started/configuration) | Learn about `config2.xml`, video settings, and performance options |
+| [Features Directory](/docs/user-guide/features) | Explore our full matrix of supported APIs and tools |
+| [Graphics & Video](/docs/user-guide/graphics) | Discover scaling filters, shaders, and 3D graphics |
+| [Input & Controls](/docs/user-guide/input) | Default keymaps and on-screen virtual controls |
+| [Building from Source](/docs/development/building-from-source) | Compile Neutron using the Gradle wrapper and JDK 17+ |
+| [CLI Reference](/docs/advanced/cli) | Automation arguments, headless testing, and custom profiles |
+
+---
 
 ## System Requirements
 
-Neutron runs on any system with Java 8 or later. For optimal performance, we recommend:
-
-- **OS**: Windows 10+, macOS 11+, or Ubuntu 20.04+
-- **RAM**: 256 MB minimum, 512 MB recommended
-- **Disk**: 50 MB for the application
-- **Java**: JRE / JDK 8 or later (JDK 17+ recommended)
-
-## Getting Help
-
-If you run into issues, please open an issue on [GitHub](https://github.com/nsomatrix/neutron/issues).
+- **Operating System:** Windows 10/11, macOS 11+ (Big Sur or newer), or modern Linux distributions (Ubuntu, Fedora, Arch).
+- **Runtime:** Java Runtime Environment (JRE) or Java Development Kit (JDK) 8 or later (**Java 17+ / 21+ LTS recommended**).
+- **Memory Footprint:** Less than 50 MB RAM for the core emulator; starts up in milliseconds.

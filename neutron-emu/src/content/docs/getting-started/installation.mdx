@@ -1,75 +1,120 @@
 ---
 title: Installation
-description: Download and install Neutron on Windows, macOS, or Linux.
+description: Download and run Neutron on Windows, macOS, or Linux.
 order: 1
 ---
 
 ## Download
 
-Download the latest release of Neutron from the [GitHub Releases](https://github.com/nsomatrix/neutron/releases) page.
+Neutron is distributed as self-contained Java executables (JARs). You can download pre-built release binaries directly from our [Download Page](/download) or the official [GitHub Releases](https://github.com/nsomatrix/neutron/releases).
 
 ### Available Packages
 
-| Platform | Format | Size |
-|----------|--------|------|
-| Windows | `.exe` installer | ~25 MB |
-| macOS | `.dmg` disk image | ~30 MB |
-| Linux | `.tar.gz` archive | ~20 MB |
-| Universal | `.jar` (requires Java) | ~15 MB |
+Neutron is distributed in two release packages to fit different development and emulation needs:
 
-## Installation Methods
+| Package | Artifact | Typical Size | Description |
+|---------|----------|--------------|-------------|
+| **Neutron Express (Full GUI)** | `neutron-1.4.0.jar` | ~2.2 MB | Complete desktop edition with FlatLaf modern UI themes, menus, diagnostics, library explorer, and graphical controls. |
+| **Neutron Core (Optimized)** | `neutron-core-1.4.0.jar` | ~840 KB | Minimal distribution with an embedded LZMA2/XZ payload loader, fast startup, and ultra-compact disk footprint. |
+
+Both editions include identical J2ME subsystem support: MIDP 2.0, CLDC 1.1, MMAPI audio (WAV, MIDI, tone), MascotCapsule Micro3D v3, JSR-184 (M3G), Nokia UI DirectGraphics, JSR-75 (FileConnection), JSR-82, JSR-120 (WMA SMS), and OEM APIs (Sony Ericsson, Motorola, Samsung).
+
+---
+
+## Prerequisites
+
+Before running Neutron, ensure you have a Java Runtime Environment (JRE) or Java Development Kit (JDK) installed:
+
+- **Minimum:** Java 8 (JRE / OpenJDK 1.8)
+- **Recommended:** Java 17+ or Java 21+ LTS ([Eclipse Temurin](https://adoptium.net/))
+
+Verify your Java version in your terminal:
+
+```bash
+java -version
+```
+
+---
+
+## Launch Instructions
+
+### Universal Desktop Execution
+
+Because Neutron is packaged as executable JAR files, you can run it on Windows, macOS, or Linux using Java:
+
+```bash
+# Launch Neutron Express (Desktop GUI)
+java -jar neutron-1.4.0.jar
+
+# Launch Neutron Core (Minimal Footprint)
+java -jar neutron-core-1.4.0.jar
+```
+
+You can also pass a game JAR file or JAD descriptor directly to start running immediately:
+
+```bash
+java -jar neutron-1.4.0.jar path/to/game.jar
+```
 
 ### Windows
 
-1. Download the `.exe` installer from the releases page
-2. Run the installer and follow the on-screen prompts
-3. Neutron will be added to your Start Menu
-
-```bash
-# Or install via the universal JAR
-java -jar neutron.jar
-```
+1. Download `neutron-1.4.0.jar` (or `neutron-core-1.4.0.jar`).
+2. Double-click the `.jar` file to launch the emulator interface directly (if `.jar` file associations are set to Java).
+3. Or open Command Prompt / PowerShell and run:
+   ```cmd
+   java -jar neutron-1.4.0.jar
+   ```
 
 ### macOS
 
-1. Download the `.dmg` file
-2. Open the disk image
-3. Drag Neutron to your Applications folder
-4. On first launch, right-click and select "Open" to bypass Gatekeeper
+1. Download `neutron-1.4.0.jar` to your machine.
+2. Open Terminal, navigate to your download directory, and execute:
+   ```bash
+   java -jar neutron-1.4.0.jar
+   ```
+3. To open a game immediately:
+   ```bash
+   java -jar neutron-1.4.0.jar /path/to/game.jar
+   ```
+
+<Callout type="tip">
+On macOS, Neutron automatically adapts native screen menubars and system appearance dark/light modes.
+</Callout>
 
 ### Linux
 
-```bash
-# Extract the archive
-tar -xzf neutron-linux-x64.tar.gz
+1. Ensure standard X11/Wayland display server and ALSA sound libraries are present:
+   ```bash
+   # Ubuntu / Debian
+   sudo apt install openjdk-17-jre libasound2
 
-# Run Neutron
-cd neutron
-./neutron
+   # Fedora
+   sudo dnf install java-17-openjdk alsa-lib
+   ```
+2. Run Neutron:
+   ```bash
+   java -jar neutron-1.4.0.jar
+   ```
+
+---
+
+## Convenient Terminal Alias
+
+For fast access from anywhere in your shell, add an alias to your shell profile (`~/.bashrc`, `~/.zshrc`, or PowerShell profile):
+
+```bash
+# Bash / Zsh
+alias neutron='java -jar /path/to/neutron-1.4.0.jar'
 ```
 
-Or use the universal JAR:
+Once set, launch any game with:
 
 ```bash
-java -jar neutron.jar
+neutron mygame.jar
 ```
-
-## Verifying Your Installation
-
-After installation, verify that Neutron is working correctly:
-
-```bash
-neutron --version
-# Neutron v1.4.0
-```
-
-<Callout type="tip">
-If you're using the universal JAR, you can create an alias for convenience:
-`alias neutron='java -jar /path/to/neutron.jar'`
-</Callout>
 
 ## Next Steps
 
-- [Check the requirements](/docs/getting-started/requirements) for your platform
-- [Follow the Quick Start guide](/docs/getting-started/quick-start) to run your first MIDlet
-- [Configure Neutron](/docs/getting-started/configuration) to match your preferences
+- [Check detailed system requirements](/docs/getting-started/requirements)
+- [Follow the 5-minute Quick Start guide](/docs/getting-started/quick-start)
+- [Customize settings & themes in Configuration](/docs/getting-started/configuration)

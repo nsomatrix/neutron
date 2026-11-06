@@ -1,87 +1,112 @@
 ---
 title: Quick Start
-description: Get Neutron up and running in under 5 minutes.
+description: Get Neutron up and running with your favorite J2ME games in under 5 minutes.
 order: 3
 ---
 
 ## Overview
 
-This guide will get you from zero to running your first Java ME application in just a few steps.
+This guide will walk you through launching Neutron and running your first Java ME (MIDlet) application or game in just a few quick steps.
 
-## Step 1: Install Neutron
+---
 
-Download the latest release for your platform from the [releases page](https://github.com/nsomatrix/neutron/releases), or use the universal JAR:
+## Step 1: Download Neutron
+
+Download the latest universal release JAR from the [Download Page](/download) or GitHub Releases:
 
 ```bash
-# Download the latest release
-curl -LO https://github.com/nsomatrix/neutron/releases/latest/download/neutron.jar
+# Download Neutron Express
+curl -LO https://github.com/nsomatrix/neutron/releases/download/1.4.0/neutron-1.4.0.jar
 ```
 
-## Step 2: Launch Neutron
+Or download **Neutron Core** if you prefer a compact ~840 KB binary:
+
+```bash
+curl -LO https://github.com/nsomatrix/neutron/releases/download/1.4.0/neutron-core-1.4.0.jar
+```
+
+---
+
+## Step 2: Launch the Emulator
 
 ### GUI Mode
 
-Double-click the application or run:
+Run the JAR file directly with your Java runtime:
 
 ```bash
-java -jar neutron.jar
+java -jar neutron-1.4.0.jar
 ```
 
-### CLI Mode
+The graphical desktop interface will appear with the atomic Neutron icon and modern FlatLaf theme.
 
-Run a MIDlet directly from the command line:
+### Instant Game Launch via CLI
+
+You can pass a `.jar` or `.jad` file directly to launch immediately:
 
 ```bash
-java -jar neutron.jar path/to/your-app.jar
+java -jar neutron-1.4.0.jar path/to/game.jar
 ```
 
-## Step 3: Load a MIDlet
+---
 
-1. Open Neutron
-2. Click **File → Open** or drag a `.jar` file onto the window
-3. Select the MIDlet from the list (if the JAR contains multiple)
-4. Click **Run**
+## Step 3: Load a MIDlet via GUI
+
+Neutron offers three convenient methods to run MIDlet archives:
+
+1. **Drag and Drop:** Simply drag any `.jar` or `.jad` file from your desktop or file manager and drop it onto the Neutron window.
+2. **Menu:** Go to **Run → Run JAR File** (or press the folder button) to open the native file chooser.
+3. **Run from URL:** Select **Run → Run from URL** to fetch and execute games directly from web links.
+4. **Library Explorer:** Go to **Run → Connected Directories → Library Explorer** to catalog and browse game libraries with extracted icons and metadata.
 
 <Callout type="tip">
-Neutron supports both `.jar` and `.jad` files. When loading a `.jad` file, the associated `.jar` will be located automatically.
+When you load a `.jad` descriptor, Neutron automatically resolves the associated `.jar` file in the same directory or URL.
 </Callout>
 
-## Step 4: Configure the Display
+---
 
-Adjust the display resolution dynamically from the command line:
+## Step 4: Control Your Game
+
+Neutron maps standard desktop peripherals and mobile controls effortlessly:
+
+### Default Keyboard Controls
+
+| Keyboard Key | J2ME Mobile Key | Action |
+|--------------|-----------------|--------|
+| **F1** | Left Soft Key (SOFT1) | Left menu / context action |
+| **F2** | Right Soft Key (SOFT2) | Right menu / exit / back |
+| **Enter** | SELECT / FIRE | Confirm / Action button |
+| **Arrow Keys** (↑ ↓ ← →) | UP, DOWN, LEFT, RIGHT | 4-way D-Pad navigation |
+| **Keypad 0–9** | KEY_NUM0 – KEY_NUM9 | Number keys |
+| **Multiply (\*)** | KEY_STAR (\*) | Star key |
+| **Subtract (-)** | KEY_POUND (#) | Pound key |
+| **Backspace / Delete** | CLEAR / DELETE | Erase text in forms |
+
+### Interactive On-Screen Virtual Buttons (`Ctrl+B`)
+
+If you are playing on a touchscreen laptop, handheld PC, or prefer clicking:
+1. Press `Ctrl+B` or check **Config → Virtual Buttons**.
+2. A responsive on-screen mobile gamepad panel attaches below the game display with softkeys, an 8-way directional pad (including diagonals ↖ ↗ ↙ ↘), and a complete 12-key numeric keypad.
+
+---
+
+## Step 5: Customize Graphics & Display
+
+Neutron supports dynamic display scaling and filters without restarting:
 
 ```bash
-# Run with a resizable device at 240x320 resolution
-java -jar neutron.jar --resizableDevice 240 320 game.jar
+# Run with a custom resizable resolution (e.g. 240x320)
+java -jar neutron-1.4.0.jar --resizableDevice 240 320 game.jar
 ```
 
-<Callout type="info">
-Scale factors, themes, frame rate limits, and virtual buttons can be toggled directly in the GUI under the **Options** and **Controls** menus. These preferences are automatically persisted (fullscreen is session-based and does not persist across restarts).
-</Callout>
+Inside the running emulator:
+- **Graphics Filter:** Go to **Config → Graphics Filter** to select crisp **xBRZ (2x–6x)**, **Scale2x**, authentic **CRT Scanlines**, or **LCD Grid**.
+- **Fullscreen:** Press `F11` (or click **Controls → Fullscreen**) to enter borderless fullscreen mode.
+- **Stats Overlay:** Toggle **Controls → Stats Overlay** to view live FPS and memory metrics.
 
-## Step 5: Map Controls
-
-Default keyboard mapping:
-
-| Key | J2ME Button |
-|-----|-------------|
-| Arrow Keys | Direction pad |
-| Enter | Select / Fire |
-| Q / W | Left / Right soft key |
-| 0-9 | Numeric keypad |
-| * / # | Star / Pound |
-
-You can customize these in **Config → Controls**.
-
-## Example: Running a Game
-
-```bash
-# Launch with custom screen size of 240x320 pixels
-java -jar neutron.jar --resizableDevice 240 320 snake.jar
-```
+---
 
 ## What's Next?
 
-- [Configure Neutron](/docs/getting-started/configuration) for your preferences
-- [Explore features](/docs/user-guide/features) like audio, networking, and more
-- [Learn the CLI](/docs/advanced/cli) for scripting and automation
+- [Explore Configuration Options](/docs/getting-started/configuration) for video processing, memory limits, and proxies.
+- [Read the Features Directory](/docs/user-guide/features) to learn about MascotCapsule 3D, M3G, and audio synthesis.
+- [Check the CLI Reference](/docs/advanced/cli) for automation and multi-profile setups.

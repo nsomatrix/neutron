@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "Neutron",
   title: "Neutron — The Modern Java ME Emulator",
   description:
-    "Fast, isolated, and lightweight Java ME emulator. Open source and cross-platform.",
+    "Fast, isolated, and lightweight Java ME emulator with MascotCapsule 3D, M3G, and xBRZ scaling. Open source and cross-platform.",
   url: "https://neutron-emu.vercel.app",
   ogImage: "/og-image.png?v=2",
   creator: "Manish K",
@@ -33,7 +33,7 @@ export const siteConfig = {
     resources: [
       { title: "Documentation", href: "/docs" },
       { title: "Quick Start", href: "/docs/getting-started/quick-start" },
-      { title: "Build", href: "/docs/development/building-from-source" },
+      { title: "Build from Source", href: "/docs/development/building-from-source" },
     ],
     community: [
       { title: "GitHub", href: "https://github.com/nsomatrix/neutron" },
@@ -45,47 +45,47 @@ export const siteConfig = {
   },
 
   announcement: {
-    enabled: false,
-    message: "Neutron v1.4.0 is now available — the modern Java ME emulator.",
+    enabled: true,
+    message: "Neutron v1.4.0 is live with JSR-184 M3G, Micro3D, and xBRZ HD filters!",
     link: "/changelog",
-    linkText: "Read more →",
+    linkText: "View v1.4.0 Release →",
   },
 
   features: [
     {
-      title: "Blazing Fast",
+      title: "Blazing Fast Execution",
       description:
-        "Direct execution on modern Java VMs delivers native performance for Java ME applications.",
+        "Direct JIT execution on modern Java Virtual Machines delivers native speed for Java ME applications.",
       icon: "Zap",
     },
     {
-      title: "Pixel-Perfect",
+      title: "Pixel-Perfect & xBRZ HD",
       description:
-        "Accurate MIDP 2.0 and CLDC 1.1 implementation with full graphics and audio support.",
+        "Accurate MIDP 2.0 / CLDC 1.1 LCDUI with xBRZ (up to 6x), Scale2x, CRT scanlines, and authentic LCD grid shaders.",
       icon: "Monitor",
     },
     {
-      title: "Cross Platform",
+      title: "Cross-Platform Java",
       description:
-        "Runs on Windows, macOS, and Linux. Built with Java for maximum compatibility.",
+        "Runs out-of-the-box across Windows, macOS, and Linux with modern FlatLaf themes and system menus.",
       icon: "Globe",
     },
     {
-      title: "Developer Friendly",
+      title: "3D Mobile Graphics",
       description:
-        "Built-in logging, CLI support, and easy-to-use configuration settings.",
+        "Full support for MascotCapsule Micro3D v3, JSR-184 (M3G), and Nokia UI DirectGraphics rasterization.",
       icon: "Code",
     },
     {
-      title: "Lightweight",
+      title: "Ultra-Lightweight Core",
       description:
-        "Minimal resource footprint. Starts in milliseconds with under 50MB memory usage.",
+        "Neutron Core binary is under 850 KB with fast startup and low RAM usage, packaged with LZMA2/XZ compression.",
       icon: "Feather",
     },
     {
-      title: "Open Source",
+      title: "Dual Licensed Open Source",
       description:
-        "Free and open source under the Apache license.",
+        "Free and open source software under the GNU LGPL v2.1 and Apache License 2.0.",
       icon: "GitHubIcon",
     },
   ],
@@ -93,9 +93,61 @@ export const siteConfig = {
   stats: [
     { label: "Profile Support", value: "MIDP 2.0" },
     { label: "Configuration", value: "CLDC 1.1" },
-    { label: "Java Requirement", value: "JDK 8+" },
-    { label: "Open Source License", value: "Apache" },
+    { label: "Java Baseline", value: "JDK 8+ (17+ Rec.)" },
+    { label: "Open Source License", value: "LGPL 2.1 / Apache 2.0" },
   ],
 } as const;
 
 export type SiteConfig = typeof siteConfig;
+export interface DocsSidebarItem {
+  title: string;
+  href?: string;
+  items?: DocsSidebarItem[];
+  label?: string;
+}
+
+export const docsConfig: DocsSidebarItem[] = [
+  {
+    title: "Getting Started",
+    items: [
+      { title: "Introduction", href: "/docs" },
+      { title: "Installation", href: "/docs/getting-started/installation" },
+      { title: "Requirements", href: "/docs/getting-started/requirements" },
+      { title: "Quick Start", href: "/docs/getting-started/quick-start" },
+      { title: "Configuration", href: "/docs/getting-started/configuration" },
+    ],
+  },
+  {
+    title: "User Guide",
+    items: [
+      { title: "Features", href: "/docs/user-guide/features" },
+      { title: "Graphics & Display", href: "/docs/user-guide/graphics" },
+      { title: "Audio Subsystem", href: "/docs/user-guide/audio" },
+      { title: "Input & Controls", href: "/docs/user-guide/input" },
+      { title: "Networking & Proxy", href: "/docs/user-guide/networking" },
+      { title: "Filesystem & RMS", href: "/docs/user-guide/filesystem" },
+    ],
+  },
+  {
+    title: "Advanced",
+    items: [
+      { title: "Performance & Optimization", href: "/docs/advanced/performance" },
+      { title: "CLI Reference", href: "/docs/advanced/cli" },
+    ],
+  },
+  {
+    title: "Development",
+    items: [
+      { title: "Architecture & Design", href: "/docs/development/architecture" },
+      {
+        title: "Building From Source",
+        href: "/docs/development/building-from-source",
+      },
+      { title: "Contributing", href: "/docs/development/contributing" },
+    ],
+  },
+  {
+    title: "Changelog",
+    href: "/changelog",
+  },
+];

@@ -1,74 +1,95 @@
 ---
 title: CLI Reference
-description: Complete command-line interface reference for the Neutron Java ME Emulator.
+description: Complete command-line interface arguments, parameters, and automation options for Neutron.
 order: 13
 ---
 
-## Usage
+## Overview
 
-Neutron is launched as a packaged Java Archive (JAR) executable. Run the emulator by executing the JAR file with the Java Runtime Environment (JRE):
+Neutron can be launched directly from your command line or scripted in automated test harnesses.
 
 ```bash
-java -jar neutron.jar [options] [midlet-class | jar-path | jad-path]
+java -jar neutron-1.4.0.jar [options] [midlet-class | jar-path | jad-path]
 ```
 
-You can target a specific MIDlet class, a compiled game `.jar` file, or a `.jad` descriptor file.
-
-## Options Reference
-
-The following parameters are supported by the CLI launcher:
-
-### Basic Options
-
-| Option | Parameters | Description |
-|--------|------------|-------------|
-| `--help`, `-help` | None | Prints the command-line usage manual and exits. |
-| `--id` | `[EmulatorID]` | Redefines the emulator environment workspace/home path to `~/.neutron/[EmulatorID]/`. Use this to run multiple independent profiles concurrently. |
-| `--quit` | None | Automatically shuts down and exits the JVM when the active MIDlet is destroyed. |
-| `--headless` | None | Runs the emulator in headless mode (no GUI displays). |
-| `--quiet` | None | Suppresses standard terminal output logging messages. |
-
-### Device & Display Configuration
-
-| Option | Parameters | Description |
-|--------|------------|-------------|
-| `-d`, `--device` | `[descriptor | class]` | Selects a specific device profile descriptor XML or custom device implementation class. |
-| `--resizableDevice` | `[width] [height]` | Starts the emulator using a resizable device interface set to the specified virtual screen dimensions (e.g. `240 320`). |
-
-### Storage & Resources
-
-| Option | Parameters | Description |
-|--------|------------|-------------|
-| `--rms` | `file` or `memory` | Configures the Record Store Management system backend. Stores data to disk (`file`) or volatile RAM (`memory`). |
-| `--propertiesjad` | `[jad path]` | Supplies an external `.jad` configuration file when launching a raw MIDlet class. |
-| `-cp`, `--classpath` | `[classpath]` | Adds custom paths or JAR files to the JSR extension classloader path. |
-| `--appcp`, `--appclasspath` | `[classpath]` | Adds paths to search for user-defined MIDlet classes. |
-
-### Diagnostics & Testing
-
-| Option | Parameters | Description |
-|--------|------------|-------------|
-| `-Xautotest:` | `[jad-url]` | Initiates automated headless test suite execution for the specified JAD. |
-| `--logCallLocation` | `true` or `false` | Includes Java class call locations inside the console log outputs. |
-| `--traceClassLoading` | None | Enables tracing of MIDlet classloading in the console. |
-| `--traceSystemClassLoading` | None | Enables tracing of system classloader requests. |
-| `--enhanceCatchBlock` | None | Enables diagnostic bytecode verification processing on catch blocks. |
+You can pass a compiled MIDlet `.jar` archive, a `.jad` descriptor file, or a specific MIDlet class name.
 
 ---
 
-## Examples
+## Options & Arguments
 
-### Running a game with a custom screen resolution:
+### General Execution
+
+| Flag | Parameter | Description |
+|------|-----------|-------------|
+| `--help`, `-help` | None | Displays the command-line usage summary and exits. |
+| `--headless` | None | Runs Neutron in headless mode without initializing Swing GUI windows. Ideal for automated testing and CI runners. |
+| `--quit` | None | Automatically shuts down and terminates the host JVM process when the active MIDlet is destroyed. |
+| `--quiet` | None | Suppresses standard terminal output logging messages. |
+| `--id` | `[EmulatorID]` | Sets an isolated workspace profile path to `~/.neutron/[EmulatorID]/`. Enables running multiple isolated instances concurrently with distinct RMS data and configurations. |
+
+### Device & Display Configuration
+
+| Flag | Parameter | Description |
+|------|-----------|-------------|
+| `--resizableDevice` | `[width] [height]` | Launches the emulator using the dynamic resizable skin set to custom virtual screen dimensions (e.g. `--resizableDevice 240 320`). |
+| `-d`, `--device` | `[descriptor | class]` | Specifies a custom device XML descriptor (e.g. `org/neutron/device/resizable/device.xml`) or a custom device Java class name. |
+
+### Storage & RMS Backends
+
+| Flag | Parameter | Description |
+|------|-----------|-------------|
+| `--rms` | `file` or `memory` | Configures the Record Management System persistence provider: `file` stores `.rms` data on disk under `~/.neutron/suite-[name]/`; `memory` retains records purely in volatile RAM. |
+| `--propertiesjad` | `[jad-path]` | Supplies an external `.jad` configuration descriptor when launching a raw standalone MIDlet class. |
+
+### Classpaths & Extension Injection
+
+| Flag | Parameter | Description |
+|------|-----------|-------------|
+| `-cp`, `--classpath` | `[classpath]` | Appends custom JARs or directories to the JSR extension classloader path. |
+| `--appcp`, `--appclasspath` | `[classpath]` | Adds user-defined paths to search for MIDlet bytecode classes. |
+| `--appclass` | `[class-name]` | Adds a specific library class into the application classloader scope. |
+| `--appclassloader` | `strict`, `relaxed`, `delegating`, `system` | Configures the bytecode delegation model for the MIDlet classloader. |
+| `--usesystemclassloader` | None | Forces execution through the host Java system classloader. |
+| `--impl` | `[class-name]` | Dynamically registers an implementation class for an optional JSR extension. |
+
+### Debugging & Verification
+
+| Flag | Parameter | Description |
+|------|-----------|-------------|
+| `-Xautotest:[url]` | `[jad-url]` | Initiates automated headless test suite execution for the designated JAD URL. |
+| `--logCallLocation` | `true` or `false` | Prepends source class and line numbers to logging console messages. |
+| `--traceClassLoading` | None | Prints detailed console logs whenever a MIDlet class is loaded. |
+| `--traceSystemClassLoading` | None | Traces system classloader operations in the console. |
+| `--enhanceCatchBlock` | None | Enables diagnostic bytecode verification processing on exception handlers. |
+
+---
+
+## Practical Examples
+
+### 1. Launching a Game with Custom Resolution
+Launch a game directly with a 240x320 portrait mobile screen:
 ```bash
-java -jar neutron.jar --resizableDevice 240 320 mygame.jar
+java -jar neutron-1.4.0.jar --resizableDevice 240 320 ~/games/galaxy.jar
 ```
 
-### Running with a custom profile ID (e.g. for split-screen testing):
+### 2. Multi-Profile Testing (Split-Screen / Isolated RMS)
+Run two independent instances with isolated saves and configuration files:
 ```bash
-java -jar neutron.jar --id Profile2 player2.jar
+# Player 1 Profile
+java -jar neutron-1.4.0.jar --id Player1 game.jar
+
+# Player 2 Profile
+java -jar neutron-1.4.0.jar --id Player2 game.jar
 ```
 
-### Headless execution with memory-based RMS:
+### 3. Headless Automated Testing & CI Pipelines
+Execute an automated test suite without opening a display, using in-memory RMS, and terminating on completion:
 ```bash
-java -jar neutron.jar --headless --rms memory --quit testsuite.jar
+java -jar neutron-1.4.0.jar --headless --rms memory --quit -Xautotest:http://localhost:8080/tests.jad
+```
+
+### 4. Running Neutron Core with Memory Constraints
+```bash
+java -XX:+UseSerialGC -Xmx64m -jar neutron-core-1.4.0.jar game.jar
 ```

@@ -1,81 +1,77 @@
 ---
-title: Input
-description: Keyboard mapping, gamepad support, and input configuration.
+title: Input & Controls
+description: Keyboard shortcuts, on-screen virtual keypad, and touch gestures in Neutron.
 order: 8
 ---
 
-## Input System
+## Input Overview
 
-Neutron maps desktop input devices to the Java ME key model, supporting keyboard, gamepad, and mouse input.
+Neutron translates modern desktop peripherals (keyboards, mice, and touchscreens) into Java ME mobile key events and stylus pointer coordinates.
 
-## Default Key Mapping
+---
 
-### Navigation Keys
+## Desktop Keyboard Controls
 
-| Desktop Key | J2ME Key | Key Code |
-|-------------|----------|----------|
-| ↑ Arrow | UP | -1 |
-| ↓ Arrow | DOWN | -2 |
-| ← Arrow | LEFT | -3 |
-| → Arrow | RIGHT | -4 |
-| Enter | FIRE | -5 |
+### Primary Key Mappings
 
-### Soft Keys
+| Desktop Key | J2ME Button Name | Mobile Equivalent | J2ME Key Code |
+|-------------|------------------|-------------------|---------------|
+| **F1** | `ButtonName.SOFT1` | Left Soft Key (Menu / Select) | `-6` |
+| **F2** | `ButtonName.SOFT2` | Right Soft Key (Back / Exit) | `-7` |
+| **Enter** | `ButtonName.SELECT` | FIRE / Action Key | `-5` |
+| **Arrow Up (↑)** | `ButtonName.UP` | D-Pad Up | `-1` |
+| **Arrow Down (↓)** | `ButtonName.DOWN` | D-Pad Down | `-2` |
+| **Arrow Left (←)** | `ButtonName.LEFT` | D-Pad Left | `-3` |
+| **Arrow Right (→)** | `ButtonName.RIGHT` | D-Pad Right | `-4` |
+| **Backspace** | `ButtonName.BACK_SPACE` | Backspace | `-8` |
+| **Delete / Clear** | `ButtonName.DELETE` | Clear / Delete | `-8` |
 
-| Desktop Key | J2ME Key | Key Code |
-|-------------|----------|----------|
-| Q | Left Soft Key | -6 |
-| W | Right Soft Key | -7 |
+### Numeric Phone Keypad
 
-### Numeric Keypad
+Standard alphanumeric keypad buttons can be triggered using your keyboard's number row or numpad:
 
-| Desktop Key | J2ME Key |
-|-------------|----------|
-| 0-9 | KEY_NUM0-KEY_NUM9 |
-| * | KEY_STAR |
-| # | KEY_POUND |
+| Desktop Key | J2ME Button | Characters Emulated | Key Code |
+|-------------|-------------|---------------------|----------|
+| **0** (or NumPad 0) | `KEY_NUM0` | Space, `0` | `48` |
+| **1** (or NumPad 1) | `KEY_NUM1` | `.` `,` `?` `!` `-` `1` | `49` |
+| **2** (or NumPad 2) | `KEY_NUM2` | `a` `b` `c` `2` | `50` |
+| **3** (or NumPad 3) | `KEY_NUM3` | `d` `e` `f` `3` | `51` |
+| **4** (or NumPad 4) | `KEY_NUM4` | `g` `h` `i` `4` | `52` |
+| **5** (or NumPad 5) | `KEY_NUM5` | `j` `k` `l` `5` | `53` |
+| **6** (or NumPad 6) | `KEY_NUM6` | `m` `n` `o` `6` | `54` |
+| **7** (or NumPad 7) | `KEY_NUM7` | `p` `q` `r` `s` `7` | `55` |
+| **8** (or NumPad 8) | `KEY_NUM8` | `t` `u` `v` `8` | `56` |
+| **9** (or NumPad 9) | `KEY_NUM9` | `w` `x` `y` `z` `9` | `57` |
+| **\* (Multiply / Asterisk)** | `KEY_STAR` | `*`, `+` | `42` |
+| **\# (Subtract / Minus)** | `KEY_POUND` | `#`, Input Mode Toggle | `35` |
 
-## Custom Key Mapping
+---
 
-Modify key bindings in the configuration:
+## On-Screen Virtual Buttons (`Ctrl+B`)
 
-```toml title="config.toml"
-[input.keyboard]
-up = "ArrowUp"
-down = "ArrowDown"
-left = "ArrowLeft"
-right = "ArrowRight"
-fire = "Enter"
-soft_left = "Q"
-soft_right = "W"
-```
+Neutron features an interactive, dynamic on-screen mobile gamepad panel engineered for mouse-driven play and touch-enabled devices (laptops, Steam Deck, tablets):
 
-## Gamepad Support
+- **Toggle Shortcut:** Press `Ctrl+B` or click **Config → Virtual Buttons**.
+- **Adaptive Layout:** Dynamically adjusts to any canvas size (from 176x220, 240x320 up to 480x800) without compressing the game canvas.
+- **Top Control Bar:** Left Soft Key (`Menu`), Close button, and Right Soft Key (`Back`).
+- **8-Way Directional Pad:** Supports both cardinal directions (▲ ▼ ◀ ▶) and diagonal presses (↖ ↗ ↙ ↘) for isometric games.
+- **Numeric 12-Key Pad:** Includes keys 0–9, \*, and # with intelligent auto-repeat for typing and rapid movement.
+- **Form Auto-Paste:** When entering text into LCDUI Form text fields, clicking virtual numeric keys instantly pastes the character into the active field.
 
-Neutron supports gamepads and controllers:
+---
 
-```toml title="config.toml"
-[input.gamepad]
-enabled = true
-dpad_to_keys = true
-analog_deadzone = 0.2
-```
+## Pointer & Touch Gestures
 
-| Gamepad Button | J2ME Key |
-|---------------|----------|
-| D-Pad | Direction keys |
-| A / Cross | FIRE |
-| B / Circle | Right Soft Key |
-| X / Square | Left Soft Key |
+For touchscreen MIDlets and stylus games:
+
+| Physical Gesture | Emulated Java ME Event |
+|------------------|------------------------|
+| **Left Click / Tap** | `pointerPressed(int x, int y)` |
+| **Click + Drag / Swipe** | `pointerDragged(int x, int y)` |
+| **Release Click / Lift** | `pointerReleased(int x, int y)` |
+
+The pointer coordinates are mapped directly to the virtual screen's coordinate matrix, unaffected by integer zoom or window scaling.
 
 <Callout type="tip">
-You can customize the gamepad mapping through **Config → Controls** in the GUI.
+Enable **Config → Mouse Coordinates** to view a live HUD displaying the exact pointer `(X, Y)` position over the game screen.
 </Callout>
-
-## Touch Input
-
-Mouse clicks are translated to pointer events for MIDlets that support touch:
-
-- **Left Click** → Pointer pressed/released
-- **Click + Drag** → Pointer dragged
-- Mouse position maps directly to the virtual display coordinates

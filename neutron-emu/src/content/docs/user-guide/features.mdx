@@ -1,86 +1,73 @@
 ---
 title: Features
-description: A comprehensive overview of Neutron's capabilities.
+description: Comprehensive directory of capabilities, extensions, 3D engines, and diagnostics in Neutron.
 order: 5
 ---
 
 ## Overview
 
-Neutron is a modern, high-performance Java ME runtime environment designed for developers, retro-gaming enthusiasts, and system preservationists. It provides a robust desktop interface with rich developer tools, versatile display filtering, custom skin support, and strict compliance J2ME mobile APIs.
+Neutron is an advanced Java ME runtime environment built for developers, gaming preservationists, and mobile computing researchers. It blends strict compliance with historic mobile standards alongside modern desktop enhancements, dynamic theme styling, and high-performance 3D graphics rendering.
 
-Below is an interactive directory of the major features built into the Neutron desktop emulator.
+Below is a complete breakdown of features in Neutron.
 
 <AccordionGroup>
-  <AccordionPanel title="1. Core Runtime Engine" value="runtime">
-    Neutron implements the standard specifications of the Java 2 Micro Edition (J2ME) environment, ensuring high compatibility with classic applications and games.
+  <AccordionPanel title="1. Core Runtime & Specification Compliance" value="runtime">
+    Neutron implements standard Connected Limited Device Configuration (CLDC) and Mobile Information Device Profile (MIDP) specifications:
 
-    - **CLDC 1.1 Compliance** — Fully implements the Connected Limited Device Configuration (CLDC) 1.1 standard, including `java.lang`, `java.util`, and `java.io` packages, floating-point arithmetic, thread scheduling, and the Generic Connection Framework (GCF).
-    - **MIDP 2.0 Compliance** — Supports the complete Mobile Information Device Profile (MIDP) 2.0 suite, including LCDUI controls (Forms, Lists, TextBoxes, Alerts, and Canvas) and J2ME Game API (GameCanvas, Sprites, TiledLayers, and LayerManager).
-    - **Memory Management** — Custom VM heap configuration (adjustable from 32MB up to 512MB) with an automated garbage collection (GC) monitor to ensure stability.
-    - **Sleep Mode** (`Ctrl+L`) — Dynamically throttle emulator worker threads when the application is idle to reduce host CPU consumption.
+    - **CLDC 1.1 & 1.0 Compliance** — Full implementation of standard CLDC APIs (`java.lang`, `java.util`, `java.io`), IEEE 754 floating-point operations, multithreading synchronization, and the Generic Connection Framework (GCF).
+    - **MIDP 2.0 Compliance** — Complete LCDUI implementation (Forms, TextBoxes, ChoiceGroups, Gauges, DateFields, CustomItems, Alerts, Displays) and high-performance Canvas / GameCanvas graphics.
+    - **J2ME Game API** — Accurate handling of `GameCanvas`, `Sprite` collision detection, frame sequences, transform rotations, and layered rendering with `TiledLayer` and `LayerManager`.
+    - **Adjustable Memory Limit** — Choose memory limits from 32 MB, 64 MB, 128 MB, 256 MB, up to 512 MB (or Unlimited) to simulate real hardware boundaries or prevent OOM in intensive 3D games.
+    - **Sleep Mode (`Ctrl+L`)** — Dynamically sleep worker threads during idle cycles to eliminate unnecessary CPU usage on host machines.
+    - **Emulation Speed Multiplier** — Accelerate slow gameplay or slow down fast sequences with speed controls from 0.5x up to 3.0x.
   </AccordionPanel>
 
-  <AccordionPanel title="2. File & Execution Management" value="execution">
-    Getting your games and applications up and running is seamless, whether launching from local storage or the internet.
+  <AccordionPanel title="2. 3D Graphics & Mobile Extensions" value="3d-extensions">
+    Unlike typical J2ME emulators that only support 2D LCDUI, Neutron provides full out-of-the-box 3D graphics and mobile manufacturer extension APIs:
 
-    - **Local Execution** — Load `.jar` and `.jad` files directly. The last opened directory is automatically saved.
-    - **Remote Execution** — Launch MIDlets directly via HTTP/HTTPS URLs by pasting the remote link.
-    - **Library Explorer** — A graphical dashboard cataloging all scanned files, displaying application names, version numbers, and developer icons.
-    - **Connected Directories** — Scan and register folders in bulk. Connected directories are automatically monitored and cataloged in the emulator sidebar launcher.
-    - **Recently Played (MRU)** — Keep track of recently played games and launch them instantly via a shortcut list.
-    - **Snapshot Manager** — Package your configurations, settings, and RMS database files into a single `.zip` backup file or restore them to clone your emulator state.
+    - **MascotCapsule Micro3D v3** — Complete pure-Java software rasterizer implementation of the popular Japanese mobile 3D engine (`com.mascotcapsule.micro3d.v3.*`). Run games utilizing 3D figures, action tables, bone skeletal animation, affine transforms, and spherical environment mapping.
+    - **JSR-184 (M3G Mobile 3D Graphics)** — Full binary `.m3g` chunk stream parser with Zlib deflation and Adler-32 integrity validation. Supports immediate and retained-mode 3D worlds, meshes, skinned meshes, morph targets, keyframe animations, cameras, lights, textures, and compositing modes.
+    - **Nokia UI DirectGraphics** — Comprehensive support for `com.nokia.mid.ui.DirectGraphics` and `DirectUtils`, featuring 32-bit ARGB `drawPixels` manipulation, transparency masking, and rotations.
+    - **JSR-226 (SVG Mobile / Scalable 2D Vector)** — Support for vector graphics through `javax.microedition.m2g.*` ScalableImage and ScalableGraphics.
+    - **JSR-234 (Advanced Multimedia Supplements - AMMS)** — 3D audio spectator positioning, sound source locations, reverb, and equalizer effect modules.
+    - **OEM Device APIs** — Built-in stubs and implementations for Sony Ericsson (`com.sonyericsson.ui.Backlight`, `Vibration`, `Sound`), Motorola (`com.motorola.multimedia.Vibrator`, `Lighting`, `FunLight`), and Samsung (`com.samsung.util.LCDLight`, `AudioClip`, `Vibration`).
+    - **Siemens API & JSR-82** — Support for Siemens platform classes and JSR-82 Bluetooth connection structures.
   </AccordionPanel>
 
-  <AccordionPanel title="3. High-Fidelity Display & Video Settings" value="display">
-    Neutron provides custom rendering and display options to adapt low-resolution J2ME canvases to modern, high-DPI desktop screens.
+  <AccordionPanel title="3. Display Filtering & Video Post-Processing" value="display">
+    Adapt vintage 128x160 or 240x320 mobile canvases to high-DPI 4K desktop screens with precision scaling filters and authentic CRT/LCD shaders:
 
-    - **Dynamic Resolution Presets** — Quick scaling setups from 128×160 to 480×800.
-    - **Integer & Smooth Scaling** — Run displays scaled up to 2x, 3x, or 4x without blurred pixels.
-    - **Graphics Rendering Filters** — Renders the screen using a variety of classic and modern filters:
-      - *Bilinear / Bicubic*: For smooth anti-aliased scaling.
-      - *Scale2x*: For pixel-art enhancement.
-      - *CRT Scanlines / LCD Grid*: To recreate authentic CRT or handheld screen grids.
-    - **Hardware Video Adjustments** — Dedicated sliders for Brightness, Contrast, Gamma, Saturation, Sharpness, Ghosting, and Color Inversion.
-    - **Fullscreen Mode** (`F11`) — Immersive borderless fullscreen display featuring an auto-hiding navigation bar and cohesive overlay notifications.
-    - **Modern Skinning Engine** — Fully integrates with UIManager skins, supporting modern Look-and-Feel templates like FlatLaf (macOS Dark/Light, Dracula, System) that adapt dynamically to your OS theme.
+    - **xBRZ High-Definition Scaler (2x, 3x, 4x, 5x, 6x)** — State-of-the-art rule-based pixel-art upscaler for razor-sharp curves and smooth vector-like borders without pixel blurring.
+    - **Scale2x & Bicubic / Bilinear Filters** — Traditional pixel doubling and smooth interpolation algorithms.
+    - **CRT Scanlines & LCD Subpixel Grid** — Authentically simulate retro handheld LCD dot matrix screens and vintage scanlines.
+    - **Hardware Video Adjustments** — Fine-tune display output in real-time with dedicated controls for Brightness, Contrast, Gamma curve, Saturation (monochrome mode), Sharpness, Phosphor Ghosting, and Color Inversion.
+    - **Borderless Fullscreen Mode (`F11`)** — Fullscreen display mode with auto-hiding top controls and overlay HUDs.
+    - **Themeable FlatLaf Interface** — Seamlessly adapts to your host operating system with modern themes: FlatLaf Dark, FlatLaf Light, IntelliJ, Dracula, macOS Light, macOS Dark, and System Look-and-Feel.
   </AccordionPanel>
 
-  <AccordionPanel title="4. Input & Control Customization" value="input">
-    Configure keyboard key mapping and touch inputs.
-
-    - **Keyboard Key Mapping** — Remap keyboard keys to emulate standard 12-key telephone keypads, direction pads, and Soft Keys.
-    - **Touch & Mouse Coordinates** — Fully simulates stylus touch inputs via mouse click-and-drag. An option to display live X/Y coordinates directly overlays the game canvas.
+  <AccordionPanel title="4. Input Controls & Virtual Mobile Keypad" value="input">
+    - **Desktop Keyboard Mapping** — Standard mappings for F1/F2 softkeys, Enter/Fire, directional arrows, and numeric keypads (0-9, \*, #).
+    - **Interactive On-Screen Virtual Buttons (`Ctrl+B`)** — A responsive on-screen mobile gamepad panel featuring an 8-way directional pad with diagonal buttons (↖ ↗ ↙ ↘), Softkey 1/2 buttons, and a 12-key numeric keyboard with auto-repeat.
+    - **Touchscreen & Stylus Emulation** — Pointer pressed, released, and drag gestures mapped to mouse clicks and touchscreen input.
+    - **Mouse Coordinates HUD** — Live overlay displaying pointer X/Y coordinates directly over the game canvas.
   </AccordionPanel>
 
-  <AccordionPanel title="5. Audio Subsystem" value="audio">
-    Neutron reproduces original mobile soundscapes with high fidelity using modern audio backends.
-
-    - **PCM Audio Playback** — Support for `.wav` and `.au` audio samples.
-    - **MIDI Engine** — Seamless playback of classic MIDI audio tracks.
-    - **Tone Generation** — Supports J2ME frequency-based tone commands and sequences.
-    - **Multi-Stream Mixing** — Mixes and renders multiple simultaneous audio channels with volume controls.
+  <AccordionPanel title="5. Audio Subsystem (MMAPI & MIDI)" value="audio">
+    - **PCM & Sampled Audio** — High-fidelity playback of `.wav` and `.au` audio samples.
+    - **AMR Audio Playback** — Support for mobile AMR narrowband voice and ringtone audio streams.
+    - **Java Sound MIDI Engine** — Full synthesis of polyphonic `.mid` and `.midi` soundtrack files.
+    - **Tone Generator** — Real-time synthesis of J2ME frequency tone sequences and buzzer sounds with non-destructive repeat playback lifecycle.
   </AccordionPanel>
 
-  <AccordionPanel title="6. Advanced Networking & Security" value="networking">
-    Run online mobile applications safely while maintaining full visibility over outbound internet connections.
-
-    - **Global Network Switch** — A master toggle ("Allow Network") to cut off or grant internet access to executing MIDlets.
-    - **SOCKS5 & HTTP Proxy Support** — Route all GCF connection traffic through proxy tunnels, including support for username/password authentication.
-    - **Network Capture Debugger** — A diagnostic panel that intercepts, formats, and displays HTTP, TCP socket, and UDP datagram traffic headers and payloads in real-time.
-    - **Network Status Overlay** — HUD element displaying active connections, socket channels, and server response ping/latency metrics.
-  </AccordionPanel>
-
-  <AccordionPanel title="7. Diagnostics & Developer Tools" value="tools">
-    Neutron includes instrumentation panels built directly into the UI to analyze MIDlet execution.
-
-    - **HUD Performance Overlay** — Float a status box over the canvas to display live frames per second (FPS) and memory heap consumption.
-    - **Developer Log Console** — Inspect debug output, warning messages, and JVM exception tracebacks in a dedicated, floatable logger frame.
-    - **Record Store Manager (RMS)** — Inspect the key-value database files stored by each MIDlet (saved game data, highscores) and manually modify or delete them.
-    - **Media & Frame Recorders** — Take high-resolution screenshots (`Ctrl+S`) or export animations of your gameplay into lightweight `.gif` files.
-    - **MIDlet Inspector** — View manifest descriptors, jar signatures, and classes without unzipping.
+  <AccordionPanel title="6. Networking, Proxy & Diagnostics" value="networking">
+    - **Generic Connection Framework (GCF)** — HTTP, HTTPS, TCP socket, and UDP datagram connectivity with strict request method validation.
+    - **Airplane Mode** — Fast master kill switch to isolate network requests for privacy and testing offline game behavior.
+    - **X-Proxy Support** — Built-in routing for HTTP and SOCKS5 proxy protocols with optional username/password authentication.
+    - **Network Traffic & Latency Overlay** — Real-time display showing network throughput, latency, and packet transfer activity.
+    - **Network Packet Capture** — Built-in packet inspector logging requests and socket payloads.
+    - **Performance HUD** — Dynamic autoscaling badge displaying real-time FPS counter, frame timings, and render load.
+    - **RMS Record Store Manager** — Graphical inspector to view, edit, backup, and modify persistent game save files and high score tables.
+    - **Snapshot Manager** — Backup your emulator's complete state, RMS databases, and configurations into a portable `.zip` archive or restore it on another machine.
+    - **Screenshot & Animated GIF Recording** — Capture pixel-perfect screenshots (`Ctrl+S`) or record gameplay clips directly to `.gif`.
   </AccordionPanel>
 </AccordionGroup>
-
-<Callout type="info">
-Many of these advanced diagnostics and features can also be triggered directly from the command line. See the [CLI Reference](/docs/advanced/cli) page for details on automated run arguments.
-</Callout>

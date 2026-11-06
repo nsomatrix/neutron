@@ -1,13 +1,12 @@
-import type { Metadata } from "next";
-import DownloadPageClient from "./download-client";
+import { Metadata } from "next";
+import DownloadClient from "./download-client";
 
 export const metadata: Metadata = {
-  title: "Download",
+  title: "Download Neutron — Modern Java ME Emulator",
   description:
-    "Download Neutron, the modern cross-platform Java ME emulator for Windows, macOS, and Linux.",
+    "Download Neutron v1.4.0 for Windows, macOS, and Linux. Choose between Neutron Express (Full GUI) and Neutron Core (Ultra-compact).",
 };
 
 export default function DownloadPage() {
-  return <DownloadPageClient />;
+  return <DownloadClient />;
 }
-

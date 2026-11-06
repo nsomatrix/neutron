@@ -1,66 +1,73 @@
 ---
-title: Performance
-description: Optimizing Neutron for maximum performance and minimal resource usage.
+title: Performance & Optimization
+description: Tuning JVM options, frame rate limits, xBRZ performance, and memory limits in Neutron.
 order: 11
 ---
 
 ## Performance Overview
 
-Neutron runs Java ME applications directly on top of modern Java SE Virtual Machines (JVM). Consequently, execution performance is native and benefits from the host JVM's highly optimized JIT compilers and garbage collection strategies.
+Because Neutron executes J2ME bytecode directly on the host Java Virtual Machine (JVM), there is no slow CPU interpretation cycle. MIDlet instructions benefit from the host JVM's advanced Just-In-Time (JIT) compiler (HotSpot / GraalVM) and generational garbage collectors.
 
-However, you can configure several display and emulator parameters to optimize rendering speed and resource consumption.
-
-## Emulator Options
-
-These options are stored in the `config2.xml` under `<options>` and can be modified in the GUI settings:
-
-### Frame Rate Limiting
-
-Set a custom FPS limit to match a game's target speed and reduce CPU consumption:
-
-```xml
-<maxFps>60</maxFps> <!-- Options: -1 (unlimited), 60, 30, 20, 15 -->
-```
-
-<Callout type="tip">
-Most classic J2ME games were designed for 30 FPS. Setting the limit to 30 can significantly reduce CPU and GPU usage on laptops.
-</Callout>
-
-### Thread Sleep Mode
-
-Enable sleep mode to allow the emulation thread to sleep between loops, yielding CPU cycles back to the operating system:
-
-```xml
-<sleepMode>true</sleepMode>
-```
+However, fine-tuning display filters, memory constraints, and thread sleep settings allows you to maximize battery life on laptops or unlock maximum throughput for intensive 3D games.
 
 ---
 
-## Memory Management
+## In-App Performance Controls
 
-MIDlet applications run within the host JVM heap memory space. By default, the emulator limits internal J2ME heap allocation to **64 MB** to simulate original device constraints, but you can configure this to prevent out-of-memory errors in complex games.
+All performance parameters can be adjusted via the **Config** and **Controls** menus:
 
-### Setting Internal Memory Limits
+### 1. Frame Rate Limiting (`maxFps`)
 
-Configure the virtual heap limit in `config2.xml`:
+Configure the target frame rate under **Controls → Frame Rate**:
+- **Options:** `Unlimited (-1)`, `60 FPS`, `30 FPS`, `15 FPS`, or **Custom**.
+- Setting an authentic 30 FPS cap cuts host CPU utilization by up to 50% while matching classic hardware timing.
 
-```xml
-<memoryLimit>128</memoryLimit> <!-- Values: 32, 64, 128, 256, 512, 0 (unlimited) -->
-```
+### 2. Thread Sleep Mode (`Ctrl+L`)
 
-### Configuring JRE Heap Size
+Enable **Config → Sleep Mode** (or press `Ctrl+L`):
+- Automatically injects micro-sleeps into the MIDlet render loop when no user input or frame changes are detected.
+- Yields spare CPU cycles back to your operating system.
 
-For larger games or packages, increase the maximum memory pool allocated by the Java Virtual Machine using standard `-Xmx` JRE parameters:
+### 3. Emulated Memory Heap (`memoryLimit`)
 
+Adjust under **Config → Memory Limit**:
+- **Values:** `Unlimited (0)`, `32 MB`, `64 MB`, `128 MB`, `256 MB`, `512 MB`.
+- Standard J2ME devices originally possessed between 2 MB and 16 MB of heap. Setting the limit to **64 MB or 128 MB** ensures maximum compatibility while preventing memory leaks from runaway MIDlets.
+
+### 4. Performance HUD (Stats Overlay)
+
+Enable **Controls → Stats Overlay** to monitor real-time metrics directly on top of the game screen:
+- **Live FPS:** Dynamically sampled frame rate.
+- **Frame Timing:** Latency per frame in milliseconds.
+- **Memory Consumption:** Used heap memory versus total allocated JVM memory.
+
+---
+
+## Host JVM Tuning
+
+You can pass JVM flags to Java when executing the Neutron JAR:
+
+### Maximum Throughput (Modern JDK 17 / 21)
 ```bash
-# Run with 256MB of maximum JVM heap size
-java -Xmx256m -jar neutron.jar game.jar
+java -server -XX:+UseG1GC -Xmx512m -jar neutron-1.4.0.jar game.jar
+```
+
+### Low-Memory Footprint (Neutron Core)
+```bash
+java -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xms16m -Xmx64m -jar neutron-core-1.4.0.jar game.jar
+```
+
+### Marlin 2D Vector Rendering
+Neutron automatically leverages the high-speed Marlin Java2D renderer:
+```bash
+java -Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine -jar neutron-1.4.0.jar
 ```
 
 ---
 
-## Performance Tips
+## Filter Performance Guidelines
 
-1. **Use Nearest Neighbor Filter** — This is the fastest scaling mode. Complex filters like CRT Scanlines or LCD Grid require additional CPU rendering cycles.
-2. **Use the Latest JRE** — Running Neutron on newer runtimes (such as OpenJDK 17 or 21) provides updated garbage collection performance and execution optimization.
-3. **Disable Stats & Network Overlays** — Performance diagnostics (`<perfHudEnabled>`) and Network latency counters (`<networkOverlayEnabled>`) cause additional text rendering passes. Disable them if you require maximum frames-per-second.
+- **Fastest (Lowest CPU):** **Nearest Neighbor** performs simple point sampling with zero interpolation math.
+- **High Quality (Recommended):** **xBRZ 2x** and **Scale2x** provide excellent edge smoothing with minimal CPU overhead.
+- **Higher Scaling (xBRZ 4x–6x):** Best suited for desktop systems running on multi-core CPUs.
+- **CRT / LCD Shaders:** CRT Scanlines and LCD Grid apply per-pixel raster masks. They look best on display scales of 2x or higher.

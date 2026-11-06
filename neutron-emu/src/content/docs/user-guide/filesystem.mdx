@@ -1,60 +1,75 @@
 ---
-title: Filesystem
-description: Record Management System (RMS) and file storage in Neutron.
+title: Filesystem & RMS
+description: Record Management System (RMS) persistence, FileConnection (JSR-75), and Snapshot backups.
 order: 10
 ---
 
 ## Storage Overview
 
-Neutron emulates the Java ME storage system using the host filesystem, providing persistent storage through the Record Management System (RMS) and FileConnection API.
+Neutron provides two distinct persistent storage mechanisms for Java ME applications:
+1. **Record Management System (RMS):** Standard MIDP record-based database for save games, user preferences, and high scores.
+2. **FileConnection API (JSR-75):** Access to local filesystem storage, virtual memory cards, and documents.
+
+---
 
 ## Record Management System (RMS)
 
-RMS provides persistent storage for MIDlet data:
+RMS stores discrete binary records indexed by ID within named record stores.
 
 ```java
-RecordStore rs = RecordStore.openRecordStore("scores", true);
+import javax.microedition.rms.*;
 
-// Add a record
-byte[] data = "100".getBytes();
-int id = rs.addRecord(data, 0, data.length);
+// Open or create a record store named 'SaveData'
+RecordStore rs = RecordStore.openRecordStore("SaveData", true);
 
-// Read a record
-byte[] result = rs.getRecord(id);
-String score = new String(result);
+byte[] gameScore = "99990".getBytes("UTF-8");
+int recordId = rs.addRecord(gameScore, 0, gameScore.length);
 
-// Close
+// Read back the saved score
+byte[] retrieved = rs.getRecord(recordId);
+String score = new String(retrieved, "UTF-8");
+
 rs.closeRecordStore();
 ```
 
-## Storage Location
+### Storage Location on Disk
 
-RMS data is stored on disk at:
+By default, Neutron uses `FileRecordStoreManager` to serialize RMS databases into individual `.rms` files on your host drive:
 
-| Platform | Path |
-|----------|------|
-| Windows | `%APPDATA%\Neutron\data\{midlet-name}\` |
-| macOS | `~/Library/Application Support/Neutron/data/` |
-| Linux | `~/.local/share/neutron/data/` |
+| Platform | RMS Root Directory Path |
+|----------|-------------------------|
+| **Windows** | `%USERPROFILE%\.neutron\suite-[MIDletName]\` |
+| **macOS** | `~/.neutron/suite-[MIDletName]/` |
+| **Linux** | `~/.neutron/suite-[MIDletName]/` |
 
-## Storage Limits
+If launched with a custom profile ID (`--id [ProfileID]`), the path becomes `~/.neutron/[ProfileID]/suite-[MIDletName]/`.
 
-By default, Neutron applies generous storage limits:
-
-| Limit | Default | Configurable |
-|-------|---------|-------------|
-| Max record size | 64 KB | Yes |
-| Max records per store | 10,000 | Yes |
-| Max store size | 1 MB | Yes |
-| Max stores per MIDlet | 32 | Yes |
-
-```toml title="config.toml"
-[storage]
-max_record_size = 65536
-max_records = 10000
-max_store_size = 1048576
-```
-
-<Callout type="info">
-Unlike real devices, Neutron can be configured with effectively unlimited storage for development and testing purposes.
+<Callout type="tip">
+You can also run Neutron with pure in-memory RMS storage using the CLI flag: `--rms memory`. In memory mode, no files are written to disk, and state resets when the application closes.
 </Callout>
+
+### RMS Inspector Dialog
+
+Neutron includes a built-in GUI inspector to manage saved data:
+1. Open **Config → Record Store Manager**.
+2. Select any active or previous MIDlet suite.
+3. Inspect record IDs, byte lengths, and raw hex/string contents.
+4. Modify, import, or delete corrupted records with a single click.
+
+---
+
+## FileConnection (JSR-75)
+
+Neutron fully implements the **JSR-75 FileConnection** specification (`javax.microedition.io.file.*`):
+
+- **Virtual Root Drives:** Emulates root file structures like `root/`, `memory_card/`, and `c:/`.
+- **Security & Integrity:** In v1.4.0, strict read-only mode checks (`Connector.READ`) are enforced throwing `IllegalModeException` on illegal write attempts.
+- **Path Traversal Protection:** Relative path escapes (`../`) outside the isolated virtual root boundaries are blocked to prevent accidental host system modification.
+
+---
+
+## Snapshot Manager (Backup & Restore)
+
+Neutron includes a built-in state preservation system:
+- **Backup:** Go to **Run → Snapshot → Backup** to export your entire configuration, RMS save files, and preferences into a single compressed `.zip` archive.
+- **Restore:** Go to **Run → Snapshot → Restore** to load a previously exported backup archive onto any other machine.
