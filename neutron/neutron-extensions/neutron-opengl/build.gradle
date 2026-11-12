@@ -1,0 +1,46 @@
+apply plugin: 'java-library'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+import org.gradle.internal.os.OperatingSystem
+
+project.ext {
+    lwjglVersion = "3.3.3"
+    switch (OperatingSystem.current()) {
+        case OperatingSystem.LINUX:
+            def osArch = System.getProperty("os.arch")
+            lwjglNatives = (osArch.startsWith("arm") || osArch.startsWith("aarch64")) ? "natives-linux-arm64" : "natives-linux"
+            break
+        case OperatingSystem.WINDOWS:
+            def osArch = System.getProperty("os.arch")
+            lwjglNatives = osArch.contains("64") ? "natives-windows" : "natives-windows-x86"
+            break
+        case OperatingSystem.MAC_OS:
+            def osArch = System.getProperty("os.arch")
+            lwjglNatives = (osArch.startsWith("aarch64") || osArch.startsWith("arm")) ? "natives-macos-arm64" : "natives-macos"
+            break
+        default:
+            lwjglNatives = "natives-linux"
+            break
+    }
+}
+
+dependencies {
+    api project(':neutron:neutron-midp')
+    api project(':neutron:neutron-javase')
+    api project(':neutron:neutron-extensions:neutron-micro3d')
+    api project(':neutron:neutron-extensions:neutron-jsr-184')
+
+    api platform("org.lwjgl:lwjgl-bom:${lwjglVersion}")
+    api "org.lwjgl:lwjgl"
+    api "org.lwjgl:lwjgl-opengl"
+    api "org.lwjgl:lwjgl-glfw"
+
+    runtimeOnly "org.lwjgl:lwjgl::${lwjglNatives}"
+    runtimeOnly "org.lwjgl:lwjgl-opengl::${lwjglNatives}"
+    runtimeOnly "org.lwjgl:lwjgl-glfw::${lwjglNatives}"
+
+    testImplementation 'junit:junit:4.12'
+}
+

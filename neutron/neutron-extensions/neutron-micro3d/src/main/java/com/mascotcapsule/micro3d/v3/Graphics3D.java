@@ -6,6 +6,7 @@
 package com.mascotcapsule.micro3d.v3;
 
 import javax.microedition.lcdui.Graphics;
+import org.neutron.graphics3d.Graphics3DConfig;
 
 public class Graphics3D {
 	//Constants
@@ -2339,11 +2340,26 @@ public class Graphics3D {
 				int viewZ = tz;
 				if (viewZ < perspectiveNear) viewZ = perspectiveNear;
 
-				sx = ((tx * scaleX) / viewZ) + centerX;
-				sy = ((ty * scaleY) / viewZ) + centerY;
+				int numX = tx * scaleX;
+				int numY = ty * scaleY;
+				if (Graphics3DConfig.isSubpixelPrecision()) {
+					int halfZ = viewZ >> 1;
+					sx = (numX >= 0 ? (numX + halfZ) / viewZ : (numX - halfZ) / viewZ) + centerX;
+					sy = (numY >= 0 ? (numY + halfZ) / viewZ : (numY - halfZ) / viewZ) + centerY;
+				} else {
+					sx = (numX / viewZ) + centerX;
+					sy = (numY / viewZ) + centerY;
+				}
 			} else {
-				sx = ((tx * scaleX) >> 12) + centerX;
-				sy = ((ty * scaleY) >> 12) + centerY;
+				int numX = tx * scaleX;
+				int numY = ty * scaleY;
+				if (Graphics3DConfig.isSubpixelPrecision()) {
+					sx = (numX >= 0 ? (numX + 2048) >> 12 : (numX - 2048) >> 12) + centerX;
+					sy = (numY >= 0 ? (numY + 2048) >> 12 : (numY - 2048) >> 12) + centerY;
+				} else {
+					sx = (numX >> 12) + centerX;
+					sy = (numY >> 12) + centerY;
+				}
 			}
 
 			//Workaround to prevent integer overflow in rasterizer

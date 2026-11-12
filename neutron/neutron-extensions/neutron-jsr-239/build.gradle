@@ -1,0 +1,13 @@
+apply plugin: 'java-library'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    api project(':neutron:neutron-midp')
+    api project(':neutron:neutron-javase')
+    api project(':neutron:neutron-extensions:neutron-opengl')
+
+    testImplementation 'junit:junit:4.12'
+}
+

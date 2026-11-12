@@ -29,6 +29,7 @@ import javax.microedition.lcdui.Graphics;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import org.neutron.graphics3d.Graphics3DConfig;
 
 
 public class Graphics3D
@@ -51,10 +52,10 @@ public class Graphics3D
 	public static final int MODE_FORCE_ENABLE  = 2;
 
 	public static int m3gAntiAliasingMode = MODE_APP_CONTROLLED;
-	public static int m3gBilinearFilterMode = MODE_APP_CONTROLLED;
+	public static int m3gBilinearFilterMode = Graphics3DConfig.isBilinearFiltering() ? MODE_FORCE_ENABLE : MODE_APP_CONTROLLED;
 	public static int m3gDitheringMode = MODE_APP_CONTROLLED;
-	public static int m3gPerspectiveCorrectionMode = MODE_APP_CONTROLLED;
-	public static int m3gPerspCorrSubFactor = 7;
+	public static int m3gPerspectiveCorrectionMode = Graphics3DConfig.isForcePerspective() ? MODE_FORCE_ENABLE : MODE_APP_CONTROLLED;
+	public static int m3gPerspCorrSubFactor = Graphics3DConfig.getPerspectiveSubFactor();
 	public static boolean m3gDisableFog = false;
 	public static int m3gMipmapMode = MODE_APP_CONTROLLED;
 	public static boolean halfResM3GRaster = false;
@@ -714,9 +715,13 @@ public class Graphics3D
 		final Fog fog = m3gDisableFog ? null : appearance.getFog();
 		final float invFogDiv = fog != null ? M3GMath.fastReciprocal(fog.getFarDistance() - fog.getNearDistance()) : 0.0f;
 
-		perspectiveCorrection = fog != null || (perspectiveCorrection && (projType != Camera.PARALLEL)); // fog usage enables it
-		perspectiveCorrection = (m3gPerspectiveCorrectionMode == MODE_FORCE_ENABLE)
-			|| (m3gPerspectiveCorrectionMode == MODE_APP_CONTROLLED && perspectiveCorrection);
+		if (m3gPerspectiveCorrectionMode == MODE_FORCE_ENABLE) {
+			perspectiveCorrection = (projType != Camera.PARALLEL);
+		} else if (m3gPerspectiveCorrectionMode == MODE_FORCE_DISABLE) {
+			perspectiveCorrection = false;
+		} else {
+			perspectiveCorrection = fog != null || (perspectiveCorrection && (projType != Camera.PARALLEL));
+		}
 
 
 		// We'll need the projection matrix for the next transformations

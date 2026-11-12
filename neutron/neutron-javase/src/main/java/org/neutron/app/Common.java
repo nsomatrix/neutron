@@ -44,6 +44,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Vector;
+import org.neutron.graphics3d.Graphics3DConfig;
+import org.neutron.graphics3d.RenderBackendType;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
@@ -1092,6 +1094,24 @@ public class Common implements Neutron, CommonInterface {
                     StdOutAppender.enabled = false;
                 } else if (arg.equals("--headless")) {
                     // Ignore this here.
+                } else if (arg.equals("--forcePerspective")) {
+                    Graphics3DConfig.setForcePerspective(true);
+                    System.setProperty("neutron.m3g.perspective", "2");
+                } else if (arg.equals("--appPerspective")) {
+                    Graphics3DConfig.setForcePerspective(false);
+                    System.setProperty("neutron.m3g.perspective", "1");
+                } else if (arg.equals("--disablePerspective")) {
+                    Graphics3DConfig.setForcePerspective(false);
+                    System.setProperty("neutron.m3g.perspective", "0");
+                } else if (arg.equals("--bilinear3d")) {
+                    Graphics3DConfig.setBilinearFiltering(true);
+                    System.setProperty("neutron.m3g.bilinear", "2");
+                } else if (arg.equals("--noSubpixel")) {
+                    Graphics3DConfig.setSubpixelPrecision(false);
+                } else if (arg.equals("--opengl3d") || arg.equals("--gpu")) {
+                    Graphics3DConfig.setBackendType(RenderBackendType.OPENGL);
+                } else if (arg.equals("--software3d") || arg.equals("--cpu3d")) {
+                    Graphics3DConfig.setBackendType(RenderBackendType.SOFTWARE);
                 } else if (arg.startsWith("--")) {
                     // Allow to add new arguments in future that are not supported by older version
                     Logger.warn("Unknown argument " + arg);
@@ -1349,6 +1369,10 @@ public class Common implements Neutron, CommonInterface {
                 + "[--appclass <library class name>]\n" + "[--appclassloader strict|relaxed|delegating|system] \n" + "[-Xautotest:<JAD file url>\n"
                 + "[--quit]\n" + "[--logCallLocation true|false]\n" + "[--traceClassLoading\n[--traceSystemClassLoading]\n[--enhanceCatchBlock]\n]"
                 + "[--resizableDevice {width} {height}]\n"
+                + "[--forcePerspective|--appPerspective|--disablePerspective]\n"
+                + "[--bilinear3d]\n"
+                + "[--opengl3d|--software3d]\n"
+                + "[--noSubpixel]\n"
                 + "(({MIDlet class name} [--propertiesjad {jad file location}]) | {jad file location} | {jar file location})";
     }
 

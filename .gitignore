@@ -23,3 +23,6 @@ Thumbs.db
 *.log
 *.hprof
 
+# Temporary workbench & clone directories
+tmp/
+

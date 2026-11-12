@@ -32,6 +32,7 @@ public interface MessageConnection extends Connection {
 
 	public static final java.lang.String BINARY_MESSAGE = "binary";
 	public static final java.lang.String TEXT_MESSAGE = "text";
+	public static final java.lang.String MULTIPART_MESSAGE = "multipart";
 	
 	public Message newMessage(String type);
 	
