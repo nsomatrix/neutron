@@ -151,7 +151,7 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 		c.weightx = 1.0;
 		add(hardwareGlCheckBox, c);
 
-		forcePerspectiveCheckBox = new JCheckBox("3D Force Perspective (Fix Outland 3D drifting)", originalForcePerspective);
+		forcePerspectiveCheckBox = new JCheckBox("3D Force Perspective Correction", originalForcePerspective);
 		c.gridy = 9;
 		c.gridx = 0;
 		c.gridwidth = 3;
@@ -276,10 +276,10 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 				sharpnessSlider.setValue(0);
 				ghostingSlider.setValue(0);
 				invertCheckBox.setSelected(false);
-				hardwareGlCheckBox.setSelected(false);
+				hardwareGlCheckBox.setSelected(true);
 				forcePerspectiveCheckBox.setSelected(true);
 				subpixelCheckBox.setSelected(true);
-				bilinear3dCheckBox.setSelected(false);
+				bilinear3dCheckBox.setSelected(true);
 				
 				Config.setBrightness(0);
 				Config.setContrast(100);

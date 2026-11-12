@@ -19,14 +19,15 @@ public final class Graphics3DConfig {
 
     static {
         // Initialize from system properties with modern defaults
-        String backendProp = System.getProperty("neutron.3d.backend", "software").trim().toLowerCase();
-        if ("opengl".equals(backendProp) || "gl".equals(backendProp) || "gpu".equals(backendProp)) {
-            backendType = RenderBackendType.OPENGL;
-        } else {
+        // Default to hardware-accelerated OpenGL backend; fallback to software on headless/CPU-only
+        String backendProp = System.getProperty("neutron.3d.backend", "opengl").trim().toLowerCase();
+        if ("software".equals(backendProp) || "sw".equals(backendProp) || "cpu".equals(backendProp)) {
             backendType = RenderBackendType.SOFTWARE;
+        } else {
+            backendType = RenderBackendType.OPENGL;
         }
 
-        // Force perspective enabled by default to prevent drifting in games like Outland
+        // Standard perspective division enabled by default
         forcePerspective = Boolean.parseBoolean(System.getProperty("neutron.3d.force_perspective", "true"));
         bilinearFiltering = Boolean.parseBoolean(System.getProperty("neutron.3d.bilinear", "false"));
         subpixelPrecision = Boolean.parseBoolean(System.getProperty("neutron.3d.subpixel", "true"));

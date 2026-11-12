@@ -127,15 +127,15 @@ This roadmap establishes the phased engineering plan to modernize Java ME 3D ren
 ---
 
 ## Verification & Compatibility Matrix
-- **Target Games for Benchmark:**
-  - *Outland 3D* (Tracebit)
-  - *Biohazard / Resident Evil 3D* (Capcom)
-  - *Galaxy on Fire / Deep 3D* (Fishlabs)
-  - *Asphalt 3D / Real Football 3D* (Gameloft)
-  - *Need for Speed / Colin McRae 3D*
+- **Target 3D Architectural Profiles:**
+  - JSR-184 (M3G) Third-Person & Action Titles
+  - JSR-184 (M3G) Space Simulation & Racing Titles
+  - MascotCapsule Micro3D v3 Action & Survival Titles
+  - JSR-239 Khronos OpenGL ES 1.x Mobile Ports
 - **Validation Criteria:**
-  - Zero texture shearing during rotation or camera translation.
+  - Universal mathematical frustum clipping (zero inverted/flipped projection artifacts).
+  - Hardware perspective division with zero texture shearing.
   - Smooth vertex movement without PS1-style coordinate snapping.
   - Full support for JSR-184 (M3G), MascotCapsule Micro3D v3, and JSR-239 (OpenGL ES 1.x).
-  - 100% clean class resolution without `NoClassDefFoundError` for JSR 172, 179, 205, 211, and 256.
-  - Full automated test suite passes (99 automated test tasks verified with zero regressions).
+  - 100% clean class resolution without `NoClassDefFoundError` across all standard Java ME JSRs.
+  - Full automated test suite passes across all platforms.

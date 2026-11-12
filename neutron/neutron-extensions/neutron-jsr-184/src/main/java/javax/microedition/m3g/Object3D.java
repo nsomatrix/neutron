@@ -23,10 +23,19 @@
  */
 package javax.microedition.m3g;
 
+import java.util.IdentityHashMap;
 import java.util.Vector;
 
 public abstract class Object3D implements Cloneable
 {
+	private static final ThreadLocal<IdentityHashMap<Object3D, Object3D>> DUPLICATES_MAP =
+		new ThreadLocal<IdentityHashMap<Object3D, Object3D>>();
+
+	static IdentityHashMap<Object3D, Object3D> getActiveDuplicatesMap()
+	{
+		return DUPLICATES_MAP.get();
+	}
+
 	protected int userID = 0;
 	protected Object userObject = null;
 	Vector<AnimationTrack> animationTracks = new Vector<AnimationTrack>();
@@ -36,13 +45,43 @@ public abstract class Object3D implements Cloneable
 
 	void updateProperty(int property, float[] value) { }
 
-	public final Object3D duplicate() { return this.duplicateImpl(); }
+	public final Object3D duplicate()
+	{
+		IdentityHashMap<Object3D, Object3D> map = DUPLICATES_MAP.get();
+		boolean rootCall = (map == null);
+		if (rootCall)
+		{
+			map = new IdentityHashMap<Object3D, Object3D>();
+			DUPLICATES_MAP.set(map);
+		}
+		try
+		{
+			Object3D existing = map.get(this);
+			if (existing != null)
+			{
+				return existing;
+			}
+			return this.duplicateImpl();
+		}
+		finally
+		{
+			if (rootCall)
+			{
+				DUPLICATES_MAP.remove();
+			}
+		}
+	}
 
 	protected Object3D duplicateImpl()
 	{
 		try
 		{
 			Object3D copy = (Object3D) super.clone();
+			IdentityHashMap<Object3D, Object3D> map = DUPLICATES_MAP.get();
+			if (map != null)
+			{
+				map.put(this, copy);
+			}
 
 			copy.userID = this.userID;
 			copy.userObject = this.userObject;

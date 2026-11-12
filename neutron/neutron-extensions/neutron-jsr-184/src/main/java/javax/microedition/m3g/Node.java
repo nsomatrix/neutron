@@ -23,6 +23,7 @@
  */
 package javax.microedition.m3g;
 
+import java.util.IdentityHashMap;
 import java.util.Vector;
 
 public abstract class Node extends Transformable
@@ -61,11 +62,14 @@ public abstract class Node extends Transformable
 		copy.parent = null;
 		copy.left = null;
 		copy.right = null;
-		copy.yRef = null;
-		copy.zRef = null;
-		copy.yTarget = NONE;
-		copy.zTarget = NONE;
 		copy.dirtyBits = new boolean[]{ false, false };
+
+		IdentityHashMap<Object3D, Object3D> map = Object3D.getActiveDuplicatesMap();
+		copy.zTarget = this.zTarget;
+		copy.yTarget = this.yTarget;
+		copy.zRef = (map != null && map.get(this.zRef) instanceof Node) ? (Node) map.get(this.zRef) : this.zRef;
+		copy.yRef = (map != null && map.get(this.yRef) instanceof Node) ? (Node) map.get(this.yRef) : this.yRef;
+
 		return copy;
 	}
 

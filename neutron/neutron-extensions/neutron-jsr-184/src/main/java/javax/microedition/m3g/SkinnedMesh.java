@@ -24,6 +24,7 @@
 package javax.microedition.m3g;
 
 import java.util.ArrayList;
+import java.util.IdentityHashMap;
 
 public class SkinnedMesh extends Mesh
 {
@@ -85,10 +86,14 @@ public class SkinnedMesh extends Mesh
 		// Bones must point to the duplicated skeleton nodes, which appear in
 		// the same order as in the source skeleton. The at-rest transforms are
 		// kept as-is: they were captured by addTransform() and must not change.
+		IdentityHashMap<Object3D, Object3D> map = Object3D.getActiveDuplicatesMap();
+
 		copy.bones = new ArrayList<BoneData>(this.bones.size());
 		for (BoneData b : this.bones)
 		{
-			Node copyBone = Node.matchingNode(this.skeleton, b.bone, copySkeleton);
+			Node copyBone = (map != null && map.get(b.bone) instanceof Node)
+				? (Node) map.get(b.bone)
+				: Node.matchingNode(this.skeleton, b.bone, copySkeleton);
 			if (copyBone != null)
 			{
 				BoneData copyData = new BoneData(copyBone, b.weight, b.firstVertex, b.numVertices);

@@ -23,6 +23,8 @@
  */
 package javax.microedition.m3g;
 
+import java.util.IdentityHashMap;
+
 public class World extends Group
 {
 
@@ -41,7 +43,10 @@ public class World extends Group
 		 * nodes, the duplicate must reference the corresponding duplicated
 		 * camera instead; any other references are left as they are.
 		 */
-		Node copyCamera = (this.camera != null) ? Node.matchingNode(this, this.camera, copy) : null;
+		IdentityHashMap<Object3D, Object3D> map = Object3D.getActiveDuplicatesMap();
+		Node copyCamera = (map != null && map.get(this.camera) instanceof Camera)
+			? (Camera) map.get(this.camera)
+			: ((this.camera != null) ? Node.matchingNode(this, this.camera, copy) : null);
 		copy.setActiveCamera((copyCamera instanceof Camera) ? (Camera) copyCamera : this.camera);
 		copy.setBackground(this.background);
 

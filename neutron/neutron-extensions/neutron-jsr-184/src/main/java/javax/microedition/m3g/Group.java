@@ -51,8 +51,11 @@ public class Group extends Node
 			Node curr = this.firstChild;
 			do
 			{
-				Node childCopy = (Node) curr.duplicateImpl();
-				copy.addChild(childCopy);
+				Node childCopy = (Node) curr.duplicate();
+				if (childCopy != null && childCopy.getParent() == null)
+				{
+					copy.addChild(childCopy);
+				}
 				curr = curr.right;
 			}
 			while (curr != this.firstChild);

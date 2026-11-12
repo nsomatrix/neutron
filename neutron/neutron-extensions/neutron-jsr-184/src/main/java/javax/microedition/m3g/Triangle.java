@@ -262,7 +262,10 @@ class Triangle
 			final float[][] srcT;
 			final int[] srcC;
 
-			final boolean needsNearClip = (Triangle.inV[2] < -Triangle.inV[3]) ||
+			final boolean needsNearClip = (Triangle.inV[3] <= 0.0001f) ||
+				(Triangle.inV[7] <= 0.0001f)  ||
+				(Triangle.inV[11] <= 0.0001f) ||
+				(Triangle.inV[2] < -Triangle.inV[3]) ||
 				(Triangle.inV[6] < -Triangle.inV[7])  ||
 				(Triangle.inV[10] < -Triangle.inV[11]);
 
@@ -341,6 +344,11 @@ class Triangle
 				// It is faster to calculate the reciprocal of w (1/w) and just
 				// multiply vertices and texture coordinates by it, than it is to
 				// constantly divide them by W here.
+				if (srcV[off0 + 3] <= 0.0001f || srcV[off1 + 3] <= 0.0001f || srcV[off2 + 3] <= 0.0001f)
+				{
+					continue;
+				}
+
 				final float invW0 = 1.0f / srcV[off0 + 3];
 				final float invW1 = 1.0f / srcV[off1 + 3];
 				final float invW2 = 1.0f / srcV[off2 + 3];
@@ -685,7 +693,8 @@ class Triangle
 			final float wi = inV[4*i+3], wj = inV[4*j+3];
 			final float distanceI = inV[4*i+2] + wi;
 			final float distanceJ = inV[4*j+2] + wj;
-			final boolean insideI = distanceI >= 0.0f, insideJ = distanceJ >= 0.0f;
+			final boolean insideI = (wi > 0.0001f) && (distanceI >= 0.0f);
+			final boolean insideJ = (wj > 0.0001f) && (distanceJ >= 0.0f);
 
 			if (insideI)
 			{
@@ -762,14 +771,19 @@ class Triangle
 	{
 		final float w0 = vert[idx0 + 3], w1 = vert[idx1 + 3], w2 = vert[idx2 + 3];
 
-		if (vert[idx0]     < -w0 && vert[idx1]     < -w1 && vert[idx2]     < -w2) { return true; }
-		if (vert[idx0]     >  w0 && vert[idx1]     >  w1 && vert[idx2]     >  w2) { return true; }
+		if (w0 <= 0.0001f && w1 <= 0.0001f && w2 <= 0.0001f) { return true; }
 
-		if (vert[idx0 + 1] < -w0 && vert[idx1 + 1] < -w1 && vert[idx2 + 1] < -w2) { return true; }
-		if (vert[idx0 + 1] >  w0 && vert[idx1 + 1] >  w1 && vert[idx2 + 1] >  w2) { return true; }
+		if (w0 > 0.0f && w1 > 0.0f && w2 > 0.0f)
+		{
+			if (vert[idx0]     < -w0 && vert[idx1]     < -w1 && vert[idx2]     < -w2) { return true; }
+			if (vert[idx0]     >  w0 && vert[idx1]     >  w1 && vert[idx2]     >  w2) { return true; }
 
-		if (vert[idx0 + 2] < -w0 && vert[idx1 + 2] < -w1 && vert[idx2 + 2] < -w2) { return true; }
-		if (vert[idx0 + 2] >  w0 && vert[idx1 + 2] >  w1 && vert[idx2 + 2] >  w2) { return true; }
+			if (vert[idx0 + 1] < -w0 && vert[idx1 + 1] < -w1 && vert[idx2 + 1] < -w2) { return true; }
+			if (vert[idx0 + 1] >  w0 && vert[idx1 + 1] >  w1 && vert[idx2 + 1] >  w2) { return true; }
+
+			if (vert[idx0 + 2] < -w0 && vert[idx1 + 2] < -w1 && vert[idx2 + 2] < -w2) { return true; }
+			if (vert[idx0 + 2] >  w0 && vert[idx1 + 2] >  w1 && vert[idx2 + 2] >  w2) { return true; }
+		}
 
 		return false;
 	}

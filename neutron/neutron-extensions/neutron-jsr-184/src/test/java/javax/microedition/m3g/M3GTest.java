@@ -817,4 +817,34 @@ public class M3GTest {
 		assertNotNull("Skinned positions array must not be null", skinnedVb.getPositions(null));
 	}
 
+	@Test
+	public void testSceneGraphDuplicationIdentity() {
+		Group root = new Group();
+		Group child = new Group();
+		child.setUserID(100);
+		root.addChild(child);
+
+		Camera cam = new Camera();
+		cam.setUserID(200);
+		cam.setAlignment(child, Node.ORIGIN, null, Node.NONE);
+		root.addChild(cam);
+
+		Group clonedRoot = (Group) root.duplicate();
+		assertNotNull(clonedRoot);
+		assertNotSame(root, clonedRoot);
+		assertEquals(2, clonedRoot.getChildCount());
+
+		Node clonedChild = clonedRoot.getChild(0);
+		Node clonedCam = clonedRoot.getChild(1);
+
+		assertNotSame(child, clonedChild);
+		assertNotSame(cam, clonedCam);
+		assertEquals(100, clonedChild.getUserID());
+		assertEquals(200, clonedCam.getUserID());
+
+		// Verify alignment reference remapping per JSR-184 spec
+		assertSame("Alignment reference within duplicated branch must be remapped to duplicated child",
+			clonedChild, clonedCam.getAlignmentReference(Node.Z_AXIS));
+		assertEquals(Node.ORIGIN, clonedCam.getAlignmentTarget(Node.Z_AXIS));
+	}
 }
