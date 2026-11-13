@@ -588,12 +588,7 @@ static void m3gValidateBuffers(RenderContext *ctx)
      * necessary; let's raise a flag to check that later on */
     
     if (ctx->target.buffered) {
-        if (ctx->modeBits & M3G_OVERWRITE_BIT) {
-            ctx->backBuffer.contentsValid = M3G_TRUE;
-        }
-        else {
-            ctx->backBuffer.contentsValid = M3G_FALSE;
-        }
+        ctx->backBuffer.contentsValid = M3G_TRUE;
     }
 }
 
@@ -805,14 +800,14 @@ static void m3gUpdateColorMaskStatus(RenderContext *ctx,
 
         /* Blend the texture with the frame buffer */
         {
-            static const M3Gbyte tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
+            static const GLshort tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
             GLshort pos[8];
             
             GLfixed cm = (GLfixed)(ctx->currentColorWrite ? 0 : 1 << 16);
             GLfixed am = (GLfixed)(ctx->currentAlphaWrite ? 0 : 1 << 16);
 
             glVertexPointer(2, GL_SHORT, 0, pos);
-            glTexCoordPointer(2, GL_BYTE, 0, tc);
+            glTexCoordPointer(2, GL_SHORT, 0, tc);
                 
             pos[0] = (GLshort) ctx->clip.x0;
             pos[1] = (GLshort) ctx->clip.y0;
@@ -1024,20 +1019,7 @@ static void m3gClearInternal(RenderContext *ctx, Background *bg)
     
     if (bg != NULL) {
         m3gApplyBackground(ctx, bg);
-        if (ctx->target.type == SURFACE_MEMORY) {
-            /* The color clear was applied to the target bitmap. If a
-             * background image was rendered as well, copy the back
-             * buffer into the bitmap first. The next M3G draw will
-             * upload the bitmap so that 2D drawing done in between
-             * becomes the backdrop for blending. */
-            if (bg->image != NULL && ctx->target.buffered) {
-                m3gUpdateTargetBuffer(ctx);
-            }
-            if (ctx->target.buffered) {
-                ctx->backBuffer.contentsValid = M3G_FALSE;
-            }
-        }
-        else if (ctx->target.buffered && bg->colorClearEnable) {
+        if (ctx->target.buffered) {
             ctx->backBuffer.contentsValid = M3G_TRUE;
         }
     }
@@ -1047,8 +1029,7 @@ static void m3gClearInternal(RenderContext *ctx, Background *bg)
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         m3gFillTargetRect(ctx, 0xFF000000);
         if (ctx->target.buffered) {
-            ctx->backBuffer.contentsValid =
-                (ctx->target.type == SURFACE_MEMORY) ? M3G_FALSE : M3G_TRUE;
+            ctx->backBuffer.contentsValid = M3G_TRUE;
         }
     }
         

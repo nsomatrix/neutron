@@ -426,7 +426,7 @@ static void m3gBlitFrameBufferPixels2(RenderContext *ctx,
 #   define MAX_TEMP_TEXTURES    8
     GLuint glFormat;
     static const int MAX_TILE_SIZE = 256; /* -> 256 KB temp buffer(s) */
-    static const M3Gbyte tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
+    static const GLshort tc[8] = { 0, 0, 0, 1, 1, 0, 1, 1 };
     GLshort pos[8];
     int tileWidth = MAX_TILE_SIZE, tileHeight = MAX_TILE_SIZE;
     M3Gbool mustConvert = M3G_FALSE;
@@ -537,7 +537,7 @@ static void m3gBlitFrameBufferPixels2(RenderContext *ctx,
     /* Set up texture and vertex coordinate arrays for the image tiles */
 
     glClientActiveTexture(GL_TEXTURE0);
-    glTexCoordPointer(2, GL_BYTE, 0, tc);
+    glTexCoordPointer(2, GL_SHORT, 0, tc);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glVertexPointer(2, GL_SHORT, 0, pos);
     glEnableClientState(GL_VERTEX_ARRAY);
@@ -908,6 +908,14 @@ static void m3gBlitFrameBufferPixels(RenderContext *ctx,
     glDisable(GL_ALPHA_TEST);
     glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
+    {
+        int u;
+        for (u = 0; u < 4; ++u) {
+            glClientActiveTexture(GL_TEXTURE0 + u);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+        glClientActiveTexture(GL_TEXTURE0);
+    }
     glDisable(GL_LIGHTING);
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_FALSE);
