@@ -1,141 +1,127 @@
-# Neutron 3D Rendering Pipeline Modernization Roadmap
+# Neutron 3D Rendering Pipeline Modernization Roadmap & Specification
 
 ## Executive Summary
-This roadmap establishes the phased engineering plan to modernize Java ME 3D rendering in **Neutron**, resolving known limitations such as polygon wobbling, texture drifting (affine mapping), and lack of perspective correction. The goal is to achieve visual fidelity and stability matching modern emulators (such as J2ME-Loader) while preserving Neutron's lightweight footprint, zero-dependency portability, and pure-Java cross-platform foundation.
+This document establishes the authoritative, phased engineering specification to modernize the 3D graphics rendering pipeline in **Neutron**. The goal is to surpass the performance, visual stability, and responsiveness of modern emulators (**J2ME-Loader** and **KEmulator**) by leveraging a modern desktop OpenGL Core Profile pipeline (via **LWJGL 3**) while maintaining clean architectural decoupling, zero-cost surface access, and pure-Java software fallback for headless CI.
 
 ---
 
-## Architectural Strategy: Dual-Tier Rendering
+## Architectural Specification: Decoupled Dual-Tier HAL
 
 ```text
-                  +-----------------------------------------------+
-                  |  J2ME 3D APIs (M3G, Micro3D v3, JSR-239 GL)   |
-                  +-----------------------------------------------+
-                                          |
-                        [ 3D Render Backend Interface ]
-                                          |
-            +-----------------------------+-----------------------------+
-            |                                                           |
-+---------------------------------------+   +---------------------------------------+
-|        OpenGL Backend (LWJGL 3)       |   |      Software Backend (Pure Java)     |
-|---------------------------------------|   |---------------------------------------|
-| • Modern GLSL Shaders (vertex/frag)   |   | • 100% portable zero-dependency       |
-| • Hardware Perspective Correction     |   | • Perspective-corrected scanlines     |
-| • 24/32-bit Depth Buffer (Z-buf)      |   | • Floating-point subpixel math        |
-| • Subpixel floating-point mesh        |   | • Headless CI & fallback mode         |
-| • JSR-239 OpenGL ES 1.x / EGL 1.4     |   |                                       |
-+---------------------------------------+   +---------------------------------------+
+                  +───────────────────────────────────────────────+
+                  |         Standard Java ME 3D Client APIs       |
+                  |     (M3G JSR-184 / MascotCapsule Micro3D v3)  |
+                  +───────────────────────────────────────────────+
+                                          │
+                                          ▼
+                  +───────────────────────────────────────────────+
+                  |       Graphics3D Hardware Abstraction Layer   |
+                  |       (org.neutron.graphics3d.spi Interfaces) |
+                  +───────────────────────────────────────────────+
+                                          │
+                Runtime Dispatch: Graphics3DConfig.getBackendType()
+                                          │
+                    ┌─────────────────────┴─────────────────────┐
+                    ▼                                           ▼
++───────────────────────────────────────+   +───────────────────────────────────────+
+│       Modern Desktop OpenGL Core      │   │      Pure-Java Software Fallback      │
+│        (:neutron-opengl / LWJGL 3)    │   │         (Headless / Safe CI)          │
++───────────────────────────────────────+   +───────────────────────────────────────+
+│ • GLSL 1.20 / 3.30+ Core Shaders      │   │ • 100% portable pure Java             │
+│ • VBO/VAO Geometry & Attribute Caches │   │ • DDA scanline triangle rasterizer    │
+│ • Hardware Matrix / MVP Projections   │   │ • Subsampled perspective correction   │
+│ • 24/32-bit Depth Buffer (Z-Buffer)   │   │ • Fixed-point subpixel rounding       │
+│ • Hardware Texture Filtering & Mipmaps│   │ • Safe deterministic CI test runner   │
+│ • Asynchronous Dual PBO Pixel DMA     │   │                                       │
++───────────────────────────────────────+   +───────────────────────────────────────+
 ```
 
 ---
 
-## Phases & Deliverables
+## Detailed Phases & Milestones
 
-### Phase 1: Pure-Java Software Rasterizer Enhancements (Immediate Win) [COMPLETED]
-**Objective:** Eliminate severe drifting and vertex snapping in software mode without external dependencies.
+### Phase 1: Architectural Foundation & Zero-Cost Surface Access [COMPLETED]
+**Objective:** Eliminate reflection in hot loops and establish type-safe SPI contracts between API modules and rendering backends.
 
-1. **JSR-184 (M3G) Perspective Correction Enforcement:** [DONE]
-   - Changed default mode to `MODE_FORCE_ENABLE` with system property overrides (`neutron.m3g.perspective`).
-   - Mode guarantees perspective division on all non-parallel projections, ignoring game disable hints.
-   - Reduced perspective correction subsampling span factor to 3 (4-pixel spans) for sharp interpolation.
+1. **Type-Safe SPI Contracts (`org.neutron.graphics3d.spi`):**
+   - Defined `Micro3DBackend` with explicit methods for figure rendering, primitives, command lists, and lifecycle management (`beginFrame`, `endFrame`, `flush`).
+   - Defined `M3GBackend` with explicit methods for submesh rendering, world traversal, camera/light binding, and target binding.
+   - Refactored `Graphics3DProvider` in `:neutron:neutron-javase` to provide type-safe registration and discovery without runtime reflection.
 
-2. **MascotCapsule Micro3D v3 Subpixel Rounding & Stabilization:** [DONE]
-   - Introduced symmetric half-unit rounding `+ (viewZ >> 1)` and `+ 2048` in `processVertices` projection calculations.
-   - Eliminates 1-pixel truncation hopping and polygon vertex jitter during rotation.
-
-3. **Depth Buffer & Z-Fighting Improvements:** [DONE]
-   - Optimized depth range clamping to prevent overflow on extreme far planes.
-
-4. **CLI & Runtime Controls:** [DONE]
-   - Added command line flags: `--forcePerspective`, `--appPerspective`, `--disablePerspective`, `--bilinear3d`, `--noSubpixel`.
+2. **Direct Frame Surface Access (`DirectFrameSurface`):**
+   - Implemented `DirectFrameSurface` in `neutron-javase` and adopted it across `J2SEDisplayGraphics` and `J2SEGraphicsSurface`.
+   - Replaced dynamic reflection (`getMethod("getGraphicsSurface")`, `getMethod("getImageData")`) in `Graphics3D.bindTarget()` with compile-time interface casts, eliminating reflection and allocation overhead per frame.
 
 ---
 
-### Phase 2: Decoupled Graphics Abstraction Layer (HAL / SPI) [COMPLETED]
-**Objective:** Separate high-level J2ME scene-graph/API logic from rendering backends.
+### Phase 2: Hardware-Accelerated MascotCapsule Micro3D Engine [COMPLETED]
+**Objective:** Deliver locked 60+ FPS in MascotCapsule Micro3D titles (*Resident Evil: Degeneration*, *Ridge Racer*, *Armored Core*, *Silent Hill Mobile*) with zero CPU rasterization.
 
-1. **Define Backend Service Provider Interface (SPI):** [DONE]
-   - Created `org.neutron.graphics3d.RenderBackendType` (`SOFTWARE`, `OPENGL`).
-   - Created `org.neutron.graphics3d.Graphics3DConfig` managing backend selection, perspective, subpixel, and filtering settings.
-   - Created `org.neutron.graphics3d.Graphics3DProvider` registry for pluggable rendering engines.
-   - Added CLI backend selectors (`--opengl3d`, `--software3d`).
-2. **Refactor Existing Engines:** [DONE]
-   - Connected config listeners to software rasterizers across `neutron-jsr-184` and `neutron-micro3d`.
-   - Maintained 100% backward compatibility for headless CLI runs and low-resource environments.
+1. **OpenGL Micro3D Engine Implementation:**
+   - Implemented desktop LWJGL 3 OpenGL Core Profile pipeline in `:neutron:neutron-extensions:neutron-opengl` under `org.neutron.graphics3d.opengl.micro3d.GLMicro3DBackend`.
+   - Wired vertex and fragment GLSL shaders (`tex.vsh`/`tex.fsh`, `color.vsh`/`color.fsh`) supporting ambient, directional, toon, and specular shading.
+   - Supported MascotCapsule primitive rendering: Triangles (C3/T3), Quads (C4/T4), Lines, and Points.
+   - Implemented skeletal bone transformation matrix evaluation, vertex attribute unpacking, and sphere environment mapping.
+   - Implemented `GLTextureCache` for GPU texture recycling and wrapping.
 
----
-
-### Phase 3: Hardware-Accelerated OpenGL Backend (LWJGL 3) [COMPLETED]
-**Objective:** Deliver parity with J2ME-Loader on Android using modern desktop GPU pipelines.
-
-1. **LWJGL 3 Multi-Platform Integration:** [DONE]
-   - Created `:neutron:neutron-extensions:neutron-opengl` module with automated dynamic native detection (`natives-linux`, `natives-windows`, `natives-macos`).
-   - Integrated LWJGL 3.3.3 (`lwjgl`, `lwjgl-opengl`, `lwjgl-glfw`) via Gradle.
-
-2. **Port Proven GLSL Shaders from JL-Mod / J2ME-Loader:** [DONE]
-   - Embedded battle-tested shaders: `tex.vsh`/`tex.fsh`, `color.vsh`/`color.fsh`, `m3d.vsh`/`m3d.fsh`, `simple.vsh`/`simple.fsh`, `sprite.vsh`/`sprite.fsh`.
-   - Created `GLShader` compiler and program linker.
-
-3. **Offscreen Framebuffer Objects (FBO) & Context Architecture:** [DONE]
-   - Implemented `GLContextManager` for invisible GLFW/OpenGL 3.2+ Core / 2.1 legacy context creation with automatic headless fallback.
-   - Implemented `GLFramebuffer` with 24-bit depth renderbuffers and BGRA-to-ARGB pixel readback to Swing surfaces.
-   - Implemented `OpenGLRenderBackend` singleton and SPI auto-registration.
-   - Created `MathUtil` and `BufferUtils` for matrix/buffer handling.
-
-4. **Desktop Swing GUI 3D Controls:** [DONE]
-   - Added interactive 3D options in `SwingVideoSettingsPanel.java`:
-     - 3D Hardware Acceleration toggle (OpenGL GPU)
-     - 3D Force Perspective toggle
-     - 3D Subpixel Precision toggle
-     - 3D Bilinear Texture Filtering toggle
-     - Reset to defaults & revert handling on Cancel.
+2. **SPI Hookup into `neutron-micro3d`:**
+   - In `com.mascotcapsule.micro3d.v3.Graphics3D`, bound `Micro3DBackend` with seamless fallback to Roman Lahin's software `Rasterizer.java` when in headless or CI environments.
 
 ---
 
-### Phase 4: JSR-239 (Khronos OpenGL ES 1.x & EGL) Implementation [COMPLETED]
-**Objective:** Full compatibility with games requiring raw Khronos OpenGL ES / EGL bindings (e.g. Symbian / Android ports, custom 3D engines).
+### Phase 3: Hardware-Accelerated M3G (JSR-184) Pipeline [COMPLETED]
+**Objective:** Full GPU offloading for all JSR-184 titles (*Galaxy on Fire*, *Asphalt 3/4*, *Rally Master Pro*, *Need for Speed*, *Fishlabs* titles).
 
-1. **Specification & API Classes:** [DONE]
-   - Created standard Khronos packages:
-     - `javax.microedition.khronos.egl.*` (`EGL`, `EGL10`, `EGL11`, `EGLConfig`, `EGLContext`, `EGLDisplay`, `EGLSurface`)
-     - `javax.microedition.khronos.opengles.*` (`GL`, `GL10`, `GL11`)
-2. **EGL 1.4 Runtime Bridge:** [DONE]
-   - Implemented `EGL10Impl` connecting EGL surfaces with `GLFramebuffer` and MIDP `Graphics` / `Canvas`.
-   - Wired `eglSwapBuffers` into LCDUI `Graphics.drawRGB` for direct display rendering.
-3. **GL11 Desktop OpenGL Bridge:** [DONE]
-   - Implemented `GL11Impl` mapping mobile OpenGL ES 1.x state, buffers, transforms, and draw calls directly to LWJGL 3 desktop OpenGL.
-4. **Integration & Automated Testing:** [DONE]
-   - Module `:neutron:neutron-extensions:neutron-jsr-239` wired into settings and fat JAR packaging.
-   - Fully passes automated unit tests in `JSR239Test`.
+1. **OpenGL M3G Backend (`GLM3GBackend`):**
+   - Created `GLM3GBackend` implementing `M3GBackend` in `:neutron:neutron-extensions:neutron-opengl`.
+   - Implemented GPU vertex and index buffer streaming (`vtxBuffer`, `texCoordBuffer`, `indexBuffer`).
+   - Implemented hardware compositing blend modes (`REPLACE`, `ALPHA`, `ALPHA_ADD`), depth testing, and face culling.
+   - Built GLSL texture and color shaders with GPU viewport projection.
+
+2. **SPI Hookup into `neutron-jsr-184`:**
+   - Routed `javax.microedition.m3g.Graphics3D.bindTarget()`, `clear()`, `setViewport()`, `setDepthRange()`, `renderSubmesh()`, and `releaseTarget()` directly to `GLM3GBackend`.
+   - Handled zero-copy surface extraction from `DirectFrameSurface`, `Image2D`, `javax.microedition.lcdui.Image`, and `javax.microedition.lcdui.Graphics`.
 
 ---
 
-### Phase 5: Complete Consumer JSR Compatibility Stubs [COMPLETED]
-**Objective:** Zero `NoClassDefFoundError` across late-era J2ME titles.
+### Phase 4: Zero-Stall Frame Presentation & Dual Asynchronous PBO DMA [COMPLETED]
+**Objective:** Eliminate GPU pipeline sync stalls and memory bandwidth bottlenecks during frame presentation.
 
-1. **JSR-205 (Wireless Messaging API 2.0 / MMS):** [DONE]
-   - Upgraded `neutron-jsr-120` with `MultipartMessage`, `MessagePart`, and `SizeExceededException`.
-2. **JSR-172 (J2ME Web Services & XML):** [DONE]
-   - Implemented `:neutron:neutron-extensions:neutron-jsr-172` with `SAXParserFactory`, `SAXParser`, `QName`, and JAX-RPC stubs bridging directly to standard Java SE XML parsing.
-3. **JSR-179 (Location API / GPS):** [DONE]
-   - Implemented `:neutron:neutron-extensions:neutron-jsr-179` with `Coordinates`, `QualifiedCoordinates`, `Location`, `LocationProvider`, `Orientation`, `Criteria`, and `LandmarkStore`.
-4. **JSR-211 (Content Handler API / CHAPI):** [DONE]
-   - Implemented `:neutron:neutron-extensions:neutron-jsr-211` with `Registry`, `Invocation`, `ContentHandler`, `ActionNameMap`, and desktop browser URL redirection.
-5. **JSR-256 (Mobile Sensor API):** [DONE]
-   - Implemented `:neutron:neutron-extensions:neutron-jsr-256` with `SensorManager`, `SensorConnection`, `SensorInfo`, `ChannelInfo`, `Unit`, and condition evaluators (`LimitCondition`, `RangeCondition`, `ObjectCondition`).
+1. **Dual Asynchronous Pixel Buffer Objects (PBOs):**
+   - Replaced blocking `glReadPixels()` in `GLFramebuffer.java` with ping-pong dual PBO DMA transfers (`GL21.GL_PIXEL_PACK_BUFFER`):
+     - Frame $N$: Dispatch non-blocking `glReadPixels(..., 0L)` into active PBO.
+     - Frame $N-1$: Map the alternate completed PBO (`glMapBuffer(..., GL_READ_ONLY)`) directly to memory.
+   - Implemented row-by-row inverted mapping to eliminate secondary pixel array copy passes.
+
+---
+
+### Phase 5: Thread Decoupling & Event Loop Responsiveness [COMPLETED]
+**Objective:** Prevent 3D rendering from freezing the MIDP event dispatch loop or stalling keyboard/touch inputs.
+
+1. **Lock Contention Elimination:**
+   - In `SwingDisplayComponent.java`, narrowed the monitor lock on `this` so it only protects surface reference swapping.
+   - Removed monitor locking during the execution of `deviceDisplay.paintDisplayable()`, preventing MIDP render loops from starving the AWT Event Dispatch Thread (EDT).
+   - Eliminated input latency and UI freeze during high-framerate 3D rendering.
+
+---
+
+### Phase 6: Visual Modernization & High-DPI Upscaling [COMPLETED]
+**Objective:** Deliver visual fidelity and rendering features beyond both KEmulator and J2ME-Loader.
+
+1. **Internal Super-Resolution Scaling:**
+   - Added `internalScale` (1x, 2x, 4x) in `Graphics3DConfig` and `GLFramebuffer`.
+   - Supported rendering 3D geometries at high resolutions (e.g., 960x1280 Retina) while cleanly downsampling or presenting without geometric aliasing.
+2. **True 24/32-bit Depth Buffer:**
+   - Upgraded depth renderbuffer attachment to `GL_DEPTH_COMPONENT24` to eliminate Z-fighting and polygon flickering.
+3. **Hardware Filtering & PBO Controls:**
+   - Exposed unified configurations for bilinear texture filtering, asynchronous PBO DMA, subpixel precision, and perspective division.
 
 ---
 
 ## Verification & Compatibility Matrix
-- **Target 3D Architectural Profiles:**
-  - JSR-184 (M3G) Third-Person & Action Titles
-  - JSR-184 (M3G) Space Simulation & Racing Titles
-  - MascotCapsule Micro3D v3 Action & Survival Titles
-  - JSR-239 Khronos OpenGL ES 1.x Mobile Ports
-- **Validation Criteria:**
-  - Universal mathematical frustum clipping (zero inverted/flipped projection artifacts).
-  - Hardware perspective division with zero texture shearing.
-  - Smooth vertex movement without PS1-style coordinate snapping.
-  - Full support for JSR-184 (M3G), MascotCapsule Micro3D v3, and JSR-239 (OpenGL ES 1.x).
-  - 100% clean class resolution without `NoClassDefFoundError` across all standard Java ME JSRs.
-  - Full automated test suite passes across all platforms.
+- **Automated Regression Testing:** 100% of existing tests must pass across all Gradle modules.
+- **Headless Safety:** The test runner and headless CLI must operate seamlessly without native GLFW display errors.
+- **Target Profiles:**
+  - JSR-184 (M3G) Racing, Flight, and Action Titles
+  - MascotCapsule Micro3D v3 3D Action & Adventure Titles
+  - JSR-239 OpenGL ES 1.x Symbian/Android Ports

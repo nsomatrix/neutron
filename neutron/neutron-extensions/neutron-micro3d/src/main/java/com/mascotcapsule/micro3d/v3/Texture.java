@@ -232,4 +232,28 @@ public class Texture {
 		envmapData = null;
 		palette = null;
 	}
+
+	public final byte[] getBitmapData() {
+		return bitmapData;
+	}
+
+	public final int[] getOrigPalette() {
+		return origPalette;
+	}
+
+	public final int[] getEnvmapData() {
+		return envmapData;
+	}
+
+	public final int getWidth() {
+		return width;
+	}
+
+	public final int getHeight() {
+		return height;
+	}
+
+	public final boolean isForModel() {
+		return isForModel;
+	}
 }

@@ -98,6 +98,34 @@ public class FigureLayout {
 		centerY = cy;
 	}
 
+	public final int getProjectionMode() {
+		return projectionMode;
+	}
+
+	public final int getNear() {
+		return near;
+	}
+
+	public final int getFar() {
+		return far;
+	}
+
+	public final int getAngle() {
+		return angle;
+	}
+
+	public final int getPerspectiveWidth() {
+		return perspectiveWidth;
+	}
+
+	public final int getPerspectiveHeight() {
+		return perspectiveHeight;
+	}
+
+	public final AffineTrans[] getAffineArray() {
+		return affineArray;
+	}
+
 	public final void setParallelSize(int w, int h) {
 		if (w < 0 || h < 0) {
 			throw new IllegalArgumentException();

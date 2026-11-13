@@ -5,6 +5,8 @@
  */
 package org.neutron.graphics3d;
 
+import org.neutron.graphics3d.spi.M3GBackend;
+import org.neutron.graphics3d.spi.Micro3DBackend;
 import org.neutron.log.Logger;
 
 /**
@@ -12,32 +14,31 @@ import org.neutron.log.Logger;
  */
 public final class Graphics3DProvider {
 
-    private static Object activeMicro3DBackend;
-    private static Object activeM3GBackend;
+    private static Micro3DBackend activeMicro3DBackend;
+    private static M3GBackend activeM3GBackend;
 
     private Graphics3DProvider() {
     }
 
-    public static Object getActiveMicro3DBackend() {
+    public static Micro3DBackend getActiveMicro3DBackend() {
         return activeMicro3DBackend;
     }
 
-    public static void registerMicro3DBackend(Object backend) {
+    public static void registerMicro3DBackend(Micro3DBackend backend) {
         activeMicro3DBackend = backend;
         if (backend != null) {
-            Logger.debug("Registered Micro3D render backend: " + backend.getClass().getName());
+            Logger.info("Registered Micro3D render backend: " + backend.getClass().getName());
         }
     }
 
-    public static Object getActiveM3GBackend() {
+    public static M3GBackend getActiveM3GBackend() {
         return activeM3GBackend;
     }
 
-    public static void registerM3GBackend(Object backend) {
+    public static void registerM3GBackend(M3GBackend backend) {
         activeM3GBackend = backend;
         if (backend != null) {
-            Logger.debug("Registered M3G render backend: " + backend.getClass().getName());
+            Logger.info("Registered M3G render backend: " + backend.getClass().getName());
         }
     }
 }
-

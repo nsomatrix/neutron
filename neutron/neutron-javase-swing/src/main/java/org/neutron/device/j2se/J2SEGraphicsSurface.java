@@ -38,7 +38,9 @@ import java.awt.image.SinglePixelPackedSampleModel;
 import java.awt.image.WritableRaster;
 import java.util.Hashtable;
 
-public class J2SEGraphicsSurface {
+import org.neutron.graphics3d.spi.DirectFrameSurface;
+
+public class J2SEGraphicsSurface implements DirectFrameSurface {
 	
     private static final DirectColorModel ALPHA_COLOR_MODEL = 
         new DirectColorModel(32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0xff000000);
@@ -81,6 +83,16 @@ public class J2SEGraphicsSurface {
 
 	public int[] getImageData() {
 		return imageData;
+	}
+
+	@Override
+	public int getWidth() {
+		return image != null ? image.getWidth() : 0;
+	}
+
+	@Override
+	public int getHeight() {
+		return image != null ? image.getHeight() : 0;
 	}
 
 }

@@ -16,6 +16,10 @@ public final class Graphics3DConfig {
     private static boolean bilinearFiltering;
     private static boolean subpixelPrecision;
     private static int perspectiveSubFactor;
+    private static int internalScale;
+    private static int msaaSamples;
+    private static int anisotropicLevel;
+    private static boolean asyncPbo;
 
     static {
         // Initialize from system properties with modern defaults
@@ -32,6 +36,10 @@ public final class Graphics3DConfig {
         bilinearFiltering = Boolean.parseBoolean(System.getProperty("neutron.3d.bilinear", "false"));
         subpixelPrecision = Boolean.parseBoolean(System.getProperty("neutron.3d.subpixel", "true"));
         perspectiveSubFactor = Integer.getInteger("neutron.3d.subfactor", 3);
+        internalScale = Integer.getInteger("neutron.3d.scale", 1);
+        msaaSamples = Integer.getInteger("neutron.3d.msaa", 0);
+        anisotropicLevel = Integer.getInteger("neutron.3d.anisotropy", 0);
+        asyncPbo = Boolean.parseBoolean(System.getProperty("neutron.3d.pbo", "true"));
     }
 
     private Graphics3DConfig() {
@@ -79,6 +87,44 @@ public final class Graphics3DConfig {
         if (subFactor >= 0 && subFactor <= 31) {
             perspectiveSubFactor = subFactor;
         }
+    }
+
+    public static int getInternalScale() {
+        return internalScale;
+    }
+
+    public static void setInternalScale(int scale) {
+        if (scale >= 1 && scale <= 8) {
+            internalScale = scale;
+        }
+    }
+
+    public static int getMsaaSamples() {
+        return msaaSamples;
+    }
+
+    public static void setMsaaSamples(int samples) {
+        if (samples >= 0 && samples <= 16) {
+            msaaSamples = samples;
+        }
+    }
+
+    public static int getAnisotropicLevel() {
+        return anisotropicLevel;
+    }
+
+    public static void setAnisotropicLevel(int level) {
+        if (level >= 0 && level <= 16) {
+            anisotropicLevel = level;
+        }
+    }
+
+    public static boolean isAsyncPbo() {
+        return asyncPbo;
+    }
+
+    public static void setAsyncPbo(boolean enabled) {
+        asyncPbo = enabled;
     }
 }
 

@@ -109,4 +109,46 @@ public class Micro3DTest {
 	public void testActionTableNotFoundThrowsIOException() throws Exception {
 		new ActionTable("missing_action.tra");
 	}
+
+	@Test
+	public void testSPIDelegation() {
+		final boolean[] flags = new boolean[4]; // [bound, flushed, released, rendered]
+
+		org.neutron.graphics3d.spi.Micro3DBackend mockBackend = new org.neutron.graphics3d.spi.Micro3DBackend() {
+			public boolean isAvailable() { return true; }
+			public boolean init() { return true; }
+			public void bind(Object target, int width, int height) { flags[0] = true; }
+			public void release() { flags[2] = true; }
+			public void flush() { flags[1] = true; }
+			public void renderFigure(Object figure, int x, int y, Object layout, Object effect) { flags[3] = true; }
+			public void drawFigure(Object figure, int x, int y, Object layout, Object effect) {}
+			public void renderPrimitives(Object texture, int x, int y, Object layout, Object effect, int command, int numPrimitives, int[] vertexCoords, int[] normalCoords, int[] textureCoords, int[] colorCoords) {}
+			public void drawCommandList(Object[] textures, int x, int y, Object layout, Object effect, int[] commandList) {}
+			public void drawCommandList(Object texture, int x, int y, Object layout, Object effect, int[] commandList) {}
+		};
+
+		org.neutron.graphics3d.Graphics3DProvider.registerMicro3DBackend(mockBackend);
+		org.neutron.graphics3d.Graphics3DConfig.setBackendType(org.neutron.graphics3d.RenderBackendType.OPENGL);
+
+		Graphics g = new Graphics() {
+			public int getClipX() { return 0; }
+			public int getClipY() { return 0; }
+			public int getClipWidth() { return 240; }
+			public int getClipHeight() { return 320; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {}
+		};
+
+		Graphics3D g3d = new Graphics3D();
+		g3d.bind(g);
+		Assert.assertTrue("Backend must be bound via SPI", flags[0]);
+
+		g3d.flush();
+		Assert.assertTrue("Backend must be flushed via SPI", flags[1]);
+
+		g3d.release(g);
+		Assert.assertTrue("Backend must be released via SPI", flags[2]);
+
+		// Reset provider
+		org.neutron.graphics3d.Graphics3DProvider.registerMicro3DBackend(null);
+	}
 }

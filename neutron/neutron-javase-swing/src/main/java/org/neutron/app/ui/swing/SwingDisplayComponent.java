@@ -714,7 +714,9 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 							device.getDeviceDisplay().getFullWidth(), device.getDeviceDisplay().getFullHeight(), false, 0x000000);
 				}
 				localSurface = graphicsSurface;
+			}
 
+			if (localSurface != null) {
 				synchronized (localSurface) {
 					deviceDisplay.paintDisplayable(localSurface, x, y, width, height);
 					if (!deviceDisplay.isFullScreenMode()) {

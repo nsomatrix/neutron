@@ -39,8 +39,9 @@ import javax.microedition.lcdui.game.Sprite;
 import org.neutron.device.Device;
 import org.neutron.device.DeviceFactory;
 import org.neutron.device.j2se.J2SEGraphicsSurface;
+import org.neutron.graphics3d.spi.DirectFrameSurface;
 
-public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
+public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics implements DirectFrameSurface {
 
     private static final int COLOR_CACHE_SIZE = 4096;
     private static final int COLOR_CACHE_MASK = COLOR_CACHE_SIZE - 1;
@@ -571,6 +572,21 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics {
 
     public J2SEGraphicsSurface getGraphicsSurface() {
         return graphicsSurface;
+    }
+
+    @Override
+    public int[] getImageData() {
+        return graphicsSurface != null ? graphicsSurface.getImageData() : null;
+    }
+
+    @Override
+    public int getWidth() {
+        return graphicsSurface != null ? graphicsSurface.getWidth() : 0;
+    }
+
+    @Override
+    public int getHeight() {
+        return graphicsSurface != null ? graphicsSurface.getHeight() : 0;
     }
 
     private void blendPixel(int[] destData, int destOffset, int srcARGB) {

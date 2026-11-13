@@ -7,8 +7,12 @@ package com.mascotcapsule.micro3d.v3;
 
 import javax.microedition.lcdui.Graphics;
 import org.neutron.graphics3d.Graphics3DConfig;
+import org.neutron.graphics3d.Graphics3DProvider;
+import org.neutron.graphics3d.RenderBackendType;
+import org.neutron.graphics3d.spi.Micro3DBackend;
 
 public class Graphics3D {
+	private Micro3DBackend activeGlBackend;
 	//Constants
 	public static final int COMMAND_LIST_VERSION_1_0 = 0xFE000001;
 	public static final int COMMAND_END = 0x80000000;
@@ -307,6 +311,19 @@ public class Graphics3D {
 		if (graphics == null) throw new NullPointerException();
 		if (boundGraphics != null) throw new IllegalStateException();
 		
+		if (Graphics3DConfig.getBackendType() == RenderBackendType.OPENGL) {
+			activeGlBackend = Graphics3DProvider.getActiveMicro3DBackend();
+			if (activeGlBackend != null && activeGlBackend.isAvailable()) {
+				int w = graphics.getClipWidth() > 0 ? graphics.getClipWidth() : 240;
+				int h = graphics.getClipHeight() > 0 ? graphics.getClipHeight() : 320;
+				activeGlBackend.bind(graphics, w, h);
+			} else {
+				activeGlBackend = null;
+			}
+		} else {
+			activeGlBackend = null;
+		}
+
 		long startTime = System.currentTimeMillis();
 
 		boundGraphics = graphics;
@@ -470,6 +487,11 @@ public class Graphics3D {
 		if (disposed) return;
 		if (boundGraphics == null) throw new IllegalStateException();
 		
+		if (activeGlBackend != null) {
+			activeGlBackend.flush();
+			return;
+		}
+
 		long startTime = System.currentTimeMillis();
 		
 		if (sortPrimCount > 0) {
@@ -525,6 +547,13 @@ public class Graphics3D {
 		if (graphics == null) throw new NullPointerException();
 		if (graphics != boundGraphics) throw new IllegalArgumentException();
 		
+		if (activeGlBackend != null) {
+			activeGlBackend.release();
+			activeGlBackend = null;
+			boundGraphics = null;
+			return;
+		}
+
 		boolean showSomeStats = MascotME.showFPS | MascotME.showTimeMetrics | MascotME.showHeapUsage;
 		
 		if (!MascotME.no2DInbetween && !showSomeStats) {
@@ -1143,6 +1172,11 @@ public class Graphics3D {
 			throw new NullPointerException();
 		}
 		
+		if (activeGlBackend != null) {
+			activeGlBackend.renderFigure(figure, x, y, layout, effect);
+			return;
+		}
+
 		long startTime = System.currentTimeMillis();
 
 		AffineTrans viewTrans = layout.getAffineTrans();
@@ -1472,6 +1506,11 @@ public class Graphics3D {
 		}
 		if (boundGraphics == null) throw new IllegalStateException();
 		
+		if (activeGlBackend != null) {
+			activeGlBackend.renderPrimitives(texture, x, y, layout, effect, command, numPrimitives, vertexCoords, normals, textureCoords, colors);
+			return;
+		}
+		
 		int normalType = command & PDATA_NORMAL_MASK;
 		
 		boolean hasTextureCoord = (command & PDATA_TEXURE_COORD) != 0;
@@ -1537,6 +1576,10 @@ public class Graphics3D {
 			int[] commandList
 	) {
 		if (disposed) return;
+		if (activeGlBackend != null) {
+			activeGlBackend.drawCommandList(textures, x, y, layout, effect, commandList);
+			return;
+		}
 		long startTime = System.currentTimeMillis();
 		
 		Texture tex = (textures != null && textures.length > 0) ? textures[0] : null;
@@ -1551,6 +1594,10 @@ public class Graphics3D {
 			int[] commandList
 	) {
 		if (disposed) return;
+		if (activeGlBackend != null) {
+			activeGlBackend.drawCommandList(texture, x, y, layout, effect, commandList);
+			return;
+		}
 		long startTime = System.currentTimeMillis();
 		drawCommandList(null, texture, x, y, layout, effect, commandList);
 		primCmdAccum += (int) (System.currentTimeMillis() - startTime);

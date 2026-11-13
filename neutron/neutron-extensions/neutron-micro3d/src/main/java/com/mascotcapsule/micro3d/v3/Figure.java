@@ -52,14 +52,19 @@ public class Figure {
 	int[] colors;
 	int allMatsAnd = 0xffffffff, allMatsOr = 0x00000000;
 
-	static class Bone {
-		int startVertex;
-		int numVertices;
-		int parentIndex;
-		AffineTrans localTrans;
+	public static class Bone {
+		public int startVertex;
+		public int numVertices;
+		public int parentIndex;
+		public AffineTrans localTrans;
+
+		public int getStartVertex() { return startVertex; }
+		public int getNumVertices() { return numVertices; }
+		public int getParentIndex() { return parentIndex; }
+		public AffineTrans getLocalTrans() { return localTrans; }
 	}
-	Bone[] bones;
-	int numBones;
+	public Bone[] bones;
+	public int numBones;
 
 	ActionTable actionTable;
 	Action activeAction;
@@ -692,4 +697,27 @@ public class Figure {
 
 	public final int getNumPattern() { return patterns.length; }
 	public final void setPattern(int idx) { this.selectedPattern = idx; }
+
+	public final short[] getVertices() { return vertices; }
+	public final short[] getNormals() { return normals; }
+	public final int getNumVertices() { return numVertices; }
+	public final short[] getPolyC3() { return polyC3; }
+	public final short[] getPolyC4() { return polyC4; }
+	public final short[] getPolyT3() { return polyT3; }
+	public final short[] getPolyT4() { return polyT4; }
+	public final int getNumPolyC3() { return numPolyC3; }
+	public final int getNumPolyC4() { return numPolyC4; }
+	public final int getNumPolyT3() { return numPolyT3; }
+	public final int getNumPolyT4() { return numPolyT4; }
+	public final int[] getColors() { return colors; }
+	public final Bone[] getBones() { return bones; }
+	public final int getNumBones() { return numBones; }
+	public final Texture[] getTextures() { return textures; }
+	public final int getTextureIndex() { return textureIndex; }
+	public final int[][][] getPatterns() { return patterns; }
+	public final int getSelectedPattern() { return selectedPattern; }
+
+	public final void updateBoneTransPublic(int boneIdx, AffineTrans viewTrans, AffineTrans[] tmpTrans) {
+		updateBoneTrans(boneIdx, viewTrans, tmpTrans);
+	}
 }

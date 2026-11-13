@@ -30,11 +30,15 @@ import javax.microedition.lcdui.Graphics;
 import java.util.ArrayList;
 import java.util.Arrays;
 import org.neutron.graphics3d.Graphics3DConfig;
+import org.neutron.graphics3d.Graphics3DProvider;
+import org.neutron.graphics3d.RenderBackendType;
+import org.neutron.graphics3d.spi.M3GBackend;
 
 
 public class Graphics3D
 {
 	private boolean isDirectFramebuffer = false;
+	private M3GBackend activeGlBackend;
 
 	/*
 	 * Depth buffer clear value: the maximum depth (1.0 in window coordinates)
@@ -331,21 +335,38 @@ public class Graphics3D
 			int h = -1;
 			int[] directBuf = null;
 
-			try
+			if (pgrp instanceof org.neutron.graphics3d.spi.DirectFrameSurface)
 			{
-				java.lang.reflect.Method mGetSurface = pgrp.getClass().getMethod("getGraphicsSurface");
-				Object surface = mGetSurface.invoke(pgrp);
-				if (surface != null)
-				{
-					java.lang.reflect.Method mGetImageData = surface.getClass().getMethod("getImageData");
-					directBuf = (int[]) mGetImageData.invoke(surface);
-					java.lang.reflect.Method mGetImage = surface.getClass().getMethod("getImage");
-					java.awt.image.BufferedImage bimg = (java.awt.image.BufferedImage) mGetImage.invoke(surface);
-					w = bimg.getWidth();
-					h = bimg.getHeight();
-				}
+				org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) pgrp;
+				directBuf = dfs.getImageData();
+				w = dfs.getWidth();
+				h = dfs.getHeight();
 			}
-			catch (Throwable ignored) {}
+			else
+			{
+				try
+				{
+					java.lang.reflect.Method mGetSurface = pgrp.getClass().getMethod("getGraphicsSurface");
+					Object surface = mGetSurface.invoke(pgrp);
+					if (surface instanceof org.neutron.graphics3d.spi.DirectFrameSurface)
+					{
+						org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) surface;
+						directBuf = dfs.getImageData();
+						w = dfs.getWidth();
+						h = dfs.getHeight();
+					}
+					else if (surface != null)
+					{
+						java.lang.reflect.Method mGetImageData = surface.getClass().getMethod("getImageData");
+						directBuf = (int[]) mGetImageData.invoke(surface);
+						java.lang.reflect.Method mGetImage = surface.getClass().getMethod("getImage");
+						java.awt.image.BufferedImage bimg = (java.awt.image.BufferedImage) mGetImage.invoke(surface);
+						w = bimg.getWidth();
+						h = bimg.getHeight();
+					}
+				}
+				catch (Throwable ignored) {}
+			}
 
 			if (directBuf != null && w > 0 && h > 0)
 			{
@@ -424,6 +445,19 @@ public class Graphics3D
 		Arrays.fill(this.depthBuffer, DEPTH_CLEAR_VALUE);
 		this.depthEnabled = depthBuffer;
 		this.hints = hints;
+
+		if (Graphics3DConfig.getBackendType() == RenderBackendType.OPENGL) {
+			M3GBackend backend = Graphics3DProvider.getActiveM3GBackend();
+			if (backend != null && backend.isAvailable() && backend.init()) {
+				this.activeGlBackend = backend;
+				this.activeGlBackend.bindTarget(target, canvasWidth, canvasHeight, depthBuffer, hints);
+				this.activeGlBackend.setViewport(this.viewx, this.viewy, this.vieww, this.viewh);
+			} else {
+				this.activeGlBackend = null;
+			}
+		} else {
+			this.activeGlBackend = null;
+		}
 	}
 
 	public void clear(Background background)
@@ -438,6 +472,12 @@ public class Graphics3D
 		{
 			M3GLog.log(M3GLog.LOG_WARNING, Graphics3D.class.getPackage().getName() + "." + Graphics3D.class.getSimpleName() + ": " + "clear() called without a render target, ignoring.");
 			return;
+		}
+
+		if (this.activeGlBackend != null)
+		{
+			final int clr = (background != null) ? background.getColor() : 0x00000000;
+			this.activeGlBackend.clear(clr, 1.0f);
 		}
 
 		final int color = (background != null) ? background.getColor() : 0x00000000;
@@ -580,6 +620,14 @@ public class Graphics3D
 
 	public void releaseTarget()
 	{
+		if (this.activeGlBackend != null)
+		{
+			this.activeGlBackend.releaseTarget();
+			this.activeGlBackend = null;
+			this.target = null;
+			return;
+		}
+
 		if (this.target != null)
 		{
 			if (!isDirectFramebuffer)
@@ -694,6 +742,12 @@ public class Graphics3D
 		 * objects parked inside a Group), so ignoring this draws them all at the origin.
 		 */
 		if ((scope & this.currCam.getScope()) == 0) { return; }
+
+		if (this.activeGlBackend != null)
+		{
+			this.activeGlBackend.renderSubmesh(vertices, triangles, appearance, transform, scope, alphaFactor);
+			return;
+		}
 
 		final int projType = this.currCam.getProjection((float []) null);
 
@@ -1331,6 +1385,9 @@ public class Graphics3D
 		{
 			this.near=near;
 			this.far=far;
+			if (this.activeGlBackend != null) {
+				this.activeGlBackend.setDepthRange(near, far);
+			}
 		}
 	}
 
@@ -1359,6 +1416,10 @@ public class Graphics3D
 		this.viewy = y;
 		this.vieww = width;
 		this.viewh = height;
+
+		if (this.activeGlBackend != null) {
+			this.activeGlBackend.setViewport(x, y, width, height);
+		}
 
 		/*
 		 * As per JSR-184, the viewport can be freely repositioned relative to the
