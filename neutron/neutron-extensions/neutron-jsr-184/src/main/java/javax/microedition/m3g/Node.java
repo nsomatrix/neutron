@@ -1,504 +1,176 @@
 /*
- * Neutron 
- * 
- *  It is licensed under the following two licenses as alternatives:
- *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
- *    2. Apache License (the "AL") Version 2.0
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
  *
- *  You may not use this file except in compliance with at least one of
- *  the above two licenses.
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
  *
- *  You may obtain a copy of the LGPL at
- *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ * Contributors:
  *
- *  You may obtain a copy of the AL at
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Description:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the LGPL or the AL for the specific language governing permissions and
- *  limitations.
- * 
  */
+
 package javax.microedition.m3g;
 
-import java.util.IdentityHashMap;
-import java.util.Vector;
+public abstract class Node extends Transformable {
+	//------------------------------------------------------------------
+	// Static data
+	//------------------------------------------------------------------
 
-public abstract class Node extends Transformable
-{
-	public static final int NONE  = 144;
-	public static final int ORIGIN  = 145;
-	public static final int X_AXIS  = 146;
-	public static final int Y_AXIS  = 147;
-	public static final int Z_AXIS  = 148;
+	public static final int NONE = 144;
+	public static final int ORIGIN = 145;
+	public static final int X_AXIS = 146;
+	public static final int Y_AXIS = 147;
+	public static final int Z_AXIS = 148;
 
-	public Node parent = null;
-	public Node left;
-	public Node right;
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
-	private Node yRef = null;
-	private Node zRef = null;
-	private int yTarget = NONE;
-	private int zTarget = NONE;
-	private float alphaFactor = 1.0f;
-	private boolean picking = true;
-	private boolean rendering = true;
-	private int scope = -1;
+	// The node references are kept on the Java side to avoid having
+	// to replicate garbage collection in the native implementation.
+	// Instead, we let Java manage Node reachability detection and
+	// deletion.
 
-	boolean hasRenderables = false;
-	boolean hasBones = false;
-	boolean[] dirtyBits = new boolean[2]; // {renderablesBit, bonesBit}
+	private Node parent;
+	private Node zRef, yRef;
 
-	// Cached transforms for getTransformTo()
-	Transform thisToRoot = new Transform();
-	Transform targetToRoot = new Transform();
-	Transform temp = new Transform();
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
 
-	protected Object3D duplicateImpl()
-	{
-		Node copy = (Node) super.duplicateImpl();
-		copy.parent = null;
-		copy.left = null;
-		copy.right = null;
-		copy.dirtyBits = new boolean[]{ false, false };
-
-		IdentityHashMap<Object3D, Object3D> map = Object3D.getActiveDuplicatesMap();
-		copy.zTarget = this.zTarget;
-		copy.yTarget = this.yTarget;
-		copy.zRef = (map != null && map.get(this.zRef) instanceof Node) ? (Node) map.get(this.zRef) : this.zRef;
-		copy.yRef = (map != null && map.get(this.yRef) instanceof Node) ? (Node) map.get(this.yRef) : this.yRef;
-
-		return copy;
-	}
-
-	boolean doAlign(Node ref) { return computeAlignment(ref == null ? this : ref); }
-
-	public final void align(Node reference)
-	{
-		M3GLog.log(M3GLog.LOG_DEBUG, Node.class.getPackage().getName() + "." + Node.class.getSimpleName() + ": " + "Node Alignment requested");
-		if (reference != null && (this.getRootNode() != reference.getRootNode())) { throw new IllegalArgumentException(); }
-
-		doAlign(reference == null ? this : reference);
-	}
-
-	boolean computeAlignment(Node refNode)
-	{
-		if (zTarget == NONE && yTarget == NONE) { return true; }
-
-		Node root = getRootNode();
-		if (zRef != null && (isChildOf(this, zRef) || zRef.getRootNode() != root)) { return false; }
-		if (yRef != null && (isChildOf(this, yRef) || yRef.getRootNode() != root)) { return false; }
-
-		if (zTarget != NONE)
-		{
-			Node targetNode = (zRef != null) ? zRef : refNode;
-			if (targetNode == this) { return false; }
-			if (!computeAlignmentRotation(new float[]{0, 0, 1}, targetNode, zTarget, NONE)) { return false; }
-		}
-
-		if (yTarget != NONE)
-		{
-			Node targetNode = (yRef != null) ? yRef : refNode;
-			if (targetNode == this) { return false; }
-			if (!computeAlignmentRotation(new float[]{0, 1, 0}, targetNode, yTarget, (zTarget != NONE) ? Z_AXIS : NONE)) { return false; }
-		}
-
-		return true;
-	}
-
-	private boolean computeAlignmentRotation(float[] srcAxis, Node targetNode, int targetAxisName, int constraint)
-	{
-		if (this.parent == null) return true;
-
-		Transform transform = new Transform();
-		if (!targetNode.getTransformTo(this.parent, transform)) return false;
-
-		float[] transformMatrix = new float[16];
-		float[] orientation = new float[4];
-		float[] targetAxis = new float[4];
-
-		getOrientation(orientation);
-
-		/*
-		 * As per JSR-184, the alignment rotation is computed in the reference frame
-		 * defined by the T component of this node's transformation alone. Axis targets
-		 * are transformed as vectors and are unaffected, but ORIGIN targets are
-		 * transformed as points and must be made relative to this node's position,
-		 * so premultiply the target-to-parent transform by T^-1 (which only offsets
-		 * its translation column).
-		 */
-		float[] translation = new float[3];
-		getTranslation(translation);
-		transform.get(transformMatrix);
-		transformMatrix[3] -= translation[0];
-		transformMatrix[7] -= translation[1];
-		transformMatrix[11] -= translation[2];
-		transform.set(transformMatrix);
-
-		if (constraint != NONE)
-		{
-			/*
-			 * Constrained (Y axis) alignment: as per JSR-184, the Y target must be
-			 * expressed in the frame resulting from the Z rotation computed just
-			 * before, i.e. tY' = Rz^-1 * tY. The inverse rotation is obtained by
-			 * negating the angle, not the axis' Z component.
-			 */
-			transform.preRotate(-orientation[0], orientation[1], orientation[2], orientation[3]);
-		}
-
-		transform.get(transformMatrix);
-		transformAlignmentTarget(targetAxisName, transformMatrix, targetAxis);
-
-		if (constraint == Z_AXIS)
-		{
-			float norm = targetAxis[0] * targetAxis[0] + targetAxis[1] * targetAxis[1];
-			if (norm < 1.0e-5f) return true;
-			norm = 1.0f / M3GMath.sqrt(norm);
-			targetAxis[0] *= norm;
-			targetAxis[1] *= norm;
-			targetAxis[2] = 0.0f;
-		}
-		else
-		{
-			float norm = targetAxis[0] * targetAxis[0] + targetAxis[1] * targetAxis[1] + targetAxis[2] * targetAxis[2];
-			if (norm > 1.0e-5f)
-			{
-				norm = 1.0f / M3GMath.sqrt(norm);
-				targetAxis[0] *= norm;
-				targetAxis[1] *= norm;
-				targetAxis[2] *= norm;
-			}
-		}
-
-		float[] rot = M3GMath.setQuatRotation(srcAxis, targetAxis);
-
-		if (constraint != NONE)
-		{
-			/* Final alignment rotation as per JSR-184: A = Rz * Ry. */
-			float[] quatZ = M3GMath.angleAxisToQuat(orientation[0], orientation[1], orientation[2], orientation[3]);
-			float[] newOrientation = new float[4];
-			M3GMath.mulQuat(quatZ, rot, newOrientation);
-			rot = newOrientation;
-		}
-
-		/*
-		 * As per JSR-184, align() overwrites the R component of the node transform.
-		 * Note that rot is a quaternion, NOT the (angleDegrees, ax, ay, az) tuple
-		 * that setOrientation expects, so it must be applied as a quaternion.
-		 */
-		setOrientationQuat(rot[0], rot[1], rot[2], rot[3]);
-		return true;
-	}
-
-	static void transformAlignmentTarget(int target, float[] transform, float[] out)
-	{
-		out[0] = 0; out[1] = 0; out[2] = 0; out[3] = 0;
-
-		switch (target)
-		{
-			case ORIGIN: out[3] = 1.0f; break;
-			case X_AXIS: out[0] = 1.0f; break;
-			case Y_AXIS: out[1] = 1.0f; break;
-			case Z_AXIS: out[2] = 1.0f; break;
-		}
-
-		float x = transform[0] * out[0] + transform[1] * out[1] + transform[2] * out[2] + transform[3] * out[3];
-		float y = transform[4] * out[0] + transform[5] * out[1] + transform[6] * out[2] + transform[7] * out[3];
-		float z = transform[8] * out[0] + transform[9] * out[1] + transform[10] * out[2] + transform[11] * out[3];
-
-		out[0] = x;
-		out[1] = y;
-		out[2] = z;
-		out[3] = 0;
-	}
-
-	static boolean isChildOf(Node parent, Node child)
-	{
-		for (Node n = child; n != null; n = n.parent)
-		{
-			if (n.parent == parent) { return true; }
-		}
-
-		return false;
-	}
-
-	/*
-	 * Returns the node in dstRoot occupying the same relative position as
-	 * srcNode in srcRoot, assuming both trees have an identical structure.
-	 * Used to rewire intra-tree references (e.g. bones, the active camera)
-	 * after duplicating a scene graph branch. Returns null if srcNode is
-	 * not a descendant of srcRoot.
+	/**
+	 * There is only a package private constructor. Applications can not extend
+	 * this class directly.</p>
 	 */
-	static Node matchingNode(Node srcRoot, Node srcNode, Node dstRoot)
-	{
-		if (srcNode == srcRoot) { return dstRoot; }
-
-		// Compute the depth of srcNode relative to the tree root.
-		int depth = 0;
-		for (Node n = srcNode; n != srcRoot; n = n.getParent())
-		{
-			if (n == null) { return null; }
-			depth++;
-		}
-
-		// Collect the child indices from the root down to the node.
-		int[] indices = new int[depth];
-		int i = depth;
-		for (Node n = srcNode; n != srcRoot; )
-		{
-			Node parent = n.getParent();
-			if (!(parent instanceof Group)) { return null; }
-
-			Group g = (Group) parent;
-			int idx = -1;
-			int children = g.getChildCount();
-			for (int c = 0; c < children; c++)
-			{
-				if (g.getChild(c) == n) { idx = c; break; }
-			}
-			if (idx < 0) { return null; }
-
-			indices[--i] = idx;
-			n = parent;
-		}
-
-		// Walk the same path in the destination tree.
-		Node dst = dstRoot;
-		for (i = 0; i < indices.length; i++)
-		{
-			if (!(dst instanceof Group) || indices[i] >= ((Group) dst).getChildCount()) { return null; }
-			dst = ((Group) dst).getChild(indices[i]);
-		}
-
-		return dst;
+	Node(long handle) {
+		super(handle);
+		parent = (Node) getInstance(_getParent(handle));
+		zRef = (Node) getInstance(_getZRef(handle));
+		yRef = (Node) getInstance(_getYRef(handle));
 	}
 
-	public Node getAlignmentReference(int axis)
-	{
-		if(axis == Y_AXIS) { return this.yRef; }
-		else if(axis == Z_AXIS) { return this.zRef; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-		/* If it's not Y_AXIS or Z_AXIS, throw IllegalArgumentException as per JSR-184. */
-		throw new IllegalArgumentException("Tried requesting alignment reference on invalid axis.");
+	public Node getParent() {
+		return parent;
 	}
 
-	public int getAlignmentTarget(int axis)
-	{
-		if(axis == Y_AXIS) { return this.yTarget; }
-		else if(axis == Z_AXIS) { return this.zTarget; }
-
-		/* If it's not Y_AXIS or Z_AXIS, throw IllegalArgumentException as per JSR-184. */
-		throw new IllegalArgumentException("Tried requesting alignment target on invalid axis.");
+	public boolean getTransformTo(Node target, Transform transform) {
+		return _getTransformTo(handle,
+				target.handle,
+				transform != null ? transform.matrix : null);
 	}
 
-	public float getAlphaFactor() { return this.alphaFactor; }
-
-	public Node getParent() { return this.parent; }
-
-	/* Mostly used so we can find whether a child node*/
-	public Node getRootNode()
-	{
-		Node root = this;
-		while (root.parent != null)
-		{
-			root = root.parent;
-		}
-		return root;
+	public void setAlignment(Node zReference, int zTarget,
+							 Node yReference, int yTarget) {
+		_setAlignment(handle,
+				zReference != null ? zReference.handle : 0, zTarget,
+				yReference != null ? yReference.handle : 0, yTarget);
+		zRef = zReference;
+		yRef = yReference;
 	}
 
-	public int getScope() { return this.scope; }
-
-	public boolean getTransformTo(Node target, Transform transform)
-	{
-		if (target == null) { throw new NullPointerException("Target node cannot be null"); }
-		if (transform == null) { throw new NullPointerException("Transform object cannot be null"); }
-
-		if (target == this)
-		{
-			transform.setIdentity();
-			return true;
-		}
-
-		Vector<Node> pathThis = new Vector<Node>();
-		for (Node n = this; n != null; n = n.parent)
-			{ pathThis.addElement(n); }
-
-		Vector<Node> pathTarget = new Vector<Node>();
-		for (Node n = target; n != null; n = n.parent)
-			{ pathTarget.addElement(n); }
-
-		// Check this and target share the same root.
-		if (pathThis.elementAt(pathThis.size() - 1) != pathTarget.elementAt(pathTarget.size() - 1))
-			{ return false; }
-
-		int i = pathThis.size() - 1;
-		int j = pathTarget.size() - 1;
-		while (i >= 0 && j >= 0 && pathThis.elementAt(i) == pathTarget.elementAt(j))
-		{
-			i--;
-			j--;
-		}
-		int lcaIndexThis = i + 1;
-		int lcaIndexTarget = j + 1;
-
-		// We accumulate transforms from this node all the way to the
-		// lowest ancestor common to both nodes
-		thisToRoot.setIdentity();
-		temp.setIdentity();
-		for (int k = lcaIndexThis - 1; k >= 0; k--)
-		{
-			Node n = (Node) pathThis.elementAt(k);
-			n.getCompositeTransform(temp);
-			thisToRoot.postMultiply(temp);
-		}
-
-		// Same for the target
-		targetToRoot.setIdentity();
-		for (int k = lcaIndexTarget - 1; k >= 0; k--)
-		{
-			Node n = (Node) pathTarget.elementAt(k);
-			n.getCompositeTransform(temp);
-			targetToRoot.postMultiply(temp);
-		}
-
-		// Will throw exception if matrix is not invertible
-		targetToRoot.invert();
-
-		targetToRoot.postMultiply(thisToRoot);
-		transform.set(targetToRoot);
-		return true;
+	public void setAlphaFactor(float alphaFactor) {
+		_setAlphaFactor(handle, alphaFactor);
 	}
 
-	public boolean isPickingEnabled() { return this.picking; }
-
-	public boolean isRenderingEnabled() { return this.rendering; }
-
-	public void setAlignment(Node zRef, int zTarget, Node yRef, int yTarget)
-	{
-		/*
-		 * As per JSR-184, throw IllegalArgumentException if:
-		 * yTarget or zTarget is not one of the symbolic constants listed above
-		 * (zRef == yRef) && (zTarget == yTarget != NONE)
-		 * zRef or yRef is this Node.
-		 */
-		if ((zTarget != NONE && zTarget != X_AXIS && zTarget != Y_AXIS && zTarget != Z_AXIS && zTarget != ORIGIN) ||
-			(yTarget != NONE && yTarget != X_AXIS && yTarget != Y_AXIS && yTarget != Z_AXIS && yTarget != ORIGIN))
-			{ throw new IllegalArgumentException("Node target axis is invalid."); }
-		if (zRef == yRef && zTarget == yTarget && zTarget != NONE)
-			{ throw new IllegalArgumentException("Tried to align with two references having the same axis."); }
-		if (zRef == this || yRef == this)
-			{ throw new IllegalArgumentException("Tried to use this node as one of the reference nodes."); }
-
-		this.zRef = (zTarget != NONE) ? zRef : null;
-		this.yRef = (yTarget != NONE) ? yRef : null;
-		this.zTarget = zTarget;
-		this.yTarget = yTarget;
+	public float getAlphaFactor() {
+		return _getAlphaFactor(handle);
 	}
 
-	public void setAlphaFactor(float alphaFactor)
-	{
-		/* As per JSR-184, throw IllegalArgumentException if factor < 0 or factor > 1.0.*/
-		if (alphaFactor < 0 || alphaFactor > 1)
-			{ throw new IllegalArgumentException("Tried to set AlphaFactor with out of range value."); }
-
-		this.alphaFactor = alphaFactor;
+	public void setRenderingEnable(boolean enable) {
+		_enable(handle, Defs.SETGET_RENDERING, enable);
 	}
 
-	public void setPickingEnable(boolean enable) { this.picking = enable; }
+	public boolean isRenderingEnabled() {
+		return _isEnabled(handle, Defs.SETGET_RENDERING);
+	}
 
-	public void setRenderingEnable(boolean enable) { this.rendering = enable; }
+	public void setPickingEnable(boolean enable) {
+		_enable(handle, Defs.SETGET_PICKING, enable);
+	}
 
-	public void setScope(int scope) { this.scope = scope; }
+	public boolean isPickingEnabled() {
+		return _isEnabled(handle, Defs.SETGET_PICKING);
+	}
 
-	void setParent(Node parent)
-	{
-		int nonCullableChange = getNonCullableCount();
-		int renderableChange = getRenderableCount();
+	public void setScope(int id) {
+		_setScope(handle, id);
+	}
 
-		if (this.parent != null)
-		{
-			this.parent.updateNodeCounters(-nonCullableChange, -renderableChange);
-			if (renderableChange != 0)
-			{
-				this.parent.invalidateNode(new boolean[]{ true, true });
-			}
+	public int getScope() {
+		return _getScope(handle);
+	}
+
+	public final void align(Node reference) {
+		_align(handle, reference != null ? reference.handle : 0);
+	}
+
+	// M3G 1.1 Maintenance release getters
+
+	public Node getAlignmentReference(int axis) {
+		switch (axis) {
+			case Y_AXIS:
+				return yRef;
+			case Z_AXIS:
+				return zRef;
+			default:
+				throw new IllegalArgumentException();
 		}
+	}
 
+	public int getAlignmentTarget(int axis) {
+		return _getAlignmentTarget(handle, axis);
+	}
+
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	void setParent(Node parent) {
 		this.parent = parent;
-
-		if (parent != null)
-		{
-			boolean[] flags = new boolean[]{ renderableChange != 0, hasBones };
-			parent.updateNodeCounters(nonCullableChange, renderableChange);
-			parent.invalidateNode(flags);
-		}
 	}
 
-	void invalidateNode(boolean[] flags)
-	{
-		Node node = this;
-		while (node != null && (node.dirtyBits[0] != flags[0] || node.dirtyBits[1] != flags[1]))
-		{
-			System.arraycopy(flags, 0, node.dirtyBits, 0, 2);
-			node = node.parent;
-		}
-	}
+	// Native methods
+	private static native boolean _getTransformTo(long handle,
+												  long hTarget,
+												  byte[] transform);
 
-	void updateNodeCounters(int nonCullableChange, int renderableChange)
-	{
-		boolean hasRenderables = (renderableChange > 0);
-		Node node = this;
-		while (node != null)
-		{
-			if (node instanceof Group || node instanceof World)
-			{
-				((Group) node).numNonCullables += nonCullableChange;
-				((Group) node).numRenderables += renderableChange;
-				hasRenderables = ((Group) node).numRenderables > 0;
-			}
-			node.hasRenderables = hasRenderables;
-			node = node.parent;
-		}
-	}
+	private static native void _align(long handle, long refHandle);
 
-	// Getters for renderable/cullable count in Group objects.
-	int getRenderableCount() { return 0; }
-	int getNonCullableCount() { return 0; }
+	private static native void _setAlignment(long handle,
+											 long hZReference, int zTarget,
+											 long hYReference, int yTarget);
 
-	@Override
-	void updateProperty(int property, float[] value)
-	{
-		M3GLog.log(M3GLog.LOG_DEBUG, Node.class.getPackage().getName() + "." + Node.class.getSimpleName() + ": " + "AnimTrack updating Node property");
-		switch (property)
-		{
-			case AnimationTrack.ALPHA:
-				setAlphaFactor(M3GMath.max(0.0f, M3GMath.min(1.0f, value[0])));
-				break;
-			case AnimationTrack.PICKABILITY:
-				setPickingEnable(value[0] >= 0.5f);
-				break;
-			case AnimationTrack.VISIBILITY:
-				setRenderingEnable(value[0] >= 0.5f);
-				this.dirtyBits[0] = true;
-				break;
-			default:
-				super.updateProperty(property, value);
-		}
-	}
+	private static native void _setAlphaFactor(long handle, float alphaFactor);
 
+	private static native float _getAlphaFactor(long handle);
 
-	boolean animTrackCompatible(AnimationTrack track)
-	{
-		switch (track.getTargetProperty())
-		{
-			case AnimationTrack.ALPHA:
-			case AnimationTrack.VISIBILITY:
-			case AnimationTrack.PICKABILITY:
-				return true;
-			default:
-				return super.animTrackCompatible(track);
-		}
-	}
+	private static native void _enable(long handle, int which, boolean enable);
+
+	private static native boolean _isEnabled(long handle, int which);
+
+	private static native void _setScope(long handle, int id);
+
+	private static native int _getScope(long handle);
+
+	private static native long _getParent(long handle);
+
+	private static native long _getZRef(long handle);
+
+	private static native long _getYRef(long handle);
+
+	static native int _getSubtreeSize(long handle);
+
+	// M3G 1.1 Maintenance release getters
+	private static native int _getAlignmentTarget(long handle, int axis);
 }

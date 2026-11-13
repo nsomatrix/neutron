@@ -1,142 +1,121 @@
 /*
- * Neutron 
- * 
- *  It is licensed under the following two licenses as alternatives:
- *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
- *    2. Apache License (the "AL") Version 2.0
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
  *
- *  You may not use this file except in compliance with at least one of
- *  the above two licenses.
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
  *
- *  You may obtain a copy of the LGPL at
- *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ * Contributors:
  *
- *  You may obtain a copy of the AL at
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Description:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the LGPL or the AL for the specific language governing permissions and
- *  limitations.
- * 
  */
+
 package javax.microedition.m3g;
 
+public class Sprite3D extends Node {
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
-public class Sprite3D extends Node
-{
 	private Image2D image;
 	private Appearance appearance;
-	private boolean scaled;
 
-	private int cropw;
-	private int croph;
-	private int cropx;
-	private int cropy;
+	//------------------------------------------------------------------
+	// Constructors
+	//------------------------------------------------------------------
 
-	public Sprite3D(boolean isScaled, Image2D img, Appearance a)
-	{
-		/* As per JSR-184, the image cannot be null, and the crop rectangle initially covers the whole image. */
-		if (img == null) { throw new NullPointerException("Cannot create a Sprite3D with a null image."); }
-		scaled = isScaled;
-		setImage(img);
-		setAppearance(a);
-		cropx = 0;
-		cropy = 0;
-		cropw = img.getWidth();
-		croph = img.getHeight();
+	public Sprite3D(boolean scaled, Image2D image, Appearance appearance) {
+		super(_ctor(Interface.getHandle(),
+				scaled,
+				image != null ? image.handle : 0,
+				appearance != null ? appearance.handle : 0));
+		this.image = image;
+		this.appearance = appearance;
 	}
 
-	protected Object3D duplicateImpl()
-	{
-		Sprite3D copy = (Sprite3D) super.duplicateImpl();
-
-		copy.scaled = this.scaled;
-		copy.setCrop(this.cropx, this.cropy, this.cropw, this.croph);
-
-		copy.setImage(this.image);
-		copy.setAppearance(this.getAppearance());
-		return copy;
+	/**
+	 */
+	Sprite3D(long handle) {
+		super(handle);
+		image = (Image2D) getInstance(_getImage(handle));
+		appearance = (Appearance) getInstance(_getAppearance(handle));
 	}
 
-	public Appearance getAppearance() { return appearance; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-	public int getCropHeight() { return croph; }
-
-	public int getCropWidth() { return cropw; }
-
-	public int getCropX() { return cropx; }
-
-	public int getCropY() { return cropy; }
-
-	public Image2D getImage() { return image; }
-
-	public boolean isScaled() { return scaled; }
-
-	public void setAppearance(Appearance a)
-	{
-		removeReference(appearance);
-		appearance = a;
-		addReference(appearance);
+	public boolean isScaled() {
+		return _isScaled(handle);
 	}
 
-	public void setCrop(int cropX, int cropY, int width, int height)
-	{
-		if (M3GMath.abs(width) > Graphics3D.MAX_TEXTURE_DIMENSION ||
-			M3GMath.abs(height) > Graphics3D.MAX_TEXTURE_DIMENSION)
-		{
-			throw new IllegalArgumentException("Crop width or height magnitude exceeds MAX_TEXTURE_DIMENSION");
-		}
-		cropx=cropX;
-		cropy=cropY;
-		cropw=width;
-		croph=height;
+	public void setAppearance(Appearance appearance) {
+		_setAppearance(handle, appearance != null ? appearance.handle : 0);
+		this.appearance = appearance;
 	}
 
-	public void setImage(Image2D img)
-	{
-		if(img == null) { throw new NullPointerException("Cannot set null image on a Sprite3D"); }
-		removeReference(this.image);
-		this.image = img;
-		addReference(this.image);
-		cropx = 0;
-		cropy = 0;
-		cropw = img.getWidth();
-		croph = img.getHeight();
+	public Appearance getAppearance() {
+		return appearance;
 	}
 
-	@Override
-	void updateProperty(int property, float[] value)
-	{
-		M3GLog.log(M3GLog.LOG_DEBUG, Graphics3D.class.getPackage().getName() + "." + Graphics3D.class.getSimpleName() + ": " + "AnimTrack updating Sprite3D property");
-		switch (property)
-		{
-			case AnimationTrack.CROP:
-				if (value.length > 2)
-				{
-					setCrop((int)value[0], (int)value[1], (int) M3GMath.max(-Graphics3D.MAX_TEXTURE_DIMENSION, M3GMath.min(Graphics3D.MAX_TEXTURE_DIMENSION, value[2])),
-							(int) M3GMath.max(-Graphics3D.MAX_TEXTURE_DIMENSION, M3GMath.min(Graphics3D.MAX_TEXTURE_DIMENSION, value[3])));
-				}
-				else
-				{
-					setCrop((int)value[0], (int)value[1], getCropWidth(), getCropHeight());
-				}
-				break;
-
-			default:
-				super.updateProperty(property, value);
-		}
+	public void setImage(Image2D image) {
+		_setImage(handle, image != null ? image.handle : 0);
+		this.image = image;
 	}
 
-	boolean animTrackCompatible(AnimationTrack track)
-	{
-		switch (track.getTargetProperty())
-		{
-			case AnimationTrack.CROP:
-				return true;
-			default:
-				return super.animTrackCompatible(track);
-		}
+	public Image2D getImage() {
+		return image;
 	}
+
+	public void setCrop(int cropX, int cropY, int width, int height) {
+		_setCrop(handle, cropX, cropY, width, height);
+	}
+
+	public int getCropX() {
+		return _getCrop(handle, Defs.GET_CROPX);
+	}
+
+	public int getCropY() {
+		return _getCrop(handle, Defs.GET_CROPY);
+	}
+
+	public int getCropWidth() {
+		return _getCrop(handle, Defs.GET_CROPWIDTH);
+	}
+
+	public int getCropHeight() {
+		return _getCrop(handle, Defs.GET_CROPHEIGHT);
+	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	// Native methods
+
+	private static native long _ctor(long hInterface,
+									boolean scaled,
+									long hImage,
+									long hAppearance);
+
+	private static native boolean _isScaled(long handle);
+
+	private static native void _setAppearance(long handle, long hAppearance);
+
+	private static native void _setImage(long handle, long hImage);
+
+	private static native void _setCrop(long handle,
+										int cropX, int cropY,
+										int width, int height);
+
+	private static native int _getCrop(long handle, int which);
+
+	private static native long _getAppearance(long handle);
+
+	private static native long _getImage(long handle);
 }

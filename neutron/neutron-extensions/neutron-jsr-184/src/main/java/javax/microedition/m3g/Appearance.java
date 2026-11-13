@@ -1,134 +1,151 @@
 /*
- * Neutron 
- * 
- *  It is licensed under the following two licenses as alternatives:
- *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
- *    2. Apache License (the "AL") Version 2.0
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
  *
- *  You may not use this file except in compliance with at least one of
- *  the above two licenses.
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
  *
- *  You may obtain a copy of the LGPL at
- *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ * Contributors:
  *
- *  You may obtain a copy of the AL at
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Description:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the LGPL or the AL for the specific language governing permissions and
- *  limitations.
- * 
  */
+
 package javax.microedition.m3g;
 
-public class Appearance extends Object3D
-{
+public class Appearance extends Object3D {
+	//------------------------------------------------------------------
+	// Instance data
+	//------------------------------------------------------------------
 
-	private int layer;
 	private CompositingMode compositingMode;
 	private Fog fog;
-	private PolygonMode polygonMode;
 	private Material material;
+	private PolygonMode polygonMode;
 	private Texture2D[] textures;
 
-	public Appearance()
-	{
-		this.layer = 0;
-		this.polygonMode = null;
-		this.compositingMode = null;
-		this.textures = new Texture2D[Graphics3D.NUM_TEXTURE_UNITS];
-		this.material = null;
-		this.fog = null;
+	//------------------------------------------------------------------
+	// Constructor(s)
+	//------------------------------------------------------------------
+
+	public Appearance() {
+		super(_ctor(Interface.getHandle()));
 	}
 
-	protected Object3D duplicateImpl()
-	{
-		Appearance copy = (Appearance) super.duplicateImpl();
+	/**
+	 */
+	Appearance(long handle) {
+		super(handle);
 
-		copy.layer = this.layer;
+		compositingMode = (CompositingMode) getInstance(_getCompositingMode(handle));
+		fog = (Fog) getInstance(_getFog(handle));
+		material = (Material) getInstance(_getMaterial(handle));
+		polygonMode = (PolygonMode) getInstance(_getPolygonMode(handle));
 
-		copy.setCompositingMode(this.compositingMode);
-		copy.setFog(this.fog);
-		copy.setMaterial(this.material);
-		copy.setPolygonMode(this.polygonMode);
+		textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
 
-		copy.textures = new Texture2D[this.textures.length];
-		for (int i = 0; i < this.textures.length; i++)
-		{
-			copy.setTexture(i, this.textures[i]);
+		for (int i = 0; i < Defs.NUM_TEXTURE_UNITS; ++i) {
+			textures[i] = (Texture2D) getInstance(_getTexture(handle, i));
 		}
-
-		return copy;
 	}
 
-	public void setLayer(int layer)
-	{
-		if (layer < -63 || layer > 63)
-		{
-			throw new IllegalArgumentException("Layer must be in range of [-63, 63]");
-		}
-		this.layer = layer;
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
+
+	public void setCompositingMode(CompositingMode compositingMode) {
+		_setCompositingMode(handle,
+				compositingMode != null
+						? compositingMode.handle
+						: 0);
+		this.compositingMode = compositingMode;
 	}
 
-	public int getLayer() { return layer; }
+	public CompositingMode getCompositingMode() {
+		return compositingMode;
+	}
 
-	public void setFog(Fog fog)
-	{
-		this.removeReference(this.fog);
+	public void setFog(Fog fog) {
+		_setFog(handle, fog != null ? fog.handle : 0);
 		this.fog = fog;
-		this.addReference(this.fog);
 	}
 
-	public Fog getFog() { return fog; }
+	public Fog getFog() {
+		return fog;
+	}
 
-	public void setPolygonMode(PolygonMode polygonMode)
-	{
-		this.removeReference(this.polygonMode);
+	public void setPolygonMode(PolygonMode polygonMode) {
+		_setPolygonMode(handle, polygonMode != null ? polygonMode.handle : 0);
 		this.polygonMode = polygonMode;
-		this.addReference(this.polygonMode);
 	}
 
-	public PolygonMode getPolygonMode() { return polygonMode; }
+	public PolygonMode getPolygonMode() {
+		return polygonMode;
+	}
 
-	public void setMaterial(Material material)
-	{
-		this.removeReference(this.material);
+	public void setLayer(int index) {
+		_setLayer(handle, index);
+	}
+
+	public int getLayer() {
+		return _getLayer(handle);
+	}
+
+	public void setMaterial(Material material) {
+		_setMaterial(handle, material != null ? material.handle : 0);
 		this.material = material;
-		this.addReference(this.material);
 	}
 
-	public Material getMaterial() { return material; }
-
-	public void setCompositingMode(CompositingMode comp)
-	{
-		this.removeReference(this.compositingMode);
-		this.compositingMode = comp;
-		this.addReference(this.compositingMode);
+	public Material getMaterial() {
+		return material;
 	}
 
-	public CompositingMode getCompositingMode() { return this.compositingMode; }
+	public void setTexture(int unit, Texture2D texture) {
+		_setTexture(handle, unit, texture != null ? texture.handle : 0);
 
-	public void setTexture(int index, Texture2D texture)
-	{
-		if (index < 0 || index >= textures.length)
-		{
-			throw new IndexOutOfBoundsException("index must be in [0," + textures.length + "]");
+		if (textures == null) {
+			textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
 		}
-
-		this.removeReference(textures[index]);
-		textures[index] = texture;
-		this.addReference(textures[index]);
+		textures[unit] = texture;
 	}
 
-	public Texture2D getTexture(int index)
-	{
-		if (index < 0 || index >= textures.length)
-		{
-			throw new IndexOutOfBoundsException("index must be in [0," + textures.length + "]");
-		}
-
-		return textures[index];
+	public Texture2D getTexture(int unit) {
+		return (Texture2D) getInstance(_getTexture(handle, unit));
 	}
+
+	//------------------------------------------------------------------
+	// Private methods
+	//------------------------------------------------------------------
+
+	private static native long _ctor(long hInterface);
+
+	private static native long _getCompositingMode(long hApp);
+
+	private static native long _getFog(long hApp);
+
+	private static native int _getLayer(long hApp);
+
+	private static native long _getMaterial(long hApp);
+
+	private static native long _getPolygonMode(long hApp);
+
+	private static native long _getTexture(long hApp, int unit);
+
+	private static native void _setCompositingMode(long hApp, long hMode);
+
+	private static native void _setFog(long hApp, long hFog);
+
+	private static native void _setLayer(long hApp, int layer);
+
+	private static native void _setMaterial(long hApp, long hMaterial);
+
+	private static native void _setPolygonMode(long hApp, long hMode);
+
+	private static native void _setTexture(long hApp,
+										   int unit,
+										   long hTexture);
 }

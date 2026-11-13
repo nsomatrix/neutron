@@ -1,114 +1,105 @@
 /*
- * Neutron 
- * 
- *  It is licensed under the following two licenses as alternatives:
- *    1. GNU Lesser General Public License (the "LGPL") version 2.1 or any newer version
- *    2. Apache License (the "AL") Version 2.0
+ * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
+ * All rights reserved.
+ * This component and the accompanying materials are made available
+ * under the terms of "Eclipse Public License v1.0"
+ * which accompanies this distribution, and is available
+ * at the URL "http://www.eclipse.org/legal/epl-v10.html".
  *
- *  You may not use this file except in compliance with at least one of
- *  the above two licenses.
+ * Initial Contributors:
+ * Nokia Corporation - initial contribution.
  *
- *  You may obtain a copy of the LGPL at
- *      http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt
+ * Contributors:
  *
- *  You may obtain a copy of the AL at
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Description:
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the LGPL or the AL for the specific language governing permissions and
- *  limitations.
- * 
  */
+
 package javax.microedition.m3g;
 
-public class AnimationController extends Object3D
-{
+public class AnimationController extends Object3D {
+	//------------------------------------------------------------------
+	// Constructor
+	//------------------------------------------------------------------
 
-	private int activationTime = 0;
-	private int deactivationTime = 0;
-	private float speed = 1.0f;
-	private int refWorldTime = 0;
-	private float refSequenceTime = 0;
-	private float weight = 1.0f;
-
-	protected Object3D duplicateImpl()
-	{
-		AnimationController copy = (AnimationController) super.duplicateImpl();
-		copy.activationTime = this.activationTime;
-		copy.deactivationTime = this.deactivationTime;
-		copy.speed = this.speed;
-		copy.refWorldTime = this.refWorldTime;
-		copy.refSequenceTime = this.refSequenceTime;
-		copy.weight = this.weight;
-		return copy;
+	public AnimationController() {
+		super(_ctor(Interface.getHandle()));
 	}
 
-	public boolean isActive(int worldTime)
-	{
-		// start == end? Then the controller is active at all world times
-		if (activationTime == deactivationTime) { return true; }
-
-		return (worldTime >= activationTime && worldTime < deactivationTime);
+	/**
+	 */
+	AnimationController(long handle) {
+		super(handle);
 	}
 
-	public int timeToActivation(int worldTime)
-	{
-		if (worldTime < activationTime) { return activationTime - worldTime; }
-		else if (worldTime <= deactivationTime) { return 0; }
+	//------------------------------------------------------------------
+	// Public methods
+	//------------------------------------------------------------------
 
-		return Integer.MAX_VALUE;
+	public void setActiveInterval(int worldTimeMin, int worldTimeMax) {
+		_setActiveInterval(handle, worldTimeMin, worldTimeMax);
 	}
 
-	public int timeToDeactivation(int worldTime)
-	{
-		if (worldTime < deactivationTime) { return deactivationTime - worldTime; }
-
-		return Integer.MAX_VALUE;
+	public int getActiveIntervalStart() {
+		return _getActiveIntervalStart(handle);
 	}
 
-	public void setActiveInterval(int start, int end)
-	{
-		if (start > end)
-			throw new IllegalArgumentException("Start time must be inferior to end time");
-
-		activationTime = start;
-		deactivationTime = end;
+	public int getActiveIntervalEnd() {
+		return _getActiveIntervalEnd(handle);
 	}
 
-	public int getActiveIntervalStart() { return activationTime; }
-
-	public int getActiveIntervalEnd() { return deactivationTime; }
-
-	public void setSpeed(float speed, int worldTime)
-	{
-		this.refSequenceTime = getPosition(worldTime);
-		this.refWorldTime = worldTime;
-		this.speed = speed;
+	public void setSpeed(float factor, int worldTime) {
+		_setSpeed(handle, factor, worldTime);
 	}
 
-	public float getSpeed() { return speed; }
-
-	public void setPosition(float sequenceTime, int worldTime)
-	{
-		this.refSequenceTime = sequenceTime;
-		this.refWorldTime = worldTime;
+	public float getSpeed() {
+		return _getSpeed(handle);
 	}
 
-	public float getPosition(int worldTime)
-	{
-		return (refSequenceTime + (speed * (float) (worldTime - refWorldTime)));
+	public void setPosition(float time, int worldTime) {
+		_setPosition(handle, time, worldTime);
 	}
 
-	public int getRefWorldTime() { return refWorldTime; }
-
-	public void setWeight(float weight)
-	{
-		if (weight < 0)
-			throw new IllegalArgumentException("Weight must be positive or zero");
-		this.weight = weight;
+	public float getPosition(int worldTime) {
+		return _getPosition(handle, worldTime);
 	}
 
-	public float getWeight() { return weight; }
+	public void setWeight(float weight) {
+		_setWeight(handle, weight);
+	}
+
+	public float getWeight() {
+		return _getWeight(handle);
+	}
+
+	// M3G maintenance version 1.1
+	public int getRefWorldTime() {
+		return _getRefWorldTime(handle);
+	}
+
+
+	// Native methods
+	private native static long _ctor(long hInterface);
+
+	private native static void _setActiveInterval(long handle, int worldTimeMin, int worldTimeMax);
+
+	private native static int _getActiveIntervalStart(long handle);
+
+	private native static int _getActiveIntervalEnd(long handle);
+
+	private native static void _setSpeed(long handle, float factor, int worldTime);
+
+	private native static float _getSpeed(long handle);
+
+	private native static void _setPosition(long handle, float time, int worldTime);
+
+	private native static float _getPosition(long handle, int worldTime);
+
+	private native static void _setWeight(long handle, float weight);
+
+	private native static float _getWeight(long handle);
+
+	// M3G maintenance version 1.1
+	private native static int _getRefWorldTime(long handle);
+
 }
