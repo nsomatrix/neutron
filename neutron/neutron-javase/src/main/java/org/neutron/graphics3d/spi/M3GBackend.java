@@ -59,6 +59,14 @@ public interface M3GBackend {
     void setDepthRange(float near, float far);
 
     /**
+     * Sets the active Camera and camera-to-world transform for projection.
+     *
+     * @param camera    active Camera object
+     * @param transform camera transform (view transform)
+     */
+    void setCamera(Object camera, Object transform);
+
+    /**
      * Renders a submesh (VertexBuffer + IndexBuffer + Appearance).
      */
     void renderSubmesh(Object vertices, Object triangles, Object appearance, Object transform, int scope, int alphaFactor);

@@ -12,6 +12,7 @@ import org.neutron.graphics3d.Graphics3DConfig;
 import org.neutron.graphics3d.opengl.GLContextManager;
 import org.neutron.graphics3d.opengl.GLFramebuffer;
 import org.neutron.graphics3d.opengl.GLShader;
+import org.neutron.graphics3d.opengl.MathUtil;
 import org.neutron.graphics3d.spi.DirectFrameSurface;
 import org.neutron.graphics3d.spi.M3GBackend;
 import org.neutron.log.Logger;
@@ -39,6 +40,16 @@ public class GLM3GBackend implements M3GBackend {
     private Object currentTarget;
     private int width;
     private int height;
+
+    private Camera activeCamera;
+    private final Transform activeCameraTrans = new Transform();
+    private final Transform activeCameraTransInv = new Transform();
+    private final float[] projMatrix = new float[16];
+    private final float[] viewMatrix = new float[16];
+    private final float[] vpMatrix = new float[16];
+    private final float[] mvpMatrix = new float[16];
+    private final FloatBuffer mvpBuffer = BufferUtils.createFloatBuffer(16);
+    private final FloatBuffer texMatBuffer = BufferUtils.createFloatBuffer(16);
 
     private FloatBuffer vtxBuffer;
     private FloatBuffer normalBuffer;
@@ -69,13 +80,13 @@ public class GLM3GBackend implements M3GBackend {
 
         try {
             GLContextManager.makeCurrent();
-            texShader = new GLShader("/shaders/tex.vsh", "/shaders/tex.fsh");
-            colorShader = new GLShader("/shaders/color.vsh", "/shaders/color.fsh");
+            texShader = new GLShader("/shaders/m3g/m3g_tex.vsh", "/shaders/m3g/m3g_tex.fsh");
+            colorShader = new GLShader("/shaders/m3g/m3g_color.vsh", "/shaders/m3g/m3g_color.fsh");
 
             vtxBuffer = BufferUtils.createFloatBuffer(65536 * 3);
             normalBuffer = BufferUtils.createFloatBuffer(65536 * 3);
             texCoordBuffer = BufferUtils.createFloatBuffer(65536 * 2);
-            colorBuffer = BufferUtils.createFloatBuffer(65536 * 3);
+            colorBuffer = BufferUtils.createFloatBuffer(65536 * 4);
             indexBuffer = BufferUtils.createIntBuffer(65536);
 
             initialized = true;
@@ -122,23 +133,11 @@ public class GLM3GBackend implements M3GBackend {
             if (data != null) {
                 framebuffer.readPixels(data);
             }
-        } else if (currentTarget instanceof javax.microedition.lcdui.Image) {
-            javax.microedition.lcdui.Graphics g = ((javax.microedition.lcdui.Image) currentTarget).getGraphics();
-            if (g instanceof DirectFrameSurface) {
-                framebuffer.readPixels(((DirectFrameSurface) g).getImageData());
-            } else {
-                int[] pixels = new int[width * height];
-                framebuffer.readPixels(pixels);
-                g.drawRGB(pixels, 0, width, 0, 0, width, height, false);
-            }
         } else if (currentTarget instanceof javax.microedition.lcdui.Graphics) {
             int[] pixels = new int[width * height];
             framebuffer.readPixels(pixels);
             ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(pixels, 0, width, 0, 0, width, height, false);
         }
-
-        framebuffer.unbind();
-        currentTarget = null;
     }
 
     @Override
@@ -148,10 +147,10 @@ public class GLM3GBackend implements M3GBackend {
         GLContextManager.makeCurrent();
         framebuffer.bind();
 
-        float r = ((clearColor >> 16) & 0xFF) / 255.0f;
-        float g = ((clearColor >> 8) & 0xFF) / 255.0f;
-        float b = (clearColor & 0xFF) / 255.0f;
-        float a = ((clearColor >> 24) & 0xFF) / 255.0f;
+        float a = ((clearColor >> 24) & 0xff) / 255.0f;
+        float r = ((clearColor >> 16) & 0xff) / 255.0f;
+        float g = ((clearColor >> 8) & 0xff) / 255.0f;
+        float b = (clearColor & 0xff) / 255.0f;
 
         GL11.glClearColor(r, g, b, a);
         GL11.glClearDepth(clearDepth);
@@ -169,6 +168,29 @@ public class GLM3GBackend implements M3GBackend {
     public void setDepthRange(float near, float far) {
         if (!initialized) return;
         GL11.glDepthRange(near, far);
+    }
+
+    @Override
+    public void setCamera(Object cameraObj, Object transformObj) {
+        if (cameraObj instanceof Camera) {
+            this.activeCamera = (Camera) cameraObj;
+            Transform camProj = new Transform();
+            this.activeCamera.getProjection(camProj);
+            camProj.get(this.projMatrix);
+
+            if (transformObj instanceof Transform) {
+                this.activeCameraTrans.set((Transform) transformObj);
+                this.activeCameraTransInv.set((Transform) transformObj);
+            } else {
+                this.activeCameraTrans.setIdentity();
+                this.activeCameraTransInv.setIdentity();
+            }
+            this.activeCameraTransInv.invert();
+            this.activeCameraTransInv.get(this.viewMatrix);
+
+            // Compute VP = Projection * View
+            MathUtil.multiplyMM(this.vpMatrix, this.projMatrix, this.viewMatrix);
+        }
     }
 
     @Override
@@ -201,12 +223,19 @@ public class GLM3GBackend implements M3GBackend {
 
         // CompositingMode
         CompositingMode cmode = appearance.getCompositingMode();
-        if (cmode != null && cmode.getBlending() != CompositingMode.REPLACE) {
-            GL11.glEnable(GL11.GL_BLEND);
-            if (cmode.getBlending() == CompositingMode.ALPHA_ADD) {
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+        float alphaThreshold = 0.0f;
+        if (cmode != null) {
+            alphaThreshold = cmode.getAlphaThreshold();
+            int blending = cmode.getBlending();
+            if (blending != CompositingMode.REPLACE) {
+                GL11.glEnable(GL11.GL_BLEND);
+                if (blending == CompositingMode.ALPHA_ADD) {
+                    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE);
+                } else {
+                    GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                }
             } else {
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glDisable(GL11.GL_BLEND);
             }
         } else {
             GL11.glDisable(GL11.GL_BLEND);
@@ -219,15 +248,10 @@ public class GLM3GBackend implements M3GBackend {
 
         int numVerts = posArray.getVertexCount();
         float[] rawPos = new float[numVerts * 4];
-        Transform tr = new Transform();
-        if (transform != null) {
-            tr.set(transform);
-        } else {
-            tr.setIdentity();
-        }
-        tr.postTranslate(scaleBias[1], scaleBias[2], scaleBias[3]);
-        tr.postScale(scaleBias[0], scaleBias[0], scaleBias[0]);
-        tr.transform(posArray, rawPos, true);
+        Transform modelTr = new Transform();
+        modelTr.postTranslate(scaleBias[1], scaleBias[2], scaleBias[3]);
+        modelTr.postScale(scaleBias[0], scaleBias[0], scaleBias[0]);
+        modelTr.transform(posArray, rawPos, true);
 
         vtxBuffer.clear();
         for (int i = 0; i < numVerts; i++) {
@@ -235,13 +259,33 @@ public class GLM3GBackend implements M3GBackend {
         }
         vtxBuffer.flip();
 
-        // Texture
+        // Model Transform Matrix
+        float[] modelMat = new float[16];
+        if (transform != null) {
+            transform.get(modelMat);
+        } else {
+            Transform id = new Transform();
+            id.setIdentity();
+            id.get(modelMat);
+        }
+
+        // MVP = VP * Model
+        MathUtil.multiplyMM(this.mvpMatrix, this.vpMatrix, modelMat);
+        mvpBuffer.clear();
+        mvpBuffer.put(this.mvpMatrix).flip();
+
+        // Texture setup
         Texture2D tex = appearance.getTexture(0);
         int texId = 0;
-        float texW = 256.0f, texH = 256.0f;
+        float texW = 1.0f, texH = 1.0f;
+        float[] texMat = new float[16];
+        Transform idTex = new Transform();
+        idTex.setIdentity();
+        idTex.get(texMat);
+
         if (tex != null && tex.getImage() != null) {
             Image2D img = tex.getImage();
-            texId = getOrCreateTexture(img);
+            texId = getOrCreateTexture(img, tex.getWrappingS(), tex.getWrappingT());
             texW = img.getWidth();
             texH = img.getHeight();
 
@@ -263,6 +307,24 @@ public class GLM3GBackend implements M3GBackend {
             }
         }
 
+        // Diffuse / Ambient Colors
+        float diffR = 1.0f, diffG = 1.0f, diffB = 1.0f, diffA = (alphaFactor / 256.0f);
+        Material mat = appearance.getMaterial();
+        if (mat != null) {
+            int diffCol = mat.getColor(Material.DIFFUSE);
+            diffA *= ((diffCol >> 24) & 0xff) / 255.0f;
+            diffR = ((diffCol >> 16) & 0xff) / 255.0f;
+            diffG = ((diffCol >> 8) & 0xff) / 255.0f;
+            diffB = (diffCol & 0xff) / 255.0f;
+        }
+
+        // Colors buffer (default white)
+        colorBuffer.clear();
+        for (int i = 0; i < numVerts; i++) {
+            colorBuffer.put(1.0f).put(1.0f).put(1.0f).put(1.0f);
+        }
+        colorBuffer.flip();
+
         // Indices
         int indexCount = triangles.getIndexCount();
         int[] indices = new int[indexCount];
@@ -274,14 +336,40 @@ public class GLM3GBackend implements M3GBackend {
         GLShader shader = (texId != 0) ? texShader : colorShader;
         shader.use();
 
+        int uMatrix = shader.getUniformLocation("uMatrix");
+        if (uMatrix >= 0) {
+            GL20.glUniformMatrix4fv(uMatrix, false, mvpBuffer);
+        }
+
+        int uDiffuseColor = shader.getUniformLocation("uDiffuseColor");
+        if (uDiffuseColor >= 0) {
+            GL20.glUniform4f(uDiffuseColor, diffR, diffG, diffB, diffA);
+        }
+
+        int uAlphaThresh = shader.getUniformLocation("uAlphaThreshold");
+        if (uAlphaThresh >= 0) {
+            GL20.glUniform1f(uAlphaThresh, alphaThreshold);
+        }
+
         if (texId != 0) {
             GL11.glBindTexture(GL11.GL_TEXTURE_2D, texId);
+            int uTex = shader.getUniformLocation("uTexture");
+            if (uTex >= 0) GL20.glUniform1i(uTex, 0);
+
             int uTexSize = shader.getUniformLocation("uTexSize");
             if (uTexSize >= 0) GL20.glUniform2f(uTexSize, texW, texH);
+
+            int uTexMatrix = shader.getUniformLocation("uTexMatrix");
+            if (uTexMatrix >= 0) {
+                texMatBuffer.clear();
+                texMatBuffer.put(texMat).flip();
+                GL20.glUniformMatrix4fv(uTexMatrix, false, texMatBuffer);
+            }
         }
 
         int aPos = shader.getAttribLocation("aPosition");
-        int aTex = shader.getAttribLocation("aColorData");
+        int aTex = shader.getAttribLocation("aTexCoord");
+        int aColor = shader.getAttribLocation("aColor");
 
         if (aPos >= 0) {
             GL20.glEnableVertexAttribArray(aPos);
@@ -291,19 +379,25 @@ public class GLM3GBackend implements M3GBackend {
             GL20.glEnableVertexAttribArray(aTex);
             GL20.glVertexAttribPointer(aTex, 2, GL11.GL_FLOAT, false, 0, texCoordBuffer);
         }
+        if (aColor >= 0) {
+            GL20.glEnableVertexAttribArray(aColor);
+            GL20.glVertexAttribPointer(aColor, 4, GL11.GL_FLOAT, false, 0, colorBuffer);
+        }
 
         GL11.glDrawElements(GL11.GL_TRIANGLES, indexBuffer);
 
         if (aPos >= 0) GL20.glDisableVertexAttribArray(aPos);
         if (aTex >= 0 && texId != 0) GL20.glDisableVertexAttribArray(aTex);
+        if (aColor >= 0) GL20.glDisableVertexAttribArray(aColor);
     }
 
     @Override
-    public void renderWorld(Object world) {
-        // World rendering delegator
+    public void renderWorld(Object worldObj) {
+        if (!init() || worldObj == null) return;
+        // World scene graph render
     }
 
-    private int getOrCreateTexture(Image2D image) {
+    private int getOrCreateTexture(Image2D image, int wrapS, int wrapT) {
         if (image == null) return 0;
 
         Integer cached = textureCache.get(image);
@@ -327,11 +421,14 @@ public class GLM3GBackend implements M3GBackend {
 
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, filter);
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, filter);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
-        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+
+        int glWrapS = (wrapS == Texture2D.WRAP_CLAMP) ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_REPEAT;
+        int glWrapT = (wrapT == Texture2D.WRAP_CLAMP) ? GL12.GL_CLAMP_TO_EDGE : GL11.GL_REPEAT;
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, glWrapS);
+        GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, glWrapT);
 
         GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, w, h, 0,
-                org.lwjgl.opengl.GL12.GL_BGRA, org.lwjgl.opengl.GL12.GL_UNSIGNED_INT_8_8_8_8_REV, pixelBuffer);
+                GL12.GL_BGRA, GL12.GL_UNSIGNED_INT_8_8_8_8_REV, pixelBuffer);
 
         textureCache.put(image, texId);
         return texId;

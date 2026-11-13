@@ -452,6 +452,10 @@ public class Graphics3D
 				this.activeGlBackend = backend;
 				this.activeGlBackend.bindTarget(target, canvasWidth, canvasHeight, depthBuffer, hints);
 				this.activeGlBackend.setViewport(this.viewx, this.viewy, this.vieww, this.viewh);
+				this.activeGlBackend.setDepthRange(this.near, this.far);
+				if (this.currCam != null) {
+					this.activeGlBackend.setCamera(this.currCam, this.currCamTrans);
+				}
 			} else {
 				this.activeGlBackend = null;
 			}
@@ -1375,6 +1379,10 @@ public class Graphics3D
 			this.currCamTransInv.set(transform);
 		}
 		this.currCamTransInv.invert(); /* This one will execute regardless of the given transform above. */
+
+		if (this.activeGlBackend != null) {
+			this.activeGlBackend.setCamera(camera, transform);
+		}
 	}
 
 	public void setDepthRange(float near, float far)
