@@ -91,3 +91,4 @@ class Platform {
 		loadNativeLibrary();
 	}
 }
+

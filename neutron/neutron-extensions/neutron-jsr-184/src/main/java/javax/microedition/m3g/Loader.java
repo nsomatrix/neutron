@@ -814,6 +814,45 @@ public class Loader {
 		return is;
 	}
 
+	private InputStream openResource(String path) {
+		if (path == null) {
+			return null;
+		}
+		String rel = path.startsWith("/") ? path.substring(1) : path;
+		String root = path.startsWith("/") ? path : "/" + path;
+
+		InputStream is = null;
+		try {
+			is = org.neutron.MIDletBridge.getResourceAsStream(Loader.class, root);
+			if (is == null) {
+				is = org.neutron.MIDletBridge.getResourceAsStream(Loader.class, rel);
+			}
+		} catch (Throwable ignored) {}
+
+		if (is == null) {
+			ClassLoader cl = Thread.currentThread().getContextClassLoader();
+			if (cl != null) {
+				is = cl.getResourceAsStream(rel);
+				if (is == null) {
+					is = cl.getResourceAsStream(root);
+				}
+			}
+		}
+		if (is == null) {
+			is = Loader.class.getResourceAsStream(root);
+			if (is == null) {
+				is = Loader.class.getResourceAsStream(rel);
+			}
+		}
+		if (is == null && Loader.class.getClassLoader() != null) {
+			is = Loader.class.getClassLoader().getResourceAsStream(rel);
+			if (is == null) {
+				is = Loader.class.getClassLoader().getResourceAsStream(root);
+			}
+		}
+		return is;
+	}
+
 	// returns a stream built from the specified file or URI
 	private InputStream getInputStream(String name) throws IOException {
 		if (name.indexOf(':') != -1)   // absolute URI reference
@@ -821,18 +860,23 @@ public class Loader {
 			return getHttpInputStream(name);
 		}
 
+		InputStream is;
 		if (name.charAt(0) == '/' || iParentResourceName == null)   // absolute file reference
 		{
-			return (Loader.class.getResourceAsStream(name));
-		}
-
-		String uri = iParentResourceName.substring(0, iParentResourceName.lastIndexOf('/') + 1) + name;
-
-		if (uri.charAt(0) == '/') {
-			return (Loader.class.getResourceAsStream(uri));
+			is = openResource(name);
 		} else {
-			return getHttpInputStream(uri);
+			String uri = iParentResourceName.substring(0, iParentResourceName.lastIndexOf('/') + 1) + name;
+			if (uri.charAt(0) == '/') {
+				is = openResource(uri);
+			} else {
+				return getHttpInputStream(uri);
+			}
 		}
+
+		if (is == null) {
+			throw new IOException("Resource not found: " + name);
+		}
+		return is;
 	}
 
 	class PeekInputStream extends InputStream {
@@ -842,6 +886,9 @@ public class Loader {
 		private int iCounter;
 
 		PeekInputStream(InputStream aStream, int aLength) {
+			if (aStream == null) {
+				throw new NullPointerException("Source InputStream cannot be null");
+			}
 			iStream = aStream;
 			iPeekBuffer = new int[aLength];
 		}

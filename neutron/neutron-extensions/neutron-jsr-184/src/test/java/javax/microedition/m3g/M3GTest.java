@@ -845,4 +845,15 @@ public class M3GTest {
 			clonedChild, clonedCam.getAlignmentReference(Node.Z_AXIS));
 		assertEquals(Node.ORIGIN, clonedCam.getAlignmentTarget(Node.Z_AXIS));
 	}
+
+	@Test
+	public void testLoaderResourceNotFoundThrowsIOException() {
+		try {
+			Loader.load("/nonexistent_model.m3g");
+			fail("Expected IOException when resource is not found");
+		} catch (java.io.IOException e) {
+			assertTrue("Should mention not found or load error",
+				e.getMessage().contains("not found") || e.getMessage().contains("Load error"));
+		}
+	}
 }
