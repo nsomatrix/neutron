@@ -16,8 +16,7 @@
 */
 #include "javax_microedition_m3g_Loader.h"
 
-//#include <ezlib.h>
-#include <zlib.h>
+#include "miniz.h"
 
 #ifndef TRUE
 #define TRUE 1
@@ -36,9 +35,9 @@ static M3Gsizei m3gSymbianInflateBlock1(M3Gsizei srcLength,
                                         M3Gsizei dstLength,
                                         M3Gubyte *dst)
 {
-    unsigned long len = (unsigned long) dstLength;
-    if (uncompress((Bytef *) dst, &len,
-                   (const Bytef *) src, (uLong) srcLength) != Z_OK)
+    mz_ulong len = (mz_ulong) dstLength;
+    if (mz_uncompress((unsigned char *) dst, &len,
+                      (const unsigned char *) src, (mz_ulong) srcLength) != MZ_OK)
     {
         return 0;
     }

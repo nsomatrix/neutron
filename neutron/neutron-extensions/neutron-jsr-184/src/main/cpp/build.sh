@@ -28,6 +28,12 @@ gcc -c "$M3G_ROOT/src/m3g_core.c" \
     -DM3G_TARGET_ANDROID -DM3G_GL_ES_1_1 -O3 -fPIC -fpermissive -Wno-incompatible-pointer-types \
     -o "$BUILD_DIR/m3g_core.o"
 
+echo "1b. Compiling miniz.c..."
+gcc -c "$M3G_ROOT/src/miniz.c" \
+    -I"$M3G_ROOT/inc" \
+    -O3 -fPIC \
+    -o "$BUILD_DIR/miniz.o"
+
 echo "2. Compiling CSynchronization.cpp..."
 g++ -c "$M3G_ROOT/CSynchronization.cpp" \
     -I"$M3G_ROOT/inc" \
@@ -74,11 +80,12 @@ done
 
 g++ -shared -o "$OUTPUT_DIR/libjavam3g.so" \
     "$BUILD_DIR/m3g_core.o" \
+    "$BUILD_DIR/miniz.o" \
     "$BUILD_DIR/CSynchronization.o" \
     "$BUILD_DIR/m3g_android.o" \
     "$BUILD_DIR/m3g_android_gl.o" \
     "$BUILD_DIR/m3g_android_java_api.o" \
-    -L"$LIB_DIR" -lz -lGL -lEGL
+    -L"$LIB_DIR" -lGL -lEGL
 
 echo "Build complete: $OUTPUT_DIR/libjavam3g.so"
 ls -lh "$OUTPUT_DIR/libjavam3g.so"

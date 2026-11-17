@@ -18,7 +18,7 @@
 #include "m3g_defs.h"
 
 #include <android/log.h>
-#include <zlib.h>
+#include "miniz.h"
 
 struct M3GLogger
 {
@@ -52,9 +52,9 @@ extern "C" M3Gsizei m3gSymbianInflateBlock(M3Gsizei srcLength,
     M3G_ASSERT(srcLength > 0);
 
     {
-        uLongf len = (uLongf) dstLength;
-        if (uncompress((Bytef *) dst, &len,
-                       (const Bytef *) src, (uLong) srcLength) != Z_OK) {
+        mz_ulong len = (mz_ulong) dstLength;
+        if (mz_uncompress((unsigned char *) dst, &len,
+                          (const unsigned char *) src, (mz_ulong) srcLength) != MZ_OK) {
             return 0;
         }
         return (M3Gsizei) len;
