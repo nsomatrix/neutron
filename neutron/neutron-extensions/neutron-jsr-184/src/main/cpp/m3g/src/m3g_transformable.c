@@ -65,6 +65,7 @@ static void m3gDestroyTransformable(Object *obj)
     m3gInvalidateCachedTransforms(m3gGetTransformCache(M3G_INTERFACE(tf)), tf);
     if (tf->matrix != NULL) {
         m3gFree(M3G_INTERFACE(tf), tf->matrix);
+        tf->matrix = NULL;
     }
 
     m3gDestroyObject(obj);

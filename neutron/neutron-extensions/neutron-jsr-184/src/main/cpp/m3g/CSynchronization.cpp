@@ -84,10 +84,11 @@ M3gGlobals* getM3gGlobals()
 // -----------------------------------------------------------------------------
 void CSynchronization::ConstructL()
 {
-    //iGuard.CreateLocal();
-#ifdef DO_SOMETHING
-    pthread_mutex_init(&iGuard, NULL);
-#endif
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&iGuard, &attr);
+    pthread_mutexattr_destroy(&attr);
 }
 
 // -----------------------------------------------------------------------------
@@ -102,7 +103,7 @@ CSynchronization::CSynchronization() : iErrorCode(0)
 // -----------------------------------------------------------------------------
 CSynchronization::~CSynchronization()
 {
-    //iGuard.Close();
+    pthread_mutex_destroy(&iGuard);
 }
 
 // -----------------------------------------------------------------------------
@@ -110,10 +111,7 @@ CSynchronization::~CSynchronization()
 // -----------------------------------------------------------------------------
 void CSynchronization::Lock()
 {
-    //iGuard.Wait();
-#ifdef DO_SOMETHING
     pthread_mutex_lock(&iGuard);
-#endif
     iErrorCode = 0;
 }
 
@@ -123,10 +121,7 @@ void CSynchronization::Lock()
 void CSynchronization::Unlock()
 {
     iErrorCode = 0;
-    //iGuard.Signal();
-#ifdef DO_SOMETHING
     pthread_mutex_unlock(&iGuard);
-#endif
 }
 
 // -----------------------------------------------------------------------------

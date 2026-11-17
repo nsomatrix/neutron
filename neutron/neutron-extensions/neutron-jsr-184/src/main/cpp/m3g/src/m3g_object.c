@@ -84,6 +84,7 @@ static void m3gDestroyObject(Object *obj)
         }
         m3gDestroyArray(obj->animTracks, M3G_INTERFACE(obj));
         m3gFree(obj->interface, obj->animTracks);
+        obj->animTracks = NULL;
     }
 
     m3gDelChildObject(obj->interface, obj);

@@ -121,6 +121,7 @@ static void m3gDestroyGroup(Object *obj)
 #   if defined(M3G_ENABLE_VF_CULLING)
     if (group->bbox) {
         m3gFree(M3G_INTERFACE(group), group->bbox);
+        group->bbox = NULL;
         m3gIncStat(M3G_INTERFACE(group), M3G_STAT_BOUNDING_BOXES, -1);
     }
 #   endif
