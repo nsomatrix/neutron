@@ -54,11 +54,12 @@ public class OpenGLRenderBackend {
         framebuffer.resize(width, height);
         framebuffer.bind();
 
+        float a = ((clearColor >> 24) & 0xFF) / 255.0f;
         float r = ((clearColor >> 16) & 0xFF) / 255.0f;
         float g = ((clearColor >> 8) & 0xFF) / 255.0f;
         float b = (clearColor & 0xFF) / 255.0f;
 
-        GL11.glClearColor(r, g, b, 1.0f);
+        GL11.glClearColor(r, g, b, a);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthFunc(GL11.GL_LEQUAL);

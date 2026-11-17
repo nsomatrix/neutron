@@ -42,6 +42,27 @@ public class Graphics3D {
 
 	private static boolean unlitTexturesWorkaround;
 
+	// Shared reusable off-heap DirectBuffer and int array cache to eliminate per-frame GC churn
+	private static java.nio.ByteBuffer s_cachedDirectBuffer = null;
+	private static int s_cachedBufferSize = 0;
+	private static int[] s_cachedIntData = null;
+
+	private static synchronized java.nio.ByteBuffer getDirectBuffer(int bytes) {
+		if (s_cachedDirectBuffer == null || s_cachedBufferSize < bytes) {
+			s_cachedBufferSize = Math.max(bytes, 1024 * 1024 * 4);
+			s_cachedDirectBuffer = java.nio.ByteBuffer.allocateDirect(s_cachedBufferSize);
+		}
+		s_cachedDirectBuffer.clear();
+		return s_cachedDirectBuffer;
+	}
+
+	private static synchronized int[] getIntArray(int size) {
+		if (s_cachedIntData == null || s_cachedIntData.length < size) {
+			s_cachedIntData = new int[Math.max(size, 1024 * 1024)];
+		}
+		return s_cachedIntData;
+	}
+
 	//------------------------------------------------------------------
 	// Instance data
 	//------------------------------------------------------------------
@@ -168,17 +189,38 @@ public class Graphics3D {
 
 			int w = clipW > 0 ? clipW : 240;
 			int h = clipH > 0 ? clipH : 320;
-			try {
-				java.lang.reflect.Method m = finalG.getClass().getMethod("getGraphicsSurface");
-				Object s = m.invoke(finalG);
-				if (s != null) {
-					w = (Integer) s.getClass().getMethod("getWidth").invoke(s);
-					h = (Integer) s.getClass().getMethod("getHeight").invoke(s);
-				}
-			} catch (Throwable ignored) {}
+			int[] directSurfacePixels = null;
+			if (finalG instanceof org.neutron.graphics3d.spi.DirectFrameSurface) {
+				org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) finalG;
+				w = dfs.getWidth();
+				h = dfs.getHeight();
+				directSurfacePixels = dfs.getImageData();
+			} else {
+				try {
+					java.lang.reflect.Method m = finalG.getClass().getMethod("getGraphicsSurface");
+					Object s = m.invoke(finalG);
+					if (s instanceof org.neutron.graphics3d.spi.DirectFrameSurface) {
+						org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) s;
+						w = dfs.getWidth();
+						h = dfs.getHeight();
+						directSurfacePixels = dfs.getImageData();
+					} else if (s != null) {
+						w = (Integer) s.getClass().getMethod("getWidth").invoke(s);
+						h = (Integer) s.getClass().getMethod("getHeight").invoke(s);
+					}
+				} catch (Throwable ignored) {}
+			}
 			final int width = w;
 			final int height = h;
-			buffer = java.nio.ByteBuffer.allocateDirect(width * height * 4);
+			java.nio.ByteBuffer directBuf = getDirectBuffer(width * height * 4);
+			directBuf.order(java.nio.ByteOrder.nativeOrder());
+			directBuf.position(0);
+
+			if ((finalFlags & OVERWRITE) == 0 && directSurfacePixels != null && directSurfacePixels.length >= width * height) {
+				directBuf.asIntBuffer().put(directSurfacePixels, 0, width * height);
+			}
+
+			buffer = directBuf;
 
 			Platform.executeInUIThread(
 					new M3gRunnable() {
@@ -239,10 +281,10 @@ public class Graphics3D {
 				java.nio.ByteBuffer byteBuf = (java.nio.ByteBuffer) buffer;
 				int w = cur_width;
 				int h = cur_height;
-				int[] intData = new int[w * h];
+				int[] intData = getIntArray(w * h);
 				byteBuf.order(java.nio.ByteOrder.nativeOrder());
 				byteBuf.position(0);
-				byteBuf.asIntBuffer().get(intData);
+				byteBuf.asIntBuffer().get(intData, 0, w * h);
 
 				int vx = getViewportX();
 				int vy = getViewportY();

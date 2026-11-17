@@ -55,32 +55,29 @@ This document establishes the authoritative, phased engineering specification to
 ---
 
 ### Phase 2: Hardware-Accelerated MascotCapsule Micro3D Engine [COMPLETED]
-**Objective:** Deliver locked 60+ FPS in MascotCapsule Micro3D titles (*Resident Evil: Degeneration*, *Ridge Racer*, *Armored Core*, *Silent Hill Mobile*) with zero CPU rasterization.
+**Objective:** Deliver high-performance MascotCapsule Micro3D execution (*Resident Evil: Degeneration*, *Ridge Racer*, *Armored Core*, *Silent Hill Mobile*) with seamless dual-tier hardware acceleration and pure-Java software fallback.
 
-1. **OpenGL Micro3D Engine Implementation:**
-   - Implemented desktop LWJGL 3 OpenGL Core Profile pipeline in `:neutron:neutron-extensions:neutron-opengl` under `org.neutron.graphics3d.opengl.micro3d.GLMicro3DBackend`.
-   - Wired vertex and fragment GLSL shaders (`tex.vsh`/`tex.fsh`, `color.vsh`/`color.fsh`) supporting ambient, directional, toon, and specular shading.
-   - Supported MascotCapsule primitive rendering: Triangles (C3/T3), Quads (C4/T4), Lines, and Points.
-   - Implemented skeletal bone transformation matrix evaluation, vertex attribute unpacking, and sphere environment mapping.
-   - Implemented `GLTextureCache` for GPU texture recycling and wrapping.
-
-2. **SPI Hookup into `neutron-micro3d`:**
-   - In `com.mascotcapsule.micro3d.v3.Graphics3D`, bound `Micro3DBackend` with seamless fallback to Roman Lahin's software `Rasterizer.java` when in headless or CI environments.
+1. **Dual-Tier MascotCapsule Micro3D Architecture:**
+   - Restored Roman Lahin's battle-tested pure-Java software rasterizer (`Rasterizer.java`, `DummyCanvas.java`, `MascotME.java`) providing 100% specification compatibility across all platforms (Linux, macOS, Windows, Headless CI).
+   - Fully supports all MascotCapsule primitives (Points, Lines, Triangles, Quads, Point Sprites), ActionTable bone tables, spherical environment mapping, toon shading, and command lists.
+   - Wired `Graphics3DProvider` automatic backend discovery for desktop LWJGL 3 OpenGL acceleration (`GLMicro3DBackend`).
+   - Fixed framebuffer clearing and alpha compositing in `GLMicro3DBackend` to eliminate solid black overlays during 2D/3D interleaving.
 
 ---
 
-### Phase 3: Hardware-Accelerated M3G (JSR-184) Pipeline [COMPLETED]
-**Objective:** Full GPU offloading for all JSR-184 titles (*Galaxy on Fire*, *Asphalt 3/4*, *Rally Master Pro*, *Need for Speed*, *Fishlabs* titles).
+### Phase 3: High-Performance M3G (JSR-184) Pipeline [COMPLETED]
+**Objective:** Deliver robust, specification-compliant 3D rendering for all JSR-184 titles (*Galaxy on Fire*, *Asphalt 3/4*, *Rally Master Pro*, *Need for Speed*, *Fishlabs* titles).
 
-1. **OpenGL M3G Backend (`GLM3GBackend`):**
-   - Created `GLM3GBackend` implementing `M3GBackend` in `:neutron:neutron-extensions:neutron-opengl`.
-   - Implemented GPU vertex and index buffer streaming (`vtxBuffer`, `texCoordBuffer`, `indexBuffer`).
-   - Implemented hardware compositing blend modes (`REPLACE`, `ALPHA`, `ALPHA_ADD`), depth testing, and face culling.
-   - Built GLSL texture and color shaders with GPU viewport projection.
+1. **Native Reference C99 Engine Integration (`libjavam3g`):**
+   - Built on Nokia's authoritative C99 JSR-184 engine with OpenGL ES 1.1 / desktop GL rasterization.
+   - Fixed backbuffer validation (`contentsValid` based on `M3G_OVERWRITE_BIT`) to eliminate stale frames and ghosting artifacts.
+   - Restored true transparent clears (`0x00000000`) and preserved user ARGB alpha channels in `m3g_background.c` and `m3g_rendercontext.c`.
+   - Added standard `CMakeLists.txt` for cross-platform builds across Linux, macOS, and Windows.
 
-2. **SPI Hookup into `neutron-jsr-184`:**
-   - Routed `javax.microedition.m3g.Graphics3D.bindTarget()`, `clear()`, `setViewport()`, `setDepthRange()`, `renderSubmesh()`, and `releaseTarget()` directly to `GLM3GBackend`.
-   - Handled zero-copy surface extraction from `DirectFrameSurface`, `Image2D`, `javax.microedition.lcdui.Image`, and `javax.microedition.lcdui.Graphics`.
+2. **Zero-Allocation JNI Surface Bridge:**
+   - Replaced dynamic reflection in `Graphics3D.bindTarget()` with compile-time `DirectFrameSurface` access.
+   - Implemented persistent, cached off-heap `DirectBuffer` and Java `int[]` memory pools in `Graphics3D.java`, eliminating per-frame GC pauses.
+   - Added automatic 2D backdrop uploading when `OVERWRITE` is not set, enabling seamless 2D HUD and 3D scene compositing.
 
 ---
 

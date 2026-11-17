@@ -16,11 +16,27 @@ public final class Graphics3DProvider {
 
     private static Micro3DBackend activeMicro3DBackend;
     private static M3GBackend activeM3GBackend;
+    private static boolean autoRegisterAttempted = false;
 
     private Graphics3DProvider() {
     }
 
+    private static synchronized void tryAutoRegister() {
+        if (autoRegisterAttempted) return;
+        autoRegisterAttempted = true;
+        try {
+            Class<?> clazz = Class.forName("org.neutron.graphics3d.opengl.OpenGLRenderBackend");
+            java.lang.reflect.Method m = clazz.getMethod("registerIfAvailable");
+            m.invoke(null);
+        } catch (Throwable ignored) {
+            // OpenGL extension not on classpath or headless
+        }
+    }
+
     public static Micro3DBackend getActiveMicro3DBackend() {
+        if (activeMicro3DBackend == null && Graphics3DConfig.getBackendType() == RenderBackendType.OPENGL) {
+            tryAutoRegister();
+        }
         return activeMicro3DBackend;
     }
 
@@ -32,6 +48,9 @@ public final class Graphics3DProvider {
     }
 
     public static M3GBackend getActiveM3GBackend() {
+        if (activeM3GBackend == null && Graphics3DConfig.getBackendType() == RenderBackendType.OPENGL) {
+            tryAutoRegister();
+        }
         return activeM3GBackend;
     }
 

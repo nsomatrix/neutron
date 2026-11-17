@@ -43,6 +43,15 @@ public class GLMicro3DBackend implements Micro3DBackend {
     private FloatBuffer texCoordBuffer;
     private FloatBuffer colorBuffer;
 
+    private int[] cachedPixelBuffer;
+
+    private int[] getPixelBuffer(int size) {
+        if (cachedPixelBuffer == null || cachedPixelBuffer.length < size) {
+            cachedPixelBuffer = new int[Math.max(size, 1024 * 1024)];
+        }
+        return cachedPixelBuffer;
+    }
+
     public static synchronized GLMicro3DBackend getInstance() {
         if (instance == null) {
             instance = new GLMicro3DBackend();
@@ -98,7 +107,7 @@ public class GLMicro3DBackend implements Micro3DBackend {
         framebuffer.bind();
 
         GL11.glViewport(0, 0, framebuffer.getRenderWidth(), framebuffer.getRenderHeight());
-        GL11.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        GL11.glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDepthFunc(GL11.GL_LEQUAL);
@@ -118,13 +127,37 @@ public class GLMicro3DBackend implements Micro3DBackend {
         if (!initialized || currentTarget == null) return;
 
         GLContextManager.makeCurrent();
+        int[] srcPixels = getPixelBuffer(width * height);
+        framebuffer.readPixels(srcPixels);
+
         if (currentTarget instanceof DirectFrameSurface) {
             DirectFrameSurface surface = (DirectFrameSurface) currentTarget;
-            framebuffer.readPixels(surface.getImageData());
+            int[] dstPixels = surface.getImageData();
+            if (dstPixels != null) {
+                int total = Math.min(width * height, dstPixels.length);
+                for (int i = 0; i < total; i++) {
+                    int src = srcPixels[i];
+                    int a = (src >>> 24);
+                    if (a == 255) {
+                        dstPixels[i] = src;
+                    } else if (a > 0) {
+                        int dst = dstPixels[i];
+                        int sr = (src >> 16) & 0xff;
+                        int sg = (src >> 8) & 0xff;
+                        int sb = src & 0xff;
+                        int dr = (dst >> 16) & 0xff;
+                        int dg = (dst >> 8) & 0xff;
+                        int db = dst & 0xff;
+                        int invA = 255 - a;
+                        int r = ((sr * a) + (dr * invA)) / 255;
+                        int g = ((sg * a) + (dg * invA)) / 255;
+                        int b = ((sb * a) + (db * invA)) / 255;
+                        dstPixels[i] = 0xff000000 | (r << 16) | (g << 8) | b;
+                    }
+                }
+            }
         } else if (currentTarget instanceof javax.microedition.lcdui.Graphics) {
-            int[] pixels = new int[width * height];
-            framebuffer.readPixels(pixels);
-            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(pixels, 0, width, 0, 0, width, height, false);
+            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(srcPixels, 0, width, 0, 0, width, height, true);
         }
     }
 

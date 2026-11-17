@@ -453,7 +453,7 @@ M3G_API void m3gSetBgColor(M3GBackground handle, M3Guint ARGB)
     Background *background = (Background *) handle;
     M3G_VALIDATE_OBJECT(background);
     
-    background->color = ARGB | 0xFF000000;
+    background->color = ARGB;
 }
 
 /*!

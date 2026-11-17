@@ -57,6 +57,15 @@ public class GLM3GBackend implements M3GBackend {
     private FloatBuffer colorBuffer;
     private IntBuffer indexBuffer;
 
+    private int[] cachedPixelBuffer;
+
+    private int[] getPixelBuffer(int size) {
+        if (cachedPixelBuffer == null || cachedPixelBuffer.length < size) {
+            cachedPixelBuffer = new int[Math.max(size, 1024 * 1024)];
+        }
+        return cachedPixelBuffer;
+    }
+
     public static synchronized GLM3GBackend getInstance() {
         if (instance == null) {
             instance = new GLM3GBackend();
@@ -124,19 +133,43 @@ public class GLM3GBackend implements M3GBackend {
         if (!initialized || currentTarget == null) return;
 
         GLContextManager.makeCurrent();
+        int[] srcPixels = getPixelBuffer(width * height);
+        framebuffer.readPixels(srcPixels);
+
         if (currentTarget instanceof DirectFrameSurface) {
             DirectFrameSurface surface = (DirectFrameSurface) currentTarget;
-            framebuffer.readPixels(surface.getImageData());
+            int[] dstPixels = surface.getImageData();
+            if (dstPixels != null) {
+                int total = Math.min(width * height, dstPixels.length);
+                for (int i = 0; i < total; i++) {
+                    int src = srcPixels[i];
+                    int a = (src >>> 24);
+                    if (a == 255) {
+                        dstPixels[i] = src;
+                    } else if (a > 0) {
+                        int dst = dstPixels[i];
+                        int sr = (src >> 16) & 0xff;
+                        int sg = (src >> 8) & 0xff;
+                        int sb = src & 0xff;
+                        int dr = (dst >> 16) & 0xff;
+                        int dg = (dst >> 8) & 0xff;
+                        int db = dst & 0xff;
+                        int invA = 255 - a;
+                        int r = ((sr * a) + (dr * invA)) / 255;
+                        int g = ((sg * a) + (dg * invA)) / 255;
+                        int b = ((sb * a) + (db * invA)) / 255;
+                        dstPixels[i] = 0xff000000 | (r << 16) | (g << 8) | b;
+                    }
+                }
+            }
         } else if (currentTarget instanceof Image2D) {
             Image2D img2d = (Image2D) currentTarget;
             int[] data = img2d.getImageData();
             if (data != null) {
-                framebuffer.readPixels(data);
+                System.arraycopy(srcPixels, 0, data, 0, Math.min(srcPixels.length, data.length));
             }
         } else if (currentTarget instanceof javax.microedition.lcdui.Graphics) {
-            int[] pixels = new int[width * height];
-            framebuffer.readPixels(pixels);
-            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(pixels, 0, width, 0, 0, width, height, false);
+            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(srcPixels, 0, width, 0, 0, width, height, true);
         }
     }
 

@@ -588,7 +588,12 @@ static void m3gValidateBuffers(RenderContext *ctx)
      * necessary; let's raise a flag to check that later on */
     
     if (ctx->target.buffered) {
-        ctx->backBuffer.contentsValid = M3G_TRUE;
+        if (ctx->modeBits & M3G_OVERWRITE_BIT) {
+            ctx->backBuffer.contentsValid = M3G_TRUE;
+        }
+        else {
+            ctx->backBuffer.contentsValid = M3G_FALSE;
+        }
     }
 }
 
@@ -1019,7 +1024,15 @@ static void m3gClearInternal(RenderContext *ctx, Background *bg)
     
     if (bg != NULL) {
         m3gApplyBackground(ctx, bg);
-        if (ctx->target.buffered) {
+        if (ctx->target.type == SURFACE_MEMORY) {
+            if (bg->image != NULL && ctx->target.buffered) {
+                m3gUpdateTargetBuffer(ctx);
+            }
+            if (ctx->target.buffered) {
+                ctx->backBuffer.contentsValid = M3G_FALSE;
+            }
+        }
+        else if (ctx->target.buffered && bg->colorClearEnable) {
             ctx->backBuffer.contentsValid = M3G_TRUE;
         }
     }
@@ -1027,9 +1040,10 @@ static void m3gClearInternal(RenderContext *ctx, Background *bg)
         glClearColorx(0, 0, 0, 0);
         glClearDepthx(1 << 16);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-        m3gFillTargetRect(ctx, 0xFF000000);
+        m3gFillTargetRect(ctx, 0x00000000);
         if (ctx->target.buffered) {
-            ctx->backBuffer.contentsValid = M3G_TRUE;
+            ctx->backBuffer.contentsValid =
+                (ctx->target.type == SURFACE_MEMORY) ? M3G_FALSE : M3G_TRUE;
         }
     }
         
