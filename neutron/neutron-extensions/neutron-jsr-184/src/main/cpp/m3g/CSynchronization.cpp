@@ -84,11 +84,15 @@ M3gGlobals* getM3gGlobals()
 // -----------------------------------------------------------------------------
 void CSynchronization::ConstructL()
 {
+#if defined(_WIN32)
+    InitializeCriticalSection(&iGuard);
+#else
     pthread_mutexattr_t attr;
     pthread_mutexattr_init(&attr);
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&iGuard, &attr);
     pthread_mutexattr_destroy(&attr);
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -103,7 +107,11 @@ CSynchronization::CSynchronization() : iErrorCode(0)
 // -----------------------------------------------------------------------------
 CSynchronization::~CSynchronization()
 {
+#if defined(_WIN32)
+    DeleteCriticalSection(&iGuard);
+#else
     pthread_mutex_destroy(&iGuard);
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -111,7 +119,11 @@ CSynchronization::~CSynchronization()
 // -----------------------------------------------------------------------------
 void CSynchronization::Lock()
 {
+#if defined(_WIN32)
+    EnterCriticalSection(&iGuard);
+#else
     pthread_mutex_lock(&iGuard);
+#endif
     iErrorCode = 0;
 }
 
@@ -121,7 +133,11 @@ void CSynchronization::Lock()
 void CSynchronization::Unlock()
 {
     iErrorCode = 0;
+#if defined(_WIN32)
+    LeaveCriticalSection(&iGuard);
+#else
     pthread_mutex_unlock(&iGuard);
+#endif
 }
 
 // -----------------------------------------------------------------------------

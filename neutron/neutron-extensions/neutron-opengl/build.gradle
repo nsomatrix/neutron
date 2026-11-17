@@ -37,9 +37,16 @@ dependencies {
     api "org.lwjgl:lwjgl-opengl"
     api "org.lwjgl:lwjgl-glfw"
 
-    runtimeOnly "org.lwjgl:lwjgl::${lwjglNatives}"
-    runtimeOnly "org.lwjgl:lwjgl-opengl::${lwjglNatives}"
-    runtimeOnly "org.lwjgl:lwjgl-glfw::${lwjglNatives}"
+    // Multiplatform LWJGL natives for cross-platform standalone fat JAR
+    [
+        "natives-linux", "natives-linux-arm64",
+        "natives-windows", "natives-windows-x86", "natives-windows-arm64",
+        "natives-macos", "natives-macos-arm64"
+    ].each { platform ->
+        runtimeOnly "org.lwjgl:lwjgl::$platform"
+        runtimeOnly "org.lwjgl:lwjgl-opengl::$platform"
+        runtimeOnly "org.lwjgl:lwjgl-glfw::$platform"
+    }
 
     testImplementation 'junit:junit:4.12'
 }

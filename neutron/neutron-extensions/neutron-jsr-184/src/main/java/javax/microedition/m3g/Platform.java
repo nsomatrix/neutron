@@ -39,11 +39,36 @@ class Platform {
 		} catch (Throwable ignored) {}
 
 		try {
-			// Extract bundled shared library from classpath
-			String resPath = "/natives/linux-x86_64/libjavam3g.so";
+			// Extract bundled shared library from classpath based on OS and architecture
+			String os = System.getProperty("os.name", "").toLowerCase();
+			String arch = System.getProperty("os.arch", "").toLowerCase();
+			String platformDir;
+			String ext;
+			String prefix = "lib";
+
+			if (os.contains("win")) {
+				platformDir = (arch.contains("64")) ? "windows-x86_64" : "windows-x86";
+				prefix = "";
+				ext = ".dll";
+			} else if (os.contains("mac") || os.contains("darwin")) {
+				platformDir = (arch.contains("aarch64") || arch.contains("arm")) ? "macos-arm64" : "macos-x86_64";
+				ext = ".dylib";
+			} else {
+				platformDir = (arch.contains("aarch64") || arch.contains("arm")) ? "linux-aarch64" : "linux-x86_64";
+				ext = ".so";
+			}
+
+			String libFilename = prefix + "javam3g" + ext;
+			String resPath = "/natives/" + platformDir + "/" + libFilename;
 			InputStream is = Platform.class.getResourceAsStream(resPath);
+			if (is == null && !platformDir.equals("linux-x86_64")) {
+				// Fallback to legacy path if present
+				resPath = "/natives/linux-x86_64/libjavam3g.so";
+				is = Platform.class.getResourceAsStream(resPath);
+			}
+
 			if (is != null) {
-				File tempLib = File.createTempFile("libjavam3g_", ".so");
+				File tempLib = File.createTempFile("libjavam3g_", ext);
 				tempLib.deleteOnExit();
 				try (FileOutputStream fos = new FileOutputStream(tempLib)) {
 					byte[] buf = new byte[8192];
@@ -55,6 +80,8 @@ class Platform {
 				System.load(tempLib.getAbsolutePath());
 				libraryLoaded = true;
 				return;
+			} else {
+				System.err.println("[Neutron M3G] Native engine (" + libFilename + ") not bundled for " + os + " (" + arch + "). JSR-184 M3G requires native binaries.");
 			}
 		} catch (Throwable t) {
 			System.err.println("[Neutron M3G] Failed to load native library: " + t.getMessage());
