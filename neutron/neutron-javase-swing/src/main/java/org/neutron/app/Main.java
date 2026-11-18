@@ -1566,6 +1566,11 @@ public class Main extends JFrame {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
 						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
+						if (gameRunning) {
+							org.neutron.app.ui.swing.SwingLoadingUI.onGameStarted();
+						} else {
+							org.neutron.app.ui.swing.SwingLoadingUI.dismiss();
+						}
 						updateResizeButtonVisibility();
 						if (statusBar != null) {
 							statusBar.setGameRunning(gameRunning);
@@ -1579,6 +1584,15 @@ public class Main extends JFrame {
 						}
 						devicePanel.revalidate();
 						devicePanel.repaint();
+					}
+				});
+			}
+
+			public void gameLoading(final String urlString) {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
+						org.neutron.app.ui.swing.SwingLoadingUI.startLoading(urlString, null);
 					}
 				});
 			}

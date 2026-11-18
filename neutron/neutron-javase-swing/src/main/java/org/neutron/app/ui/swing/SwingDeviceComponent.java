@@ -417,6 +417,10 @@ public class SwingDeviceComponent extends JPanel implements KeyListener, InputMe
 
 	public void keyPressed(KeyEvent ev) {
 		org.neutron.app.util.SleepManager.notifyActivity();
+		if (SwingLoadingUI.isDisplaying()) {
+			SwingLoadingUI.requestSkip();
+			return;
+		}
 		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
 			SwingSleepUI.requestWakeUp();
 			return;

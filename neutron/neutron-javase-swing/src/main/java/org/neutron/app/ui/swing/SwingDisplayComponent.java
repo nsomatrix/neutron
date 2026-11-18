@@ -109,6 +109,11 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 
 			org.neutron.app.util.SleepManager.notifyActivity();
 
+			if (SwingLoadingUI.isDisplaying()) {
+				SwingLoadingUI.requestSkip();
+				return;
+			}
+
 			if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
 				SwingSleepUI.requestWakeUp();
 				return;
@@ -310,6 +315,12 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		addMouseMotionListener(mouseMotionListener);
 		addMouseWheelListener(mouseWheelListener);
 
+		SwingLoadingUI.setRepaintCallback(new Runnable() {
+			public void run() {
+				triggerLoadingAnimation();
+			}
+		});
+
 		org.neutron.app.util.SleepManager.setUiCallback(new Runnable() {
 			public void run() {
 				SwingUtilities.invokeLater(new Runnable() {
@@ -353,6 +364,36 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 						}
 					}
 				});
+			}
+		});
+	}
+
+	private javax.swing.Timer loadingRepaintTimer = null;
+
+	public void triggerLoadingAnimation() {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				if (loadingRepaintTimer == null) {
+					loadingRepaintTimer = new javax.swing.Timer(16, new java.awt.event.ActionListener() {
+						public void actionPerformed(java.awt.event.ActionEvent e) {
+							if (!isShowing()) {
+								return;
+							}
+							repaint();
+							if (SwingDisplayComponent.this.deviceComponent != null) {
+								SwingDisplayComponent.this.deviceComponent.repaint();
+							}
+							if (!SwingLoadingUI.isDisplaying()) {
+								if (loadingRepaintTimer != null) {
+									loadingRepaintTimer.stop();
+									loadingRepaintTimer = null;
+								}
+							}
+						}
+					});
+					loadingRepaintTimer.start();
+				}
+				repaint();
 			}
 		});
 	}
@@ -534,7 +575,12 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 	}
 
 	protected void paintComponent(Graphics g) {
-		if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
+		if (SwingLoadingUI.isDisplaying()) {
+			if (SwingLoadingUI.getCurrentAlpha() < 0.999f) {
+				paintDisplaySurface(g);
+			}
+			SwingLoadingUI.paintLoader(g, getWidth(), getHeight());
+		} else if (org.neutron.app.util.SleepManager.isSleepModeActive() || SwingSleepUI.isTransitioning()) {
 			if (!SwingSleepUI.hasSnapshot() && graphicsSurface != null) {
 				synchronized (graphicsSurface) {
 					if (graphicsSurface.getImage() != null) {

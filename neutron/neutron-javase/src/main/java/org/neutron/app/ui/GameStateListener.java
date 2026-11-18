@@ -27,4 +27,6 @@ public interface GameStateListener {
 
 	void gameStateChanged(boolean gameRunning);
 
+	default void gameLoading(String urlString) {}
+
 }

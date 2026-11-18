@@ -442,6 +442,7 @@ public class Common implements Neutron, CommonInterface {
 
     private void openMIDletUrl(String urlString, MIDletClassLoader midletClassLoader) throws IOException {
         try {
+            notifyGameLoading(urlString);
             setStatusBar("Loading");
             jad.clear();
 
@@ -626,6 +627,12 @@ public class Common implements Neutron, CommonInterface {
     private void notifyGameStateChanged(boolean gameRunning) {
         if (gameStateListener != null) {
             gameStateListener.gameStateChanged(gameRunning);
+        }
+    }
+
+    private void notifyGameLoading(String urlString) {
+        if (gameStateListener != null) {
+            gameStateListener.gameLoading(urlString);
         }
     }
 
