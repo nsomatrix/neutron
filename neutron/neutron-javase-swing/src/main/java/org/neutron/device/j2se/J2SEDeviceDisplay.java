@@ -481,7 +481,7 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
         int w = gameCanvas.getWidth();
         int h = gameCanvas.getHeight();
         if (gameCanvasImage == null || gameCanvasImage.getWidth() != w || gameCanvasImage.getHeight() != h) {
-            gameCanvasImage = createImage(w, h, false, 0x000000);
+            gameCanvasImage = createImage(w, h, true, 0x00000000);
         }
         
         return gameCanvasImage.getGraphics();
@@ -495,6 +495,9 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
         int maxFps = org.neutron.app.Config.getMaxFps();
         if (maxFps > 0) {
             gameCanvasFpsLimiter.limit(maxFps);
+        }
+        if (gameCanvasImage == null && gameCanvas != null) {
+            getGraphics(gameCanvas);
         }
         if (gameCanvasImage != null) {
             DisplayComponent dc = context.getDisplayComponent();

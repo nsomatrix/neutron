@@ -1567,9 +1567,6 @@ public class Main extends JFrame {
 					public void run() {
 						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
 						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
-						if (deviceDisplay != null) {
-							deviceDisplay.resetCanvas();
-						}
 						if (gameRunning) {
 							org.neutron.app.ui.swing.SwingLoadingUI.onGameStarted();
 							if (deviceDisplay != null && deviceDisplay.isResizable()) {
@@ -1595,6 +1592,9 @@ public class Main extends JFrame {
 							org.neutron.app.ui.swing.SwingLoadingUI.dismiss();
 							if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
 								((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
+							}
+							if (deviceDisplay != null) {
+								deviceDisplay.resetCanvas();
 							}
 						}
 						updateResizeButtonVisibility();
@@ -2061,7 +2061,6 @@ public class Main extends JFrame {
         // resize the display area
         deviceDisplay.setDisplayPaintable(new Rectangle(0, 0, width, height - menuh));
         deviceDisplay.setDisplayRectangle(new Rectangle(0, 0, width, height));
-        deviceDisplay.resetCanvas();
         ((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
         // update display
         MIDletAccess ma = MIDletBridge.getMIDletAccess();
