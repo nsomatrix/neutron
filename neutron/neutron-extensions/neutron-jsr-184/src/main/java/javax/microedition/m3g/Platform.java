@@ -61,8 +61,8 @@ class Platform {
 			String libFilename = prefix + "javam3g" + ext;
 			String resPath = "/natives/" + platformDir + "/" + libFilename;
 			InputStream is = Platform.class.getResourceAsStream(resPath);
-			if (is == null && !platformDir.equals("linux-x86_64")) {
-				// Fallback to legacy path if present
+			if (is == null && os.contains("linux") && !platformDir.equals("linux-x86_64")) {
+				// Fallback to linux-x86_64 on Linux only (e.g. running under x86 emulation)
 				resPath = "/natives/linux-x86_64/libjavam3g.so";
 				is = Platform.class.getResourceAsStream(resPath);
 			}

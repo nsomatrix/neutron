@@ -31,14 +31,21 @@ mkdir -p "$RESOURCES_DIR/linux-x86_64"
 "$DIR/build.sh"
 
 # Find or download portable zig if not installed
-ZIG="zig"
-if ! command -v zig &>/dev/null; then
-    if [ -x "/tmp/zig_test/zig" ]; then
+ZIG="${ZIG:-zig}"
+if ! command -v "$ZIG" &>/dev/null; then
+    if [ -x "$HOME/.local/bin/zig" ]; then
+        ZIG="$HOME/.local/bin/zig"
+    elif [ -x "$HOME/.local/share/zig/zig" ]; then
+        ZIG="$HOME/.local/share/zig/zig"
+    elif [ -x "/tmp/zig_test/zig" ]; then
         ZIG="/tmp/zig_test/zig"
     else
-        echo "Zig is required to cross-compile Windows and macOS binaries from Linux."
-        echo "Please install zig or run with pre-downloaded zig."
-        exit 1
+        echo "Zig not found. Downloading portable Zig toolchain into ~/.local/share/zig..."
+        mkdir -p "$HOME/.local/share/zig" "$HOME/.local/bin"
+        curl -L -s https://ziglang.org/download/0.13.0/zig-linux-x86_64-0.13.0.tar.xz | tar -xJ -C "$HOME/.local/share/zig" --strip-components=1
+        ln -sf "$HOME/.local/share/zig/zig" "$HOME/.local/bin/zig"
+        ZIG="$HOME/.local/share/zig/zig"
+        echo "Zig installed to $ZIG"
     fi
 fi
 
