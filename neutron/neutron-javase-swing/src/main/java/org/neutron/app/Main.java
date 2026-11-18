@@ -1578,10 +1578,16 @@ public class Main extends JFrame {
 									int targetW = targetRes.width;
 									int targetH = targetRes.height;
 									if (deviceDisplay.getFullWidth() != targetW || deviceDisplay.getFullHeight() != targetH) {
-										devicePanel.setPreferredSize(new Dimension(targetW, targetH));
-										setDeviceSize(deviceDisplay, targetW, targetH);
-										pack();
-										devicePanel.setPreferredSize(null);
+										boolean isMaximized = (getExtendedState() & (JFrame.MAXIMIZED_BOTH | JFrame.ICONIFIED)) != 0;
+										boolean isFullscreen = Config.isFullscreen();
+										if (!isMaximized && !isFullscreen) {
+											devicePanel.setPreferredSize(new Dimension(targetW, targetH));
+											setDeviceSize(deviceDisplay, targetW, targetH);
+											pack();
+											devicePanel.setPreferredSize(null);
+										} else {
+											setDeviceSize(deviceDisplay, targetW, targetH);
+										}
 									}
 								}
 							}

@@ -90,10 +90,22 @@ public class MIDletBridge {
 	}
 
 	public static MIDletContext getMIDletContext(MIDlet midlet) {
-		if (midletContexts == null || midlet == null) {
+		if (midlet == null) {
 			return null;
 		}
-		return (MIDletContext)midletContexts.get(midlet);
+		if (midletContexts != null) {
+			MIDletContext ctx = (MIDletContext) midletContexts.get(midlet);
+			if (ctx != null) {
+				return ctx;
+			}
+		}
+		if (threadMIDletContexts != null) {
+			MIDletContext threadCtx = (MIDletContext) threadMIDletContexts.get();
+			if (threadCtx != null && threadCtx.getMIDlet() == midlet) {
+				return threadCtx;
+			}
+		}
+		return null;
 	}
 	
 	public static MIDletContext getMIDletContext() {
@@ -128,7 +140,11 @@ public class MIDletBridge {
 	}
 
 	public static MIDletAccess getMIDletAccess(MIDlet midlet) {
-		return getMIDletContext(midlet).getMIDletAccess();
+		MIDletContext ctx = getMIDletContext(midlet);
+		if (ctx == null) {
+			return null;
+		}
+		return ctx.getMIDletAccess();
 	}
 
 	

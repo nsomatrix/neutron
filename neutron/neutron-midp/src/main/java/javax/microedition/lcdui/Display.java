@@ -36,6 +36,7 @@ import javax.microedition.midlet.MIDlet;
 
 import org.neutron.DisplayAccess;
 import org.neutron.GameCanvasKeyAccess;
+import org.neutron.MIDletAccess;
 import org.neutron.MIDletBridge;
 import org.neutron.device.DeviceFactory;
 import org.neutron.device.ui.DisplayableUI;
@@ -464,11 +465,14 @@ public class Display {
 	public static Display getDisplay(MIDlet m) {
 		Display result;
 
-		if (MIDletBridge.getMIDletAccess(m).getDisplayAccess() == null) {
+		MIDletAccess access = MIDletBridge.getMIDletAccess(m);
+		if (access == null || access.getDisplayAccess() == null) {
 			result = new Display();
-			MIDletBridge.getMIDletAccess(m).setDisplayAccess(result.accessor);
+			if (access != null) {
+				access.setDisplayAccess(result.accessor);
+			}
 		} else {
-			result = MIDletBridge.getMIDletAccess(m).getDisplayAccess().getDisplay();
+			result = access.getDisplayAccess().getDisplay();
 		}
 
 		return result;

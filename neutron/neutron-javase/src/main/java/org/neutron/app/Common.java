@@ -138,6 +138,8 @@ public class Common implements Neutron, CommonInterface {
     
     private String midletSuiteName = null;
 
+    private volatile boolean isSwitchingGame = false;
+
     private Object destroyNotify = new Object();
 
     private boolean exitOnMIDletDestroy = false;
@@ -196,7 +198,9 @@ public class Common implements Neutron, CommonInterface {
     public void notifyDestroyed(MIDletContext midletContext) {
         Logger.debug("notifyDestroyed");
         notifyImplementationMIDletDestroyed();
-        startLauncher(midletContext);
+        if (!isSwitchingGame) {
+            startLauncher(midletContext);
+        }
     }
 
     public void destroyMIDletContext(MIDletContext midletContext) {
@@ -453,6 +457,7 @@ public class Common implements Neutron, CommonInterface {
     }
 
     private void openMIDletUrl(String urlString, MIDletClassLoader midletClassLoader) throws IOException {
+        isSwitchingGame = true;
         try {
             notifyGameLoading(urlString);
             setStatusBar("Loading");
@@ -512,6 +517,8 @@ public class Common implements Neutron, CommonInterface {
             Logger.error("Cannot open jad", urlString, ex);
         } catch (IllegalArgumentException ex) {
             Logger.error("Cannot open jad", urlString, ex);
+        } finally {
+            isSwitchingGame = false;
         }
     }
 
@@ -1522,22 +1529,27 @@ public class Common implements Neutron, CommonInterface {
             }
         }
 
-        MIDlet midlet = loadMidlet(entry.getMIDletClass(), MIDletBridge.getMIDletAccess());
-        if (startMidlet) {
-            try {
-                MIDletBridge.getMIDletAccess(midlet).startApp();
-                String name = getSuiteName();
-                if (name == null || name.trim().isEmpty()) {
-                    name = entry.getName();
+        isSwitchingGame = true;
+        try {
+            MIDlet midlet = loadMidlet(entry.getMIDletClass(), MIDletBridge.getMIDletAccess());
+            if (startMidlet) {
+                try {
+                    MIDletBridge.getMIDletAccess(midlet).startApp();
+                    String name = getSuiteName();
+                    if (name == null || name.trim().isEmpty()) {
+                        name = entry.getName();
+                    }
+                    setStatusBar("Running: " + name);
+                    notifyGameStateChanged(true);
+                } catch (MIDletStateChangeException e) {
+                    Logger.error(e);
                 }
-                setStatusBar("Running: " + name);
-                notifyGameStateChanged(true);
-            } catch (MIDletStateChangeException e) {
-                Logger.error(e);
             }
-        }
 
-        return midlet;
+            return midlet;
+        } finally {
+            isSwitchingGame = false;
+        }
     }
 
     public static String usage() {
