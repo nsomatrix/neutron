@@ -1717,7 +1717,10 @@ public class Main extends JFrame {
 
 		Message.addListener(new SwingErrorMessageDialogPanel(this));
 
-		devicePanel.setTransferHandler(new DropTransferHandler());
+		DropTransferHandler dropHandler = new DropTransferHandler();
+		devicePanel.setTransferHandler(dropHandler);
+		setTransferHandler(dropHandler);
+		getRootPane().setTransferHandler(dropHandler);
 
 		// Floating Menu Button setup
 		floatingMenuButton = new JButton("") {

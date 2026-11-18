@@ -29,7 +29,13 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -42,174 +48,307 @@ import org.neutron.app.util.IOUtils;
 import org.neutron.log.Logger;
 
 /**
- * @author vlads
- *
+ * Universal, cross-platform Drag-and-Drop handler for J2ME JAR and JAD files.
+ * Supports Windows Explorer, macOS Finder, KDE Dolphin, GNOME Nautilus, and Web Browsers.
  */
 public class DropTransferHandler extends TransferHandler {
 
 	private static final long serialVersionUID = 1L;
 
-	private static DataFlavor uriListFlavor = new DataFlavor("text/uri-list;class=java.lang.String", null);
-	
-	private static boolean debugImport = false;
-	
-	public int getSourceActions(JComponent c) {
-        return TransferHandler.COPY;
-    }
+	private static final DataFlavor uriListFlavor = new DataFlavor("text/uri-list;class=java.lang.String", null);
 
-	public boolean canImport(JComponent comp, DataFlavor transferFlavors[]) {
-		for (int i = 0; i < transferFlavors.length; i++) {
-			Class representationclass = transferFlavors[i].getRepresentationClass();
-			// URL from Explorer or Firefox, KDE
-        	if ((representationclass != null) && URL.class.isAssignableFrom(representationclass)) {
-        		if (debugImport) {
-        			Logger.debug("acepted ", transferFlavors[i]);
-        		}
-        		return true;
-        	}
-        	// Drop from Windows Explorer
-        	if (DataFlavor.javaFileListFlavor.equals(transferFlavors[i])) {
-        		if (debugImport) {
-        			Logger.debug("acepted ", transferFlavors[i]);
-        		}
-        		return true;
-            }
-        	// Drop from GNOME
-            if (DataFlavor.stringFlavor.equals(transferFlavors[i])) {
-            	if (debugImport) {
-        			Logger.debug("acepted ", transferFlavors[i]);
-        		}
-                return true;
-            }
-			if (uriListFlavor.equals(transferFlavors[i])) {
-				if (debugImport) {
-        			Logger.debug("acepted ", transferFlavors[i]);
-        		}
-				return true;
-        	}
-//          String mimePrimaryType = transferFlavors[i].getPrimaryType();
-//			String mimeSubType = transferFlavors[i].getSubType();
-//			if ((mimePrimaryType != null) && (mimeSubType != null)) {
-//				if (mimePrimaryType.equals("text") && mimeSubType.equals("uri-list")) {
-//					Logger.debug("acepted ", transferFlavors[i]);
-//					return true;
-//				}
-//			}
-			if (debugImport) {
-				Logger.debug(i + " unknown import ", transferFlavors[i]);
-			}
-		}
-		if (debugImport) {
-			Logger.debug("import rejected");
-		}
-        return false;
+	@Override
+	public int getSourceActions(JComponent c) {
+		return TransferHandler.COPY;
 	}
-	
-	public boolean importData(JComponent comp, Transferable t) {
-		DataFlavor[] transferFlavors = t.getTransferDataFlavors();
-        for (int i = 0; i < transferFlavors.length; i++) {
-        	// Drop from Windows Explorer
-        	if (DataFlavor.javaFileListFlavor.equals(transferFlavors[i])) {
-        		Logger.debug("importing", transferFlavors[i]);
-        		try {
-					List fileList = (List) t.getTransferData(DataFlavor.javaFileListFlavor);
-					if (fileList.get(0) instanceof File) {
-						File f = (File) fileList.get(0);
-						if (Common.isMIDletUrlExtension(f.getName())) {
-							Common.openMIDletUrlSafe(IOUtils.getCanonicalFileURL(f));
-						} else {
-							Message.warn("Unable to open " + f.getAbsolutePath() + ", Only JAD files are acepted");	
-						}
-					} else {
-						Logger.debug("Unknown object in list ", fileList.get(0));	
-					}
-				} catch (UnsupportedFlavorException e) {
-					Logger.debug(e);
-				} catch (IOException e) {
-					Logger.debug(e);
-				}
-        		return true;
-            }
-        	
-        	// Drop from GNOME Firefox
-            if (DataFlavor.stringFlavor.equals(transferFlavors[i])) {
-            	Object data;
-				try {
-					data = t.getTransferData(DataFlavor.stringFlavor);
-				} catch (UnsupportedFlavorException e) {
-					continue;
-				} catch (IOException e) {
-					continue;
-				}
-            	if (data instanceof String) {
-                	Logger.debug("importing", transferFlavors[i]);
-                	String path = getPathString((String) data);
-          			if (Common.isMIDletUrlExtension(path)) {
-						Common.openMIDletUrlSafe(path);
-					} else {
-						Message.warn("Unable to open " + path + ", Only JAD files are acepted");	
-					}
-          			return true;
-              	}
-            }
-            // Drop from GNOME Nautilus
-            if (uriListFlavor.equals(transferFlavors[i])) {
-				Object data;
-				try {
-					data = t.getTransferData(uriListFlavor);
-				} catch (UnsupportedFlavorException e) {
-					continue;
-				} catch (IOException e) {
-					continue;
-				}
-				if (data instanceof String) {
-					Logger.debug("importing", transferFlavors[i]);
-					String path = getPathString((String) data);
-					if (Common.isMIDletUrlExtension(path)) {
-						Common.openMIDletUrlSafe(path);
-					} else {
-						Message.warn("Unable to open " + path + ", Only JAD files are acepted");
-					}
-					return true;
-				}
+
+	@Override
+	public boolean canImport(TransferSupport support) {
+		if (!support.isDrop()) {
+			return false;
+		}
+		return canImport(null, support.getDataFlavors());
+	}
+
+	@Override
+	public boolean canImport(JComponent comp, DataFlavor[] transferFlavors) {
+		if (transferFlavors == null) {
+			return false;
+		}
+		for (int i = 0; i < transferFlavors.length; i++) {
+			DataFlavor flavor = transferFlavors[i];
+			if (flavor == null) {
+				continue;
 			}
-            if (debugImport) {
-            	Logger.debug(i + " unknown importData ", transferFlavors[i]);
-            }
-        }
-        // This is the second best option since it works incorrectly  on Max OS X making url like this [file://localhost/users/work/app.jad]
-        for (int i = 0; i < transferFlavors.length; i++) {
-        	Class representationclass = transferFlavors[i].getRepresentationClass();
-        	// URL from Explorer or Firefox, KDE
-        	if ((representationclass != null) && URL.class.isAssignableFrom(representationclass)) {
-        		Logger.debug("importing", transferFlavors[i]);
-        		try {
-					URL jadUrl = (URL)t.getTransferData(transferFlavors[i]);
-					String urlString = jadUrl.toExternalForm();
-					if (Common.isMIDletUrlExtension(urlString)) {
-						Common.openMIDletUrlSafe(urlString);
-					} else {
-						Message.warn("Unable to open " + urlString + ", Only JAD url are acepted");	
-					}
-				} catch (UnsupportedFlavorException e) {
-					Logger.debug(e);
-				} catch (IOException e) {
-					Logger.debug(e);
-				}
+			// Windows Explorer, macOS Finder, Linux File Managers
+			if (DataFlavor.javaFileListFlavor.equals(flavor)) {
 				return true;
-        	}
-        }
+			}
+			// Linux KDE Dolphin / GNOME Nautilus URI list
+			if (uriListFlavor.equals(flavor) || "text/uri-list".equalsIgnoreCase(flavor.getMimeType())) {
+				return true;
+			}
+			// Dragged URL from Web Browser / Network
+			Class<?> repClass = flavor.getRepresentationClass();
+			if (repClass != null && URL.class.isAssignableFrom(repClass)) {
+				return true;
+			}
+			// Plain text / string path fallback
+			if (DataFlavor.stringFlavor.equals(flavor)) {
+				return true;
+			}
+		}
 		return false;
 	}
-	
-	private String getPathString(String path) {
-		if (path == null) {
-			return null;
+
+	@Override
+	public boolean importData(TransferSupport support) {
+		if (!canImport(support)) {
+			return false;
 		}
-		StringTokenizer st = new StringTokenizer(path.trim(), "\n\r");
-		if (st.hasMoreTokens()) {
-			return st.nextToken();
+		return importData((JComponent) support.getComponent(), support.getTransferable());
+	}
+
+	@Override
+	public boolean importData(JComponent comp, Transferable t) {
+		if (t == null) {
+			return false;
 		}
-		return path;
+
+		// Priority 1: Native OS File List (Windows Explorer, macOS Finder, Dolphin, Nautilus)
+		if (t.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+			try {
+				Object data = t.getTransferData(DataFlavor.javaFileListFlavor);
+				if (data instanceof List) {
+					List<?> list = (List<?>) data;
+					if (handleFileList(list)) {
+						return true;
+					}
+				}
+			} catch (UnsupportedFlavorException | IOException e) {
+				Logger.debug("javaFileListFlavor import failed, trying next flavor", e);
+			}
+		}
+
+		// Priority 2: Linux text/uri-list (RFC 2483 format with CRLF, comments, percent-encoding)
+		if (t.isDataFlavorSupported(uriListFlavor)) {
+			try {
+				Object data = t.getTransferData(uriListFlavor);
+				if (handleUriListString(data)) {
+					return true;
+				}
+			} catch (UnsupportedFlavorException | IOException e) {
+				Logger.debug("uriListFlavor import failed, trying next flavor", e);
+			}
+		}
+
+		// Priority 3: Dragged URL object (Browser or KDE)
+		DataFlavor[] flavors = t.getTransferDataFlavors();
+		for (int i = 0; i < flavors.length; i++) {
+			DataFlavor flavor = flavors[i];
+			Class<?> repClass = flavor != null ? flavor.getRepresentationClass() : null;
+			if (repClass != null && URL.class.isAssignableFrom(repClass)) {
+				try {
+					Object urlObj = t.getTransferData(flavor);
+					if (urlObj instanceof URL) {
+						String urlString = ((URL) urlObj).toExternalForm();
+						if (Common.isMIDletUrlExtension(urlString)) {
+							Common.openMIDletUrlSafe(urlString);
+							return true;
+						}
+					}
+				} catch (UnsupportedFlavorException | IOException e) {
+					Logger.debug("URL flavor import failed", e);
+				}
+			}
+		}
+
+		// Priority 4: String path / URL fallback (GNOME, Firefox, Terminal drag)
+		if (t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+			try {
+				Object data = t.getTransferData(DataFlavor.stringFlavor);
+				if (data instanceof String) {
+					if (handleStringData((String) data)) {
+						return true;
+					}
+				}
+			} catch (UnsupportedFlavorException | IOException e) {
+				Logger.debug("stringFlavor import failed", e);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean handleFileList(List<?> fileList) {
+		if (fileList == null || fileList.isEmpty()) {
+			return false;
+		}
+
+		File selectedJad = null;
+		File selectedJar = null;
+		File firstFile = null;
+
+		for (int i = 0; i < fileList.size(); i++) {
+			Object item = fileList.get(i);
+			if (item instanceof File) {
+				File f = (File) item;
+				if (firstFile == null) {
+					firstFile = f;
+				}
+				String name = f.getName().toLowerCase();
+				if (name.endsWith(".jad")) {
+					selectedJad = f;
+					break; // JAD takes absolute priority when paired with JAR
+				} else if (name.endsWith(".jar") && selectedJar == null) {
+					selectedJar = f;
+				}
+			}
+		}
+
+		File fileToLaunch = selectedJad != null ? selectedJad : selectedJar;
+		if (fileToLaunch != null) {
+			Common.openMIDletUrlSafe(IOUtils.getCanonicalFileURL(fileToLaunch));
+			return true;
+		}
+
+		if (firstFile != null) {
+			Message.warn("Unable to open " + firstFile.getName() + ". Only .jar and .jad files are supported.");
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean handleUriListString(Object data) {
+		String text = null;
+		if (data instanceof String) {
+			text = (String) data;
+		} else if (data instanceof Reader) {
+			try (Reader r = (Reader) data) {
+				StringBuilder sb = new StringBuilder();
+				char[] buf = new char[1024];
+				int n;
+				while ((n = r.read(buf)) != -1) {
+					sb.append(buf, 0, n);
+				}
+				text = sb.toString();
+			} catch (IOException ignore) {
+			}
+		}
+
+		if (text == null || text.trim().isEmpty()) {
+			return false;
+		}
+
+		List<String> validEntries = extractUrisFromText(text);
+		if (validEntries.isEmpty()) {
+			return false;
+		}
+
+		// Prefer .jad over .jar if multiple entries dropped
+		String chosen = null;
+		for (String uri : validEntries) {
+			if (uri.toLowerCase().endsWith(".jad")) {
+				chosen = uri;
+				break;
+			}
+			if (chosen == null && uri.toLowerCase().endsWith(".jar")) {
+				chosen = uri;
+			}
+		}
+
+		if (chosen != null) {
+			Common.openMIDletUrlSafe(chosen);
+			return true;
+		}
+
+		Message.warn("Unable to open " + validEntries.get(0) + ". Only .jar and .jad files are supported.");
+		return true;
+	}
+
+	private boolean handleStringData(String data) {
+		if (data == null || data.trim().isEmpty()) {
+			return false;
+		}
+
+		List<String> validEntries = extractUrisFromText(data);
+		if (!validEntries.isEmpty()) {
+			String chosen = null;
+			for (String uri : validEntries) {
+				if (uri.toLowerCase().endsWith(".jad")) {
+					chosen = uri;
+					break;
+				}
+				if (chosen == null && uri.toLowerCase().endsWith(".jar")) {
+					chosen = uri;
+				}
+			}
+			if (chosen != null) {
+				Common.openMIDletUrlSafe(chosen);
+				return true;
+			}
+		}
+
+		// Fallback: check first token as a filesystem path
+		StringTokenizer st = new StringTokenizer(data.trim(), "\n\r");
+		while (st.hasMoreTokens()) {
+			String line = st.nextToken().trim();
+			if (line.isEmpty() || line.startsWith("#")) {
+				continue;
+			}
+			if (Common.isMIDletUrlExtension(line)) {
+				File f = new File(line);
+				if (f.exists()) {
+					Common.openMIDletUrlSafe(IOUtils.getCanonicalFileURL(f));
+				} else {
+					Common.openMIDletUrlSafe(line);
+				}
+				return true;
+			}
+			Message.warn("Unable to open " + line + ". Only .jar and .jad files are supported.");
+			return true;
+		}
+
+		return false;
+	}
+
+	private List<String> extractUrisFromText(String text) {
+		List<String> result = new ArrayList<>();
+		StringTokenizer st = new StringTokenizer(text, "\r\n");
+		while (st.hasMoreTokens()) {
+			String line = st.nextToken().trim();
+			if (line.isEmpty() || line.startsWith("#")) {
+				continue; // RFC 2483 comment or blank
+			}
+
+			String resolvedUrl = line;
+			if (line.startsWith("file://")) {
+				try {
+					URI uri = URI.create(line.replace(" ", "%20"));
+					File f = new File(uri);
+					resolvedUrl = IOUtils.getCanonicalFileURL(f);
+				} catch (Throwable t) {
+					// Fallback for non-standard file:// formats (like file://localhost/...)
+					String rawPath = line.substring("file://".length());
+					if (rawPath.startsWith("localhost/")) {
+						rawPath = rawPath.substring("localhost".length());
+					}
+					try {
+						rawPath = URLDecoder.decode(rawPath, StandardCharsets.UTF_8.name());
+					} catch (Exception ignore) {
+					}
+					File f = new File(rawPath);
+					if (f.exists()) {
+						resolvedUrl = IOUtils.getCanonicalFileURL(f);
+					}
+				}
+			}
+
+			if (Common.isMIDletUrlExtension(resolvedUrl)) {
+				result.add(resolvedUrl);
+			}
+		}
+		return result;
 	}
 }
