@@ -100,7 +100,11 @@ task compressPayload {
 
         inFile.withInputStream { is ->
             outFile.withOutputStream { os ->
-                def xzOut = new org.tukaani.xz.XZOutputStream(os, new org.tukaani.xz.LZMA2Options(6))
+                def lzmaOpts = new org.tukaani.xz.LZMA2Options(6)
+                lzmaOpts.setNiceLen(273)
+                lzmaOpts.setMatchFinder(org.tukaani.xz.LZMA2Options.MF_BT4)
+                lzmaOpts.setMode(org.tukaani.xz.LZMA2Options.MODE_NORMAL)
+                def xzOut = new org.tukaani.xz.XZOutputStream(os, lzmaOpts)
                 byte[] buf = new byte[32768]
                 int n
                 while ((n = is.read(buf)) != -1) {

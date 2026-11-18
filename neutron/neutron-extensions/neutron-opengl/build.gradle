@@ -37,10 +37,10 @@ dependencies {
     api "org.lwjgl:lwjgl-opengl"
     api "org.lwjgl:lwjgl-glfw"
 
-    // Multiplatform LWJGL natives for cross-platform standalone fat JAR
+    // Mainstream 64-bit desktop LWJGL natives (matches Nokia M3G platform targets)
     [
-        "natives-linux", "natives-linux-arm64",
-        "natives-windows", "natives-windows-x86", "natives-windows-arm64",
+        "natives-linux",
+        "natives-windows",
         "natives-macos", "natives-macos-arm64"
     ].each { platform ->
         runtimeOnly "org.lwjgl:lwjgl::$platform"
