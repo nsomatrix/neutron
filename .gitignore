@@ -26,4 +26,5 @@ Thumbs.db
 # Temporary workbench & clone directories
 tmp/
 **/src/main/cpp/build/
+**/src/main/cpp/build_all/
 

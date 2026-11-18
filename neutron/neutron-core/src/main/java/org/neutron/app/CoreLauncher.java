@@ -11,15 +11,15 @@ import org.tukaani.xz.XZInputStream;
 public class CoreLauncher {
     public static void main(String[] args) {
         try {
+            URL payloadResource = CoreLauncher.class.getResource("/payload.jar.xz");
+            if (payloadResource == null) {
+                Main.main(args);
+                return;
+            }
+
             File tempDir = new File(System.getProperty("java.io.tmpdir"), ".neutron_core_cache");
             tempDir.mkdirs();
             File payloadJar = new File(tempDir, "neutron-core-payload.jar");
-
-            URL payloadResource = CoreLauncher.class.getResource("/payload.jar.xz");
-            if (payloadResource == null) {
-                System.err.println("Error: Compressed payload stream /payload.jar.xz not found!");
-                System.exit(1);
-            }
 
             java.net.URLConnection conn = payloadResource.openConnection();
             long resourceLength = conn.getContentLengthLong();
@@ -66,6 +66,11 @@ public class CoreLauncher {
                     stampFos.close();
                 } catch (Exception ignore) {
                 }
+            }
+
+            String existingCp = System.getProperty("java.class.path");
+            if (existingCp == null || !existingCp.contains(payloadJar.getAbsolutePath())) {
+                System.setProperty("java.class.path", payloadJar.getAbsolutePath() + (existingCp != null && !existingCp.isEmpty() ? File.pathSeparator + existingCp : ""));
             }
 
             URLClassLoader classLoader = new URLClassLoader(new URL[]{payloadJar.toURI().toURL()}, CoreLauncher.class.getClassLoader());

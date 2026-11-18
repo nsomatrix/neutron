@@ -51,7 +51,7 @@ fi
 
 # Common compilation flags
 COMMON_INC="-I$M3G_ROOT/inc -I$KHR_INC -I$JAVA_INC"
-COMMON_DEFS="-DM3G_TARGET_ANDROID -DM3G_GL_ES_1_1 -DKHRONOS_STATIC -O3 -fPIC"
+COMMON_DEFS="-DM3G_TARGET_ANDROID -DM3G_GL_ES_1_1 -DKHRONOS_STATIC -Os -fdata-sections -ffunction-sections -fPIC"
 
 # 2. Build Windows x86_64
 echo "[2/4] Cross-compiling Windows x86_64 (javam3g.dll)..."
@@ -59,14 +59,14 @@ mkdir -p "$RESOURCES_DIR/windows-x86_64" "$BUILD_DIR/win64"
 WIN_INC="$COMMON_INC -I$DIR/include/win32"
 
 $ZIG cc -target x86_64-windows-gnu -c "$M3G_ROOT/src/m3g_core.c" $WIN_INC $COMMON_DEFS -Wno-incompatible-pointer-types -o "$BUILD_DIR/win64/core.o"
-$ZIG cc -target x86_64-windows-gnu -c "$M3G_ROOT/src/miniz.c" -I"$M3G_ROOT/inc" -O3 -fPIC -o "$BUILD_DIR/win64/miniz.o"
+$ZIG cc -target x86_64-windows-gnu -c "$M3G_ROOT/src/miniz.c" -I"$M3G_ROOT/inc" -Os -fdata-sections -ffunction-sections -fPIC -o "$BUILD_DIR/win64/miniz.o"
 $ZIG c++ -target x86_64-windows-gnu -c "$M3G_ROOT/CSynchronization.cpp" $WIN_INC $COMMON_DEFS -o "$BUILD_DIR/win64/csync.o"
 $ZIG c++ -target x86_64-windows-gnu -c "$M3G_ROOT/src/m3g_android.cpp" $WIN_INC $COMMON_DEFS -o "$BUILD_DIR/win64/android.o"
 $ZIG c++ -target x86_64-windows-gnu -c "$M3G_ROOT/src/m3g_android_gl.cpp" $WIN_INC $COMMON_DEFS -o "$BUILD_DIR/win64/android_gl.o"
 $ZIG c++ -target x86_64-windows-gnu -c "$M3G_ROOT/m3g_android_java_api.cpp" $WIN_INC $COMMON_DEFS -fpermissive -o "$BUILD_DIR/win64/api.o"
 $ZIG cc -target x86_64-windows-gnu -c "$DIR/m3g_desktop_gl.c" $WIN_INC $COMMON_DEFS -o "$BUILD_DIR/win64/desktop_gl.o"
 
-$ZIG c++ -target x86_64-windows-gnu -shared \
+$ZIG c++ -target x86_64-windows-gnu -shared -s -Wl,--gc-sections \
     "$BUILD_DIR/win64/core.o" "$BUILD_DIR/win64/miniz.o" "$BUILD_DIR/win64/csync.o" \
     "$BUILD_DIR/win64/android.o" "$BUILD_DIR/win64/android_gl.o" "$BUILD_DIR/win64/api.o" \
     "$BUILD_DIR/win64/desktop_gl.o" \
@@ -80,14 +80,14 @@ mkdir -p "$RESOURCES_DIR/macos-x86_64" "$BUILD_DIR/mac_x64"
 MAC_INC="$COMMON_INC -I$DIR/include/darwin"
 
 $ZIG cc -target x86_64-macos -c "$M3G_ROOT/src/m3g_core.c" $MAC_INC $COMMON_DEFS -Wno-incompatible-pointer-types -o "$BUILD_DIR/mac_x64/core.o"
-$ZIG cc -target x86_64-macos -c "$M3G_ROOT/src/miniz.c" -I"$M3G_ROOT/inc" -O3 -fPIC -o "$BUILD_DIR/mac_x64/miniz.o"
+$ZIG cc -target x86_64-macos -c "$M3G_ROOT/src/miniz.c" -I"$M3G_ROOT/inc" -Os -fdata-sections -ffunction-sections -fPIC -o "$BUILD_DIR/mac_x64/miniz.o"
 $ZIG c++ -target x86_64-macos -c "$M3G_ROOT/CSynchronization.cpp" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_x64/csync.o"
 $ZIG c++ -target x86_64-macos -c "$M3G_ROOT/src/m3g_android.cpp" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_x64/android.o"
 $ZIG c++ -target x86_64-macos -c "$M3G_ROOT/src/m3g_android_gl.cpp" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_x64/android_gl.o"
 $ZIG c++ -target x86_64-macos -c "$M3G_ROOT/m3g_android_java_api.cpp" $MAC_INC $COMMON_DEFS -fpermissive -o "$BUILD_DIR/mac_x64/api.o"
 $ZIG cc -target x86_64-macos -c "$DIR/m3g_desktop_gl.c" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_x64/desktop_gl.o"
 
-$ZIG c++ -target x86_64-macos -shared \
+$ZIG c++ -target x86_64-macos -shared -Wl,-dead_strip \
     "$BUILD_DIR/mac_x64/core.o" "$BUILD_DIR/mac_x64/miniz.o" "$BUILD_DIR/mac_x64/csync.o" \
     "$BUILD_DIR/mac_x64/android.o" "$BUILD_DIR/mac_x64/android_gl.o" "$BUILD_DIR/mac_x64/api.o" \
     "$BUILD_DIR/mac_x64/desktop_gl.o" \
@@ -99,14 +99,14 @@ echo "[4/4] Cross-compiling macOS arm64 (libjavam3g.dylib)..."
 mkdir -p "$RESOURCES_DIR/macos-arm64" "$BUILD_DIR/mac_arm64"
 
 $ZIG cc -target aarch64-macos -c "$M3G_ROOT/src/m3g_core.c" $MAC_INC $COMMON_DEFS -Wno-incompatible-pointer-types -o "$BUILD_DIR/mac_arm64/core.o"
-$ZIG cc -target aarch64-macos -c "$M3G_ROOT/src/miniz.c" -I"$M3G_ROOT/inc" -O3 -fPIC -o "$BUILD_DIR/mac_arm64/miniz.o"
+$ZIG cc -target aarch64-macos -c "$M3G_ROOT/src/miniz.c" -I"$M3G_ROOT/inc" -Os -fdata-sections -ffunction-sections -fPIC -o "$BUILD_DIR/mac_arm64/miniz.o"
 $ZIG c++ -target aarch64-macos -c "$M3G_ROOT/CSynchronization.cpp" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_arm64/csync.o"
 $ZIG c++ -target aarch64-macos -c "$M3G_ROOT/src/m3g_android.cpp" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_arm64/android.o"
 $ZIG c++ -target aarch64-macos -c "$M3G_ROOT/src/m3g_android_gl.cpp" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_arm64/android_gl.o"
 $ZIG c++ -target aarch64-macos -c "$M3G_ROOT/m3g_android_java_api.cpp" $MAC_INC $COMMON_DEFS -fpermissive -o "$BUILD_DIR/mac_arm64/api.o"
 $ZIG cc -target aarch64-macos -c "$DIR/m3g_desktop_gl.c" $MAC_INC $COMMON_DEFS -o "$BUILD_DIR/mac_arm64/desktop_gl.o"
 
-$ZIG c++ -target aarch64-macos -shared \
+$ZIG c++ -target aarch64-macos -shared -Wl,-dead_strip \
     "$BUILD_DIR/mac_arm64/core.o" "$BUILD_DIR/mac_arm64/miniz.o" "$BUILD_DIR/mac_arm64/csync.o" \
     "$BUILD_DIR/mac_arm64/android.o" "$BUILD_DIR/mac_arm64/android_gl.o" "$BUILD_DIR/mac_arm64/api.o" \
     "$BUILD_DIR/mac_arm64/desktop_gl.o" \

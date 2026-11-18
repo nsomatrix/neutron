@@ -100,11 +100,11 @@ task rawJar(type: Jar) {
 task compressPayload {
     dependsOn rawJar
     inputs.file rawJar.archiveFile
-    outputs.file "${buildDir}/resources/main/payload.jar.xz"
+    outputs.file "${buildDir}/payload/payload.jar.xz"
 
     doLast {
         def inFile = rawJar.archiveFile.get().asFile
-        def outFile = file("${buildDir}/resources/main/payload.jar.xz")
+        def outFile = file("${buildDir}/payload/payload.jar.xz")
         outFile.parentFile.mkdirs()
 
         inFile.withInputStream { is ->
@@ -131,7 +131,7 @@ jar {
     from {
         configurations.runtimeClasspath.findAll { it.name.contains('xz') }.collect { zipTree(it) }
     }
-    from("${buildDir}/resources/main") {
+    from("${buildDir}/payload") {
         include 'payload.jar.xz'
     }
     include 'org/neutron/app/CoreLauncher*.class'
