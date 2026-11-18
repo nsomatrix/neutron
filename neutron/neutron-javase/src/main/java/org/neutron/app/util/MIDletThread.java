@@ -155,7 +155,18 @@ public class MIDletThread extends Thread {
 	}
 	
 	private static void terminateThreads(Map threads) {
-		long endTime = System.currentTimeMillis() + graceTerminationPeriod;
+		// First pass: interrupt all threads immediately so sleeping/waiting loops exit without delay
+		for (Iterator iter = threads.keySet().iterator(); iter.hasNext();) {
+			Object o = iter.next();
+			if (o instanceof MIDletThread) {
+				MIDletThread t = (MIDletThread) o;
+				if (t.isAlive()) {
+					t.interrupt();
+				}
+			}
+		}
+
+		long endTime = System.currentTimeMillis() + 1000;
 		for (Iterator iter = threads.keySet().iterator(); iter.hasNext();) {
 			Object o = iter.next();
 			if (o == null) {
@@ -164,40 +175,28 @@ public class MIDletThread extends Thread {
 			if (o instanceof MIDletThread) {
 				MIDletThread t = (MIDletThread) o;
 				if (t.isAlive()) {
-					Logger.info("wait thread [" + t.getName() + "] end");
-					while ((endTime > System.currentTimeMillis()) && (t.isAlive())) {
+					long waitTime = endTime - System.currentTimeMillis();
+					if (waitTime > 0) {
 						try {
-							t.join(700);
+							t.join(Math.min(waitTime, 200));
 						} catch (InterruptedException e) {
 							break;
 						}
 					}
 					if (t.isAlive()) {
-						Logger.warn("MIDlet thread [" + t.getName() + "] still running" + ThreadUtils.getTreadStackTrace(t));
-						if (t.callLocation != null) {
-							Logger.info("this thread [" + t.getName() + "] was created from " + t.callLocation);
-						}
-						t.interrupt();
+						Logger.warn("MIDlet thread [" + t.getName() + "] did not terminate on interrupt. Stopping thread forcefully.");
 						try {
-							t.join(500);
-						} catch (InterruptedException e) {
-							// ignore
-						}
-						if (t.isAlive()) {
-							Logger.warn("MIDlet thread [" + t.getName() + "] did not terminate on interrupt. Stopping thread forcefully.");
-							try {
-								t.stop();
-							} catch (Throwable e) {
-								Logger.error("Failed to stop thread forcefully", e);
-							}
+							t.stop();
+						} catch (Throwable e) {
+							Logger.error("Failed to stop thread forcefully", e);
 						}
 					}
 				}
 			} else {
 				Logger.debug("unrecognized Object [" + o.getClass().getName() + "]");
 			}
-		};
-		Logger.debug("all "+ threads.size() + " thread(s) finished");
+		}
+		Logger.debug("all " + threads.size() + " thread(s) finished");
 		terminator = false;
 	}
 

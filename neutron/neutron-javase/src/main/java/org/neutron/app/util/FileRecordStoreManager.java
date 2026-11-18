@@ -90,6 +90,9 @@ public class FileRecordStoreManager implements RecordStoreManager {
 
 	public void init(Neutron emulator) {
 		this.emulator = emulator;
+		if (testOpenRecordStores != null) {
+			testOpenRecordStores.clear();
+		}
 	}
 
 	public String getName() {

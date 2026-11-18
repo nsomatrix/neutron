@@ -53,15 +53,23 @@ public abstract class MIDlet {
 		}
 
 		public void destroyApp(boolean unconditional) throws MIDletStateChangeException {
-			if (!midlet.destroyed) {
-				midlet.destroyApp(unconditional);
+			try {
+				if (!midlet.destroyed) {
+					midlet.destroyApp(unconditional);
+				}
+			} finally {
+				midlet.destroyed = true;
+				DisplayAccess da = getDisplayAccess();
+				if (da != null) {
+					try {
+						da.clean();
+					} catch (Throwable t) {
+						// Ignore to allow context destruction
+					}
+					setDisplayAccess(null);
+				}
+				MIDletBridge.destroyMIDletContext(MIDletBridge.getMIDletContext(midlet));
 			}
-			DisplayAccess da = getDisplayAccess();
-			if (da != null) {
-				da.clean();
-				setDisplayAccess(null);
-			}
-			MIDletBridge.destroyMIDletContext(MIDletBridge.getMIDletContext(midlet));
 		}
 	}
 

@@ -226,6 +226,10 @@ public class SwingLoadingUI {
      * Reset/dismiss the loader immediately.
      */
     public static synchronized void dismiss() {
+        if (currentState == State.LOADING) {
+            // Do not dismiss if a new game is actively loading
+            return;
+        }
         currentState = State.INACTIVE;
         currentAlpha = 0.0f;
         gameReady = false;

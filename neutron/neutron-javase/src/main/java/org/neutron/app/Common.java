@@ -228,6 +228,13 @@ public class Common implements Neutron, CommonInterface {
         } catch (MIDletStateChangeException ex) {
             Logger.error(ex);
         }
+        try {
+            Class<?> managerClass = Class.forName("javax.microedition.media.Manager");
+            java.lang.reflect.Method cleanupMethod = managerClass.getMethod("cleanupMedia");
+            cleanupMethod.invoke(null);
+        } catch (Throwable ignore) {
+        }
+        org.neutron.app.util.PlaytimeTracker.onGameStopped();
         // TODO to be removed when event dispatcher will run input method task
         DeviceFactory.getDevice().getInputMethod().dispose();
     }
@@ -753,16 +760,31 @@ public class Common implements Neutron, CommonInterface {
         }
         Logger.debug("openJar", jarUrl);
 
-        // Close Current MIDlet before oppening new one.
+        // Cleanly teardown currently running MIDlet before opening new one
+        MIDletContext currentContext = MIDletBridge.getMIDletContext();
+        if (currentContext != null && !currentContext.isLauncher()) {
+            try {
+                MIDletAccess access = currentContext.getMIDletAccess();
+                if (access != null) {
+                    access.destroyApp(true);
+                }
+            } catch (Throwable t) {
+                Logger.error("Error destroying running app", t);
+            }
+            try {
+                destroyMIDletContext(currentContext);
+            } catch (Throwable t) {
+                Logger.error("Error destroying running context", t);
+            }
+        }
         dispose();
-        // MIDletBridge.destroyMIDletContext(MIDletBridge.getMIDletContext());
         MIDletBridge.clear();
 
         // Wait for previous midlet threads to terminate
         long startWait = System.currentTimeMillis();
-        while (MIDletThread.hasRunningThreads(null) && (System.currentTimeMillis() - startWait < 3000)) {
+        while (MIDletThread.hasRunningThreads(null) && (System.currentTimeMillis() - startWait < 1500)) {
             try {
-                Thread.sleep(50);
+                Thread.sleep(20);
             } catch (InterruptedException e) {
                 break;
             }
