@@ -299,16 +299,23 @@ public class Graphics3D {
 				int vw = hasCustomViewport ? unionVpW : getViewportWidth();
 				int vh = hasCustomViewport ? unionVpH : getViewportHeight();
 
-				int startX = Math.max(vx, cur_clipX);
-				int startY = Math.max(vy, cur_clipY);
-				int endX = Math.min(Math.min(w, vx + vw), cur_clipX + cur_clipW);
-				int endY = Math.min(Math.min(h, vy + vh), cur_clipY + cur_clipH);
+				int clipMinX = Math.max(0, cur_clipX);
+				int clipMinY = Math.max(0, cur_clipY);
+				int clipMaxX = Math.min(w, cur_clipX + cur_clipW);
+				int clipMaxY = Math.min(h, cur_clipY + cur_clipH);
+
+				int startX = Math.max(clipMinX, Math.max(0, vx));
+				int startY = Math.max(clipMinY, Math.max(0, vy));
+				int endX = Math.min(clipMaxX, Math.min(w, vx + vw));
+				int endY = Math.min(clipMaxY, Math.min(h, vy + vh));
 				int blitW = endX - startX;
 				int blitH = endY - startY;
 
 				if (blitW > 0 && blitH > 0) {
 					int offset = startY * w + startX;
-					finalG.drawRGB(intData, offset, w, startX, startY, blitW, blitH, false);
+					if (offset >= 0 && offset + (blitH - 1) * w + blitW - 1 < intData.length) {
+						finalG.drawRGB(intData, offset, w, startX, startY, blitW, blitH, false);
+					}
 				}
 				buffer = null;
 				hasCustomViewport = false;
