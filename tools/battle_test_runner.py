@@ -36,8 +36,12 @@ def run_headless_midlet(jar_path, neutron_jar, duration=DEFAULT_TIMEOUT):
             stdout, stderr = proc.communicate(timeout=duration)
         except subprocess.TimeoutExpired:
             # Reaching timeout without crashing is a SUCCESS for interactive midlets!
-            proc.kill()
-            stdout, stderr = proc.communicate()
+            proc.terminate()
+            try:
+                stdout, stderr = proc.communicate(timeout=1.0)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                stdout, stderr = proc.communicate()
             elapsed = time.time() - start_time
             
             # Check for critical errors in stdout/stderr

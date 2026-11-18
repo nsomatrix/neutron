@@ -13,32 +13,30 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.RadialGradientPaint;
 import java.awt.RenderingHints;
-import java.awt.geom.Point2D;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Enumeration;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import javax.swing.ImageIcon;
+import javax.swing.UIManager;
+import org.neutron.app.util.PlaytimeTracker;
 
 /**
- * SwingLoadingUI provides an industry-standard, authentic retro-modern bootloader
- * for J2ME games in Neutron.
+ * Modern, theme-aware bootloader and splash transition for Neutron.
  * 
- * Features:
- *  - Retro LCD matrix backdrop with subtle scanline lattice & radial backlight glow.
- *  - Dynamic game identity: extracted icon, bold title, vendor/version, and profile tags.
- *  - Authentic Nokia / Sony Ericsson style segmented progress bar.
- *  - Cycling application status messages.
- *  - Cinematic cross-fade handoff into the active game canvas.
- *  - Immediate skip on user interaction (key or mouse press).
+ * Design Principles:
+ *  - 100% Native Theme Adaptive: dynamically derives all backgrounds, text, surfaces,
+ *    borders, and accents from UIManager (FlatLaf Dark/Light, Mac, Dracula, System).
+ *  - Modern, Clean Minimalist UI: replaces segmented XP-style blocks with a smooth continuous
+ *    progress track, elevated card layout, and anti-aliased geometry.
+ *  - Clear & Human Status: simplified labels with zero low-level jargon and no ellipsis.
+ *  - Total Playtime Counter: displays cumulative time spent on this game in ss mm hh dd mm yy.
+ *  - Seamless Cinematic Handoff: smooth cubic cross-fade into gameplay on completion.
  */
 public class SwingLoadingUI {
 
@@ -53,9 +51,9 @@ public class SwingLoadingUI {
     private static volatile long fadeOutStartTime = 0;
     private static volatile boolean gameReady = false;
 
-    private static final long MIN_DISPLAY_DURATION = 900;  // 900ms smooth retro boot feel
+    private static final long MIN_DISPLAY_DURATION = 800;  // 800ms clean modern transition
     private static final long MAX_SAFETY_TIMEOUT   = 6000; // 6s safety timeout
-    private static final long FADE_OUT_DURATION    = 300;  // 300ms smooth cross-fade
+    private static final long FADE_OUT_DURATION    = 250;  // 250ms smooth cross-fade
 
     private static volatile float currentAlpha = 0.0f;
     private static volatile Runnable repaintCallback = null;
@@ -65,21 +63,13 @@ public class SwingLoadingUI {
     }
 
     // Game Metadata
-    private static volatile String gameTitle = "Loading...";
+    private static volatile String currentGameKey = "";
+    private static volatile String gameTitle = "Starting Game";
     private static volatile String gameVendor = "Java™ Application";
     private static volatile String gameVersion = "";
     private static volatile String gameProfile = "MIDP-2.0";
+    private static volatile String gamePlaytimeStr = "00hh 00mm 00ss";
     private static volatile Image gameIcon = null;
-
-    // Palette: Retro LCD Dark Theme with Nokia Cyan / Emerald Accent
-    private static final Color BG_DARK          = new Color(11, 15, 20);
-    private static final Color BG_LIGHTER       = new Color(18, 24, 32);
-    private static final Color ACCENT_CYAN      = new Color(0, 210, 211);
-    private static final Color ACCENT_EMERALD   = new Color(46, 204, 113);
-    private static final Color TEXT_PRIMARY     = new Color(240, 246, 252);
-    private static final Color TEXT_SECONDARY   = new Color(139, 148, 158);
-    private static final Color BORDER_COLOR     = new Color(48, 54, 61);
-    private static final Color TRACK_BG         = new Color(22, 27, 34);
 
     /**
      * Start the loading sequence for a given JAR/JAD target.
@@ -90,6 +80,7 @@ public class SwingLoadingUI {
         fadeOutStartTime = 0;
         gameReady = false;
         currentAlpha = 1.0f;
+        currentGameKey = urlString != null ? urlString : "";
 
         if (repaintCallback != null) {
             try {
@@ -108,12 +99,16 @@ public class SwingLoadingUI {
             }
             gameTitle = name;
         } else {
-            gameTitle = "Starting Application";
+            gameTitle = "Starting Game";
         }
         gameVendor = "Java™ ME Platform";
         gameVersion = "";
         gameProfile = "MIDP-2.0";
         gameIcon = null;
+
+        // Fetch cumulative playtime
+        long playtimeSec = PlaytimeTracker.getPlaytimeSeconds(currentGameKey);
+        gamePlaytimeStr = PlaytimeTracker.formatPlaytime(playtimeSec);
 
         // Asynchronously extract precise metadata & icon from archive
         if (urlString != null) {
@@ -149,7 +144,6 @@ public class SwingLoadingUI {
                 String config = attr.getValue("MicroEdition-Configuration");
                 String iconPath = attr.getValue("MIDlet-Icon");
 
-                // If not in root attributes, check MIDlet-1
                 if (name == null || iconPath == null) {
                     String midlet1 = attr.getValue("MIDlet-1");
                     if (midlet1 != null) {
@@ -189,19 +183,22 @@ public class SwingLoadingUI {
                     if (cleanPath.startsWith("/")) cleanPath = cleanPath.substring(1);
                     JarEntry iconEntry = jar.getJarEntry(cleanPath);
                     if (iconEntry != null) {
-                        InputStream is = jar.getInputStream(iconEntry);
-                        byte[] bytes = is.readAllBytes();
-                        is.close();
-                        ImageIcon imgIcon = new ImageIcon(bytes);
-                        if (imgIcon.getIconWidth() > 0) {
-                            gameIcon = imgIcon.getImage();
+                        try (InputStream is = jar.getInputStream(iconEntry)) {
+                            byte[] bytes = is.readAllBytes();
+                            ImageIcon imgIcon = new ImageIcon(bytes);
+                            if (imgIcon.getIconWidth() > 0) {
+                                gameIcon = imgIcon.getImage();
+                            }
                         }
                     }
                 }
             }
             jar.close();
+
+            // Refresh playtime in case key normalized
+            long playtimeSec = PlaytimeTracker.getPlaytimeSeconds(urlString);
+            gamePlaytimeStr = PlaytimeTracker.formatPlaytime(playtimeSec);
         } catch (Throwable ignore) {
-            // Non-critical, fallback defaults will remain
         }
     }
 
@@ -248,9 +245,6 @@ public class SwingLoadingUI {
         return 1.0f - f * f * f;
     }
 
-    /**
-     * Update state transition and alpha over time.
-     */
     private static void updateTiming() {
         if (currentState == State.INACTIVE) {
             currentAlpha = 0.0f;
@@ -263,13 +257,13 @@ public class SwingLoadingUI {
         if (currentState == State.LOADING) {
             currentAlpha = 1.0f;
 
-        if (repaintCallback != null) {
-            try {
-                repaintCallback.run();
-            } catch (Throwable ignore) {
+            if (repaintCallback != null) {
+                try {
+                    repaintCallback.run();
+                } catch (Throwable ignore) {
+                }
             }
-        }
-            // Transition out once game is ready and minimum display time elapsed (or safety timeout reached)
+
             if ((gameReady && elapsed >= MIN_DISPLAY_DURATION) || elapsed >= MAX_SAFETY_TIMEOUT) {
                 currentState = State.FADING_OUT;
                 fadeOutStartTime = now;
@@ -286,7 +280,7 @@ public class SwingLoadingUI {
     }
 
     /**
-     * Render the retro-modern bootloader over the device canvas.
+     * Render the theme-adaptive, modern bootloader over the device canvas.
      */
     public static void paintLoader(Graphics g, int width, int height) {
         if (currentState == State.INACTIVE || width <= 0 || height <= 0) {
@@ -310,157 +304,209 @@ public class SwingLoadingUI {
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, currentAlpha));
         }
 
-        // 1. Draw Deep LCD Vignette Background
-        Point2D center = new Point2D.Float(width / 2.0f, height * 0.45f);
-        float radius = Math.max(width, height) * 0.75f;
-        float[] dist = { 0.0f, 0.65f, 1.0f };
-        Color[] colors = { BG_LIGHTER, BG_DARK, new Color(6, 8, 12) };
-        RadialGradientPaint p = new RadialGradientPaint(center, radius, dist, colors);
-        g2.setPaint(p);
+        // --- 1. Dynamic Native Theme Resolution (Zero Hardcoded Colors) ---
+        Color themeBg = UIManager.getColor("Panel.background");
+        if (themeBg == null) {
+            themeBg = UIManager.getColor("window");
+        }
+        if (themeBg == null) {
+            themeBg = new Color(24, 28, 36);
+        }
+
+        // Check luminance for native dark vs light adaptation
+        double luminance = (0.299 * themeBg.getRed() + 0.587 * themeBg.getGreen() + 0.114 * themeBg.getBlue());
+        boolean isDark = luminance < 135;
+
+        Color textPrimary = UIManager.getColor("Label.foreground");
+        if (textPrimary == null) {
+            textPrimary = isDark ? new Color(245, 247, 250) : new Color(30, 41, 59);
+        }
+
+        Color textSecondary = UIManager.getColor("Label.disabledForeground");
+        if (textSecondary == null) {
+            textSecondary = isDark ? new Color(156, 163, 175) : new Color(100, 116, 139);
+        }
+
+        Color accentColor = UIManager.getColor("Component.accentColor");
+        if (accentColor == null) {
+            accentColor = UIManager.getColor("ProgressBar.foreground");
+        }
+        if (accentColor == null) {
+            accentColor = UIManager.getColor("textHighlight");
+        }
+        if (accentColor == null) {
+            accentColor = isDark ? new Color(59, 130, 246) : new Color(37, 99, 235);
+        }
+
+        Color compBorder = UIManager.getColor("Component.borderColor");
+        Color cardBorder;
+        if (compBorder != null) {
+            cardBorder = new Color(compBorder.getRed(), compBorder.getGreen(), compBorder.getBlue(), isDark ? 80 : 60);
+        } else {
+            cardBorder = isDark ? new Color(255, 255, 255, 28) : new Color(0, 0, 0, 24);
+        }
+
+        Color pbTrack = UIManager.getColor("ProgressBar.trackColor");
+        Color trackColor;
+        if (pbTrack != null) {
+            trackColor = pbTrack;
+        } else {
+            trackColor = isDark ? new Color(255, 255, 255, 22) : new Color(0, 0, 0, 18);
+        }
+
+        Color cardSurface = isDark
+                ? new Color(255, 255, 255, 14)
+                : new Color(0, 0, 0, 8);
+
+        Color badgeBg = isDark
+                ? new Color(255, 255, 255, 16)
+                : new Color(0, 0, 0, 10);
+
+        Font sysFont = UIManager.getFont("Label.font");
+        String fontName = sysFont != null ? sysFont.getFamily() : Font.SANS_SERIF;
+
+        // 2. Fill Native Adaptive Background
+        g2.setColor(themeBg);
         g2.fillRect(0, 0, width, height);
 
-        // 2. Authentic LCD Scanline / Subpixel Lattice
-        g2.setColor(new Color(255, 255, 255, 7));
-        for (int y = 0; y < height; y += 3) {
-            g2.drawLine(0, y, width, y);
-        }
+        // Subtle modern radial vignette
+        Color glowColor = isDark
+                ? new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 28)
+                : new Color(accentColor.getRed(), accentColor.getGreen(), accentColor.getBlue(), 16);
+        int glowSize = (int) (Math.max(width, height) * 0.95f);
+        java.awt.RadialGradientPaint glowPaint = new java.awt.RadialGradientPaint(
+                width / 2.0f, height * 0.42f, glowSize / 2.0f,
+                new float[]{ 0.0f, 1.0f },
+                new Color[]{ glowColor, new Color(themeBg.getRed(), themeBg.getGreen(), themeBg.getBlue(), 0) }
+        );
+        g2.setPaint(glowPaint);
+        g2.fillRect(0, 0, width, height);
 
         int scaleRef = Math.min(width, height);
-        int iconSize = scaleRef >= 320 ? 64 : (scaleRef >= 200 ? 48 : 36);
         int centerX = width / 2;
-        int centerY = (int) (height * 0.38f);
+        int centerY = (int) (height * 0.35f);
 
-        // 3. Render Game Icon with Beveled Glow Box
-        int iconBoxX = centerX - iconSize / 2;
-        int iconBoxY = centerY - iconSize / 2;
+        // 3. Elevated Modern Icon Card
+        int iconSize = scaleRef >= 320 ? 64 : (scaleRef >= 220 ? 52 : 40);
+        int iconBoxSize = iconSize + 16;
+        int iconBoxX = centerX - iconBoxSize / 2;
+        int iconBoxY = centerY - iconBoxSize / 2;
 
-        // Icon Bezel & Drop Shadow
-        g2.setColor(new Color(0, 0, 0, 80));
-        g2.fill(new RoundRectangle2D.Float(iconBoxX + 2, iconBoxY + 3, iconSize, iconSize, 14, 14));
+        // Soft drop shadow
+        g2.setColor(isDark ? new Color(0, 0, 0, 70) : new Color(0, 0, 0, 25));
+        g2.fill(new RoundRectangle2D.Float(iconBoxX, iconBoxY + 3, iconBoxSize, iconBoxSize, 20, 20));
 
-        g2.setColor(TRACK_BG);
-        g2.fill(new RoundRectangle2D.Float(iconBoxX, iconBoxY, iconSize, iconSize, 14, 14));
-
-        g2.setColor(BORDER_COLOR);
-        g2.draw(new RoundRectangle2D.Float(iconBoxX, iconBoxY, iconSize, iconSize, 14, 14));
+        // Surface Card
+        g2.setColor(cardSurface);
+        g2.fill(new RoundRectangle2D.Float(iconBoxX, iconBoxY, iconBoxSize, iconBoxSize, 20, 20));
+        g2.setColor(cardBorder);
+        g2.draw(new RoundRectangle2D.Float(iconBoxX, iconBoxY, iconBoxSize, iconBoxSize, 20, 20));
 
         if (gameIcon != null) {
-            g2.drawImage(gameIcon, iconBoxX + 4, iconBoxY + 4, iconSize - 8, iconSize - 8, null);
+            g2.drawImage(gameIcon, iconBoxX + 8, iconBoxY + 8, iconSize, iconSize, null);
         } else {
-            // Retro Java Coffee Cup Placeholder
-            g2.setColor(ACCENT_CYAN);
-            int cupW = iconSize / 2;
-            int cupH = iconSize / 3;
-            int cupX = centerX - cupW / 2;
-            int cupY = centerY - cupH / 4;
-            g2.drawRoundRect(cupX, cupY, cupW, cupH, 6, 6);
-            g2.drawArc(cupX + cupW - 2, cupY + 2, cupW / 3, cupH - 4, 270, 180);
-            g2.drawLine(cupX + 2, cupY + cupH + 3, cupX + cupW - 2, cupY + cupH + 3);
+            // Modern Minimalist Controller Glyph
+            g2.setColor(accentColor);
+            int gw = iconSize / 2;
+            int gh = iconSize / 3;
+            int gx = centerX - gw / 2;
+            int gy = centerY - gh / 2;
+            g2.drawRoundRect(gx, gy, gw, gh, 8, 8);
+            g2.drawLine(gx + gw / 4, gy + gh / 2, gx + gw / 4 + 4, gy + gh / 2);
+            g2.fillOval(gx + gw - gw / 4 - 2, gy + gh / 2 - 2, 4, 4);
         }
 
-        // 4. Render Game Title & Subtitles
-        int titleFontSize = Math.max(12, Math.min(18, scaleRef / 16));
-        Font titleFont = new Font(Font.SANS_SERIF, Font.BOLD, titleFontSize);
+        // 4. Game Title & Subtitle Typography
+        int titleFontSize = Math.max(13, Math.min(19, scaleRef / 15));
+        Font titleFont = new Font(fontName, Font.BOLD, titleFontSize);
         g2.setFont(titleFont);
         FontMetrics fmTitle = g2.getFontMetrics();
 
-        int textY = iconBoxY + iconSize + fmTitle.getAscent() + (scaleRef >= 240 ? 16 : 8);
+        int textY = iconBoxY + iconBoxSize + fmTitle.getAscent() + (scaleRef >= 240 ? 14 : 10);
 
-        // Clamped display title
         String displayTitle = gameTitle;
-        if (fmTitle.stringWidth(displayTitle) > width - 24) {
-            while (displayTitle.length() > 4 && fmTitle.stringWidth(displayTitle + "...") > width - 24) {
+        if (fmTitle.stringWidth(displayTitle) > width - 28) {
+            while (displayTitle.length() > 3 && fmTitle.stringWidth(displayTitle + "…") > width - 28) {
                 displayTitle = displayTitle.substring(0, displayTitle.length() - 1);
             }
-            displayTitle = displayTitle + "...";
+            displayTitle = displayTitle + "…";
         }
 
-        g2.setColor(TEXT_PRIMARY);
+        g2.setColor(textPrimary);
         g2.drawString(displayTitle, centerX - fmTitle.stringWidth(displayTitle) / 2, textY);
 
-        // Vendor & Version Subtitle
+        // Subtitle (Vendor • Version)
         int subFontSize = Math.max(10, Math.min(12, titleFontSize - 3));
-        Font subFont = new Font(Font.SANS_SERIF, Font.PLAIN, subFontSize);
+        Font subFont = new Font(fontName, Font.PLAIN, subFontSize);
         g2.setFont(subFont);
         FontMetrics fmSub = g2.getFontMetrics();
 
-        textY += fmSub.getHeight() + 2;
+        textY += fmSub.getHeight() + 3;
         String subText = gameVendor + (gameVersion.isEmpty() ? "" : " • " + gameVersion);
-        g2.setColor(TEXT_SECONDARY);
+        g2.setColor(textSecondary);
         g2.drawString(subText, centerX - fmSub.stringWidth(subText) / 2, textY);
 
-        // 5. Authentic Retro Segmented Progress Bar
+        // 5. Total Playtime Counter (ss mm hh dd mm yy)
+        int timeFontSize = Math.max(9, Math.min(11, subFontSize));
+        Font timeFont = new Font(fontName, Font.PLAIN, timeFontSize);
+        g2.setFont(timeFont);
+        FontMetrics fmTime = g2.getFontMetrics();
+
+        String playtimeLabel = "Played: " + gamePlaytimeStr;
+        int badgePaddingH = 10;
+        int badgePaddingV = 4;
+        int badgeW = fmTime.stringWidth(playtimeLabel) + badgePaddingH * 2;
+        int badgeH = fmTime.getHeight() + badgePaddingV * 2;
+        int badgeX = centerX - badgeW / 2;
+        int badgeY = textY + 8;
+
+        g2.setColor(badgeBg);
+        g2.fill(new RoundRectangle2D.Float(badgeX, badgeY, badgeW, badgeH, 12, 12));
+        g2.setColor(cardBorder);
+        g2.draw(new RoundRectangle2D.Float(badgeX, badgeY, badgeW, badgeH, 12, 12));
+
+        g2.setColor(textSecondary);
+        g2.drawString(playtimeLabel, badgeX + badgePaddingH, badgeY + badgePaddingV + fmTime.getAscent());
+
+        // 6. Modern Continuous Progress Pill (No XP Segments)
         long now = System.currentTimeMillis();
         long elapsed = now - loadingStartTime;
         float progress = Math.min(1.0f, (float) elapsed / MIN_DISPLAY_DURATION);
 
-        int barWidth = Math.min(220, (int) (width * 0.72f));
-        int barHeight = Math.max(8, scaleRef >= 240 ? 12 : 8);
+        int barWidth = Math.min(240, (int) (width * 0.70f));
+        int barHeight = Math.max(4, scaleRef >= 240 ? 6 : 4);
         int barX = centerX - barWidth / 2;
-        int barY = (int) (height * 0.72f);
+        int barY = (int) (height * 0.76f);
 
-        // Bezel Track
-        g2.setColor(TRACK_BG);
-        g2.fillRoundRect(barX, barY, barWidth, barHeight, 4, 4);
-        g2.setColor(BORDER_COLOR);
-        g2.drawRoundRect(barX, barY, barWidth, barHeight, 4, 4);
+        // Track background
+        g2.setColor(trackColor);
+        g2.fill(new RoundRectangle2D.Float(barX, barY, barWidth, barHeight, barHeight, barHeight));
 
-        // 10 Segments (Iconic Nokia / Sony Ericsson look)
-        int totalSegments = 10;
-        int activeSegments = (int) Math.floor(progress * totalSegments);
-        int segSpacing = 2;
-        int segWidth = (barWidth - 4 - (totalSegments - 1) * segSpacing) / totalSegments;
+        // Smooth active fill with modern theme accent
+        int fillWidth = Math.max(barHeight, (int) (barWidth * progress));
+        g2.setColor(accentColor);
+        g2.fill(new RoundRectangle2D.Float(barX, barY, fillWidth, barHeight, barHeight, barHeight));
 
-        for (int i = 0; i < totalSegments; i++) {
-            int segX = barX + 2 + i * (segWidth + segSpacing);
-            int segY = barY + 2;
-            int segH = barHeight - 4;
-
-            if (i < activeSegments) {
-                // Gradient accent block
-                float segRatio = (float) i / (float) totalSegments;
-                int r = (int) (ACCENT_CYAN.getRed() * (1.0f - segRatio) + ACCENT_EMERALD.getRed() * segRatio);
-                int gr = (int) (ACCENT_CYAN.getGreen() * (1.0f - segRatio) + ACCENT_EMERALD.getGreen() * segRatio);
-                int b = (int) (ACCENT_CYAN.getBlue() * (1.0f - segRatio) + ACCENT_EMERALD.getBlue() * segRatio);
-                g2.setColor(new Color(r, gr, b));
-                g2.fillRect(segX, segY, segWidth, segH);
-            } else {
-                // Dim unlit segment
-                g2.setColor(new Color(255, 255, 255, 12));
-                g2.fillRect(segX, segY, segWidth, segH);
-            }
-        }
-
-        // 6. Cycling Retro Status Label
-        int statusFontSize = Math.max(9, Math.min(11, subFontSize - 1));
-        Font statusFont = new Font(Font.MONOSPACED, Font.PLAIN, statusFontSize);
+        // 7. Simplified Human Status (No Jargon, No Ellipsis)
+        int statusFontSize = Math.max(10, Math.min(12, subFontSize));
+        Font statusFont = new Font(fontName, Font.PLAIN, statusFontSize);
         g2.setFont(statusFont);
         FontMetrics fmStatus = g2.getFontMetrics();
 
         String statusMsg;
-        if (progress < 0.35f) {
-            statusMsg = "Reading Archive & Manifest...";
-        } else if (progress < 0.65f) {
-            statusMsg = "Verifying CLDC / MIDP Bytecode...";
-        } else if (progress < 0.90f) {
-            statusMsg = "Initializing Graphics Engine...";
+        if (progress < 0.40f) {
+            statusMsg = "Loading Game";
+        } else if (progress < 0.75f) {
+            statusMsg = "Preparing Assets";
+        } else if (progress < 0.95f) {
+            statusMsg = "Starting Game";
         } else {
-            statusMsg = "Starting Java™ Application...";
+            statusMsg = "Ready";
         }
 
-        int statusY = barY + barHeight + fmStatus.getAscent() + 8;
-        g2.setColor(new Color(88, 166, 255));
+        int statusY = barY + barHeight + fmStatus.getAscent() + 10;
+        g2.setColor(textSecondary);
         g2.drawString(statusMsg, centerX - fmStatus.stringWidth(statusMsg) / 2, statusY);
-
-        // 7. Subtle Feature Pill / Tag at Bottom
-        if (height >= 260) {
-            Font pillFont = new Font(Font.SANS_SERIF, Font.PLAIN, Math.max(8, statusFontSize - 1));
-            g2.setFont(pillFont);
-            FontMetrics fmPill = g2.getFontMetrics();
-            int pillY = height - 12;
-            g2.setColor(new Color(255, 255, 255, 60));
-            g2.drawString(gameProfile, centerX - fmPill.stringWidth(gameProfile) / 2, pillY);
-        }
 
         g2.setComposite(oldComp);
         g2.dispose();

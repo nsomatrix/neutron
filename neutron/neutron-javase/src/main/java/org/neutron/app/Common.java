@@ -625,6 +625,11 @@ public class Common implements Neutron, CommonInterface {
     }
 
     private void notifyGameStateChanged(boolean gameRunning) {
+        if (gameRunning) {
+            org.neutron.app.util.PlaytimeTracker.onGameStarted(midletClassOrUrl);
+        } else {
+            org.neutron.app.util.PlaytimeTracker.onGameStopped();
+        }
         if (gameStateListener != null) {
             gameStateListener.gameStateChanged(gameRunning);
         }
@@ -781,9 +786,20 @@ public class Common implements Neutron, CommonInterface {
                         return;
                     }
                 } else {
-                    Logger.error("Unable to find jar url", ex);
-                    setResponseInterface(true);
-                    return;
+                    File file = new File(jarUrl);
+                    if (file.exists()) {
+                        try {
+                            url = new URL(IOUtils.getCanonicalFileURL(file));
+                        } catch (IOException ioEx) {
+                            Logger.error("Unable to find jar url", ioEx);
+                            setResponseInterface(true);
+                            return;
+                        }
+                    } else {
+                        Logger.error("Unable to find jar url", ex);
+                        setResponseInterface(true);
+                        return;
+                    }
                 }
             }
             // Copy jar file to tmp directory for HTTP/HTTPS URLs (and basic auth) to show download progress
