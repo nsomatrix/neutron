@@ -48,11 +48,12 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 			this.socket = new java.net.Socket();
 		}
 		this.socket.setKeepAlive(true);
-		int timeout = Integer.getInteger("neutron.socket.timeout", 120000);
+		int timeout = Integer.getInteger("neutron.socket.timeout", 0);
 		if (timeout > 0) {
 			this.socket.setSoTimeout(timeout);
 		}
-		this.socket.connect(new java.net.InetSocketAddress(host, port), Math.min(timeout, 30000));
+		int connectTimeout = (timeout > 0) ? Math.min(timeout, 30000) : 30000;
+		this.socket.connect(new java.net.InetSocketAddress(host, port), connectTimeout);
 		org.neutron.device.ui.NetworkActivityTracker.setLastHostAndPort(host, port);
 		org.neutron.device.ui.NetworkCapture.logEvent(
 			org.neutron.device.ui.NetworkCapture.Type.SOCKET, host, String.valueOf(port), "CONNECTED"
@@ -62,7 +63,7 @@ public class SocketConnection implements javax.microedition.io.SocketConnection 
 		this.socket = socket;
 		try {
 			this.socket.setKeepAlive(true);
-			int timeout = Integer.getInteger("neutron.socket.timeout", 120000);
+			int timeout = Integer.getInteger("neutron.socket.timeout", 0);
 			if (timeout > 0) {
 				this.socket.setSoTimeout(timeout);
 			}

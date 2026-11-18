@@ -212,6 +212,14 @@ public class RecordStoreManagerDialog extends JFrame {
 		getContentPane().add(viewPanel, BorderLayout.CENTER);
 	}
 
+	@Override
+	public void setVisible(boolean b) {
+		super.setVisible(b);
+		if (!b && common != null && common.getRecordStoreManager() != null) {
+			common.getRecordStoreManager().setRecordListener(null);
+		}
+	}
+
 	public void refresh() {
 		recordStoreTypeLabel.setText(common.getRecordStoreManager().getName());
 
@@ -240,6 +248,9 @@ public class RecordStoreManagerDialog extends JFrame {
 				try {
 					modelTable.addRow(new Object[] { dateFormat.format(new Date(timestamp)),
 							"record " + eventMessageType, recordStore.getName(), "recordId = " + recordId });
+					if (modelTable.getRowCount() > 500) {
+						modelTable.removeRow(0);
+					}
 				} catch (RecordStoreNotOpenException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -264,6 +275,9 @@ public class RecordStoreManagerDialog extends JFrame {
 
 				modelTable.addRow(new Object[] { dateFormat.format(new Date(timestamp)), "store " + eventMessageType,
 						recordStoreName, null });
+				if (modelTable.getRowCount() > 500) {
+					modelTable.removeRow(0);
+				}
 				logTable.scrollRectToVisible(logTable.getCellRect(modelTable.getRowCount() - 1, 0, true));
 			}
 

@@ -729,13 +729,13 @@ public class Config {
 	public static int getMemoryLimit() {
 		XMLElement optionsXml = configXml.getChild("options");
 		if (optionsXml == null) {
-			return 64; // Default to 64MB
+			return 0; // Default to 0 (Unlimited) to prevent periodic STW GC pauses
 		}
-		String val = optionsXml.getChildString("memoryLimit", "64");
+		String val = optionsXml.getChildString("memoryLimit", "0");
 		try {
 			return Integer.parseInt(val);
 		} catch (NumberFormatException e) {
-			return 64;
+			return 0;
 		}
 	}
 

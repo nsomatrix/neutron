@@ -183,6 +183,8 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 		}
 	}
 
+	private static final int MAX_LOG_QUEUE = 1000;
+
 	private void log(String message) {
 		boolean createUpdater = false;
 		synchronized (logLinesQueue) {
@@ -190,6 +192,9 @@ public class SwingLogConsoleDialog extends JFrame implements LoggerAppender {
 				createUpdater = true;
 			}
 			logLinesQueue.addElement(message);
+			if (logLinesQueue.size() > MAX_LOG_QUEUE) {
+				logLinesQueue.removeElementAt(0);
+			}
 		}
 		if (createUpdater && isShown) {
 			SwingUtilities.invokeLater(new SwingLogUpdater());

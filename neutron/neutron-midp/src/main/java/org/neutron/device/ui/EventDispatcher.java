@@ -108,11 +108,20 @@ public class EventDispatcher implements Runnable {
 							scheduledPaintEvent = null;
 						}
 						lastPaintEventTimeNs = System.nanoTime();
-						post(event);
-						serviceRepaintsLock.notifyAll();
+						try {
+							post(event);
+						} catch (Throwable t) {
+							// Prevent transient rendering exceptions from killing the event thread
+						} finally {
+							serviceRepaintsLock.notifyAll();
+						}
 					}					
 				} else {
-					post(event);
+					try {
+						post(event);
+					} catch (Throwable t) {
+						// Prevent transient UI exceptions from killing the event thread
+					}
 				}
 			}
 		}
@@ -214,7 +223,7 @@ public class EventDispatcher implements Runnable {
 			}
 
 			try {
-				serviceRepaintsLock.wait();
+				serviceRepaintsLock.wait(1000);
 			} catch (InterruptedException e) {
 			}
 		}

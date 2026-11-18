@@ -277,17 +277,40 @@ public class RecordStoreImpl extends RecordStore
 	}
 
 
-    public void addRecordListener(RecordListener listener)
+    public synchronized void addRecordListener(RecordListener listener)
     {
-        if (!recordListeners.contains(listener)) {
-            recordListeners.addElement(listener);
+        if (listener == null) {
+            return;
         }
+        for (int i = 0; i < recordListeners.size(); i++) {
+            Object item = recordListeners.elementAt(i);
+            RecordListener l = (item instanceof java.lang.ref.WeakReference) 
+                ? (RecordListener) ((java.lang.ref.WeakReference) item).get() 
+                : (RecordListener) item;
+            if (l == null) {
+                recordListeners.removeElementAt(i--);
+            } else if (l == listener) {
+                return;
+            }
+        }
+        recordListeners.addElement(new java.lang.ref.WeakReference(listener));
     }
 	
 	
-    public void removeRecordListener(RecordListener listener)
+    public synchronized void removeRecordListener(RecordListener listener)
     {
-        recordListeners.removeElement(listener);
+        if (listener == null) {
+            return;
+        }
+        for (int i = 0; i < recordListeners.size(); i++) {
+            Object item = recordListeners.elementAt(i);
+            RecordListener l = (item instanceof java.lang.ref.WeakReference) 
+                ? (RecordListener) ((java.lang.ref.WeakReference) item).get() 
+                : (RecordListener) item;
+            if (l == null || l == listener) {
+                recordListeners.removeElementAt(i--);
+            }
+        }
     }
 	
 	
@@ -475,13 +498,20 @@ public class RecordStoreImpl extends RecordStore
     }
 
 
-    private void fireRecordListener(int type, int recordId)
+    private synchronized void fireRecordListener(int type, int recordId)
     {
     	long timestamp = System.currentTimeMillis();
     	
     	if (recordListeners != null) { 
-	        for (Enumeration e = recordListeners.elements(); e.hasMoreElements();) {
-	        	RecordListener l = (RecordListener) e.nextElement();
+	        for (int i = 0; i < recordListeners.size(); i++) {
+	        	Object item = recordListeners.elementAt(i);
+	        	RecordListener l = (item instanceof java.lang.ref.WeakReference) 
+	        	    ? (RecordListener) ((java.lang.ref.WeakReference) item).get() 
+	        	    : (RecordListener) item;
+	        	if (l == null) {
+	        	    recordListeners.removeElementAt(i--);
+	        	    continue;
+	        	}
 	        	if (l instanceof ExtendedRecordListener) {
 	        		((ExtendedRecordListener) l).recordEvent(type, timestamp, this, recordId);
 	        	} else {

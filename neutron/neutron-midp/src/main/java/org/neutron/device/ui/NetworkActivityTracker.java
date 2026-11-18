@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class NetworkActivityTracker {
 
@@ -12,8 +13,8 @@ public class NetworkActivityTracker {
 		void onActivityUpdate(long totalRead, long totalWritten, double readSpeed, double writeSpeed, int ping);
 	}
 
-	private static long totalBytesRead = 0;
-	private static long totalBytesWritten = 0;
+	private static final AtomicLong totalBytesRead = new AtomicLong(0);
+	private static final AtomicLong totalBytesWritten = new AtomicLong(0);
 
 	private static double currentReadSpeed = 0.0; // KB/s
 	private static double currentWriteSpeed = 0.0; // KB/s
@@ -25,7 +26,7 @@ public class NetworkActivityTracker {
 	private static final List listeners = Collections.synchronizedList(new ArrayList());
 	private static Timer timer;
 	private static volatile boolean pingRunning = false;
-	private static boolean pingEnabled = true;
+	private static boolean pingEnabled = false; // Default disabled to prevent aggressive socket spam to game servers
 	private static volatile boolean networkAccessEnabled = true;
 
 	public static void setNetworkAccessEnabled(boolean enabled) {
@@ -58,12 +59,8 @@ public class NetworkActivityTracker {
 					elapsed = 1000;
 				}
 
-				long currentRead;
-				long currentWritten;
-				synchronized (NetworkActivityTracker.class) {
-					currentRead = totalBytesRead;
-					currentWritten = totalBytesWritten;
-				}
+				long currentRead = totalBytesRead.get();
+				long currentWritten = totalBytesWritten.get();
 
 				long readDiff = currentRead - lastRead;
 				long writeDiff = currentWritten - lastWritten;
@@ -130,14 +127,12 @@ public class NetworkActivityTracker {
 					}
 				}
 
-				long currentRead;
-				long currentWritten;
+				long currentRead = totalBytesRead.get();
+				long currentWritten = totalBytesWritten.get();
 				double rSpeed;
 				double wSpeed;
 				synchronized (NetworkActivityTracker.class) {
 					currentPing = pingVal;
-					currentRead = totalBytesRead;
-					currentWritten = totalBytesWritten;
 					rSpeed = currentReadSpeed;
 					wSpeed = currentWriteSpeed;
 				}
@@ -165,33 +160,39 @@ public class NetworkActivityTracker {
 
 	public static void addListener(NetworkActivityListener listener) {
 		listeners.add(listener);
+		double rSpeed;
+		double wSpeed;
+		int pingVal;
 		synchronized (NetworkActivityTracker.class) {
-			listener.onActivityUpdate(totalBytesRead, totalBytesWritten, currentReadSpeed, currentWriteSpeed, currentPing);
+			rSpeed = currentReadSpeed;
+			wSpeed = currentWriteSpeed;
+			pingVal = currentPing;
 		}
+		listener.onActivityUpdate(totalBytesRead.get(), totalBytesWritten.get(), rSpeed, wSpeed, pingVal);
 	}
 
 	public static void removeListener(NetworkActivityListener listener) {
 		listeners.remove(listener);
 	}
 
-	public static synchronized void trackRead(long bytes) {
+	public static void trackRead(long bytes) {
 		if (bytes > 0) {
-			totalBytesRead += bytes;
+			totalBytesRead.addAndGet(bytes);
 		}
 	}
 
-	public static synchronized void trackWrite(long bytes) {
+	public static void trackWrite(long bytes) {
 		if (bytes > 0) {
-			totalBytesWritten += bytes;
+			totalBytesWritten.addAndGet(bytes);
 		}
 	}
 
-	public static synchronized long getTotalBytesRead() {
-		return totalBytesRead;
+	public static long getTotalBytesRead() {
+		return totalBytesRead.get();
 	}
 
-	public static synchronized long getTotalBytesWritten() {
-		return totalBytesWritten;
+	public static long getTotalBytesWritten() {
+		return totalBytesWritten.get();
 	}
 
 	public static synchronized double getCurrentReadSpeed() {
@@ -207,8 +208,8 @@ public class NetworkActivityTracker {
 	}
 
 	public static synchronized void reset() {
-		totalBytesRead = 0;
-		totalBytesWritten = 0;
+		totalBytesRead.set(0);
+		totalBytesWritten.set(0);
 		currentReadSpeed = 0.0;
 		currentWriteSpeed = 0.0;
 		currentPing = -1;

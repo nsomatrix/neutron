@@ -39,7 +39,9 @@ public final class Manager
 {
 
     public static final String TONE_DEVICE_LOCATOR = "device://tone";
-    static Vector vMedia = new Vector();
+    static java.util.Set vMedia = java.util.Collections.synchronizedSet(
+        java.util.Collections.newSetFromMap(new java.util.WeakHashMap())
+    );
 
     private static final String[] SUPPORTED_CONTENT_TYPES = new String[] {
         "audio/x-wav",
@@ -213,14 +215,16 @@ public final class Manager
     public static void cleanupMedia()
 	{
 		synchronized (vMedia) {
-			Vector copy = new Vector(vMedia);
+			java.util.List copy = new java.util.ArrayList(vMedia);
 			vMedia.clear();
 			for (int i = 0; i < copy.size(); i++) {
 				Player p = (Player) copy.get(i);
-				try {
-					p.close();
-				} catch (Throwable t) {
-					// Ignore, proceed with cleaning up remaining media players
+				if (p != null) {
+					try {
+						p.close();
+					} catch (Throwable t) {
+						// Ignore, proceed with cleaning up remaining media players
+					}
 				}
 			}
 		}
