@@ -472,10 +472,16 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 
     private final org.neutron.device.ui.FpsLimiter gameCanvasFpsLimiter = new org.neutron.device.ui.FpsLimiter();
 
-    public javax.microedition.lcdui.Graphics getGraphics(GameCanvas gameCanvas)
+    public synchronized void resetCanvas() {
+        gameCanvasImage = null;
+    }
+
+    public synchronized javax.microedition.lcdui.Graphics getGraphics(GameCanvas gameCanvas)
     {
-        if (gameCanvasImage == null) {
-            gameCanvasImage = createImage(gameCanvas.getWidth(), gameCanvas.getHeight(), true, 0x00000000);
+        int w = gameCanvas.getWidth();
+        int h = gameCanvas.getHeight();
+        if (gameCanvasImage == null || gameCanvasImage.getWidth() != w || gameCanvasImage.getHeight() != h) {
+            gameCanvasImage = createImage(w, h, false, 0x000000);
         }
         
         return gameCanvasImage.getGraphics();
@@ -496,11 +502,22 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
                 SwingDisplayComponent sdc = (SwingDisplayComponent) dc;
                 J2SEGraphicsSurface surface = sdc.getGraphicsSurface();
                 if (surface != null) {
-                    surface.getGraphics().drawImage(
+                    Graphics2D sg = surface.getGraphics();
+                    sg.drawImage(
                             ((J2SEMutableImage) gameCanvasImage).getImage(), 
                             x, y, x + width, y + height, 
                             x, y, x + width, y + height, 
                             null);
+                    int surfW = surface.getWidth();
+                    int surfH = surface.getHeight();
+                    if (surfW > x + width) {
+                        sg.setColor(java.awt.Color.BLACK);
+                        sg.fillRect(x + width, 0, surfW - (x + width), surfH);
+                    }
+                    if (surfH > y + height) {
+                        sg.setColor(java.awt.Color.BLACK);
+                        sg.fillRect(0, y + height, surfW, surfH - (y + height));
+                    }
                     sdc.fireDisplayRepaint(
                             surface, 0, 0, surface.getImage().getWidth(), surface.getImage().getHeight());
                 }
@@ -508,11 +525,22 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
                 NoUiDisplayComponent nudc = (NoUiDisplayComponent) dc;
                 J2SEGraphicsSurface surface = nudc.getGraphicsSurface();
                 if (surface != null) {
-                    surface.getGraphics().drawImage(
+                    Graphics2D sg = surface.getGraphics();
+                    sg.drawImage(
                             ((J2SEMutableImage) gameCanvasImage).getImage(), 
                             x, y, x + width, y + height, 
                             x, y, x + width, y + height, 
                             null);
+                    int surfW = surface.getWidth();
+                    int surfH = surface.getHeight();
+                    if (surfW > x + width) {
+                        sg.setColor(java.awt.Color.BLACK);
+                        sg.fillRect(x + width, 0, surfW - (x + width), surfH);
+                    }
+                    if (surfH > y + height) {
+                        sg.setColor(java.awt.Color.BLACK);
+                        sg.fillRect(0, y + height, surfW, surfH - (y + height));
+                    }
                     nudc.fireDisplayRepaint(surface);
                 }
             }

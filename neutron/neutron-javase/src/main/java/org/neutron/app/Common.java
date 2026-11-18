@@ -236,6 +236,10 @@ public class Common implements Neutron, CommonInterface {
         } catch (Throwable ignore) {
         }
         org.neutron.app.util.PlaytimeTracker.onGameStopped();
+        Device dev = DeviceFactory.getDevice();
+        if (dev != null && dev.getDeviceDisplay() instanceof org.neutron.device.impl.DeviceDisplayImpl) {
+            ((org.neutron.device.impl.DeviceDisplayImpl) dev.getDeviceDisplay()).resetCanvas();
+        }
         // TODO to be removed when event dispatcher will run input method task
         DeviceFactory.getDevice().getInputMethod().dispose();
     }
@@ -962,8 +966,78 @@ public class Common implements Neutron, CommonInterface {
                 } catch (NumberFormatException ignore) {
                 }
             }
+            if (midletClassOrUrl.endsWith(".jar") || midletClassOrUrl.contains(".jar")) {
+                Dimension d = detectResolutionFromJarEntries(midletClassOrUrl);
+                if (d != null) {
+                    return d;
+                }
+            }
         }
         return null;
+    }
+
+    private Dimension detectResolutionFromJarEntries(String jarLocation) {
+        try {
+            String path = jarLocation;
+            if (path.startsWith("file://")) {
+                path = new java.net.URI(path).getPath();
+            } else if (path.startsWith("file:")) {
+                path = path.substring(5);
+            }
+            java.io.File file = new java.io.File(path);
+            if (!file.exists() || !file.isFile()) {
+                return null;
+            }
+            java.util.zip.ZipFile zf = new java.util.zip.ZipFile(file);
+            try {
+                java.util.Enumeration entries = zf.entries();
+                Dimension fallbackStandard = null;
+                while (entries.hasMoreElements()) {
+                    java.util.zip.ZipEntry entry = (java.util.zip.ZipEntry) entries.nextElement();
+                    String name = entry.getName().toLowerCase();
+                    if (name.endsWith(".png") && entry.getSize() >= 24) {
+                        java.io.InputStream is = zf.getInputStream(entry);
+                        try {
+                            byte[] header = new byte[24];
+                            int read = 0;
+                            while (read < 24) {
+                                int r = is.read(header, read, 24 - read);
+                                if (r < 0) break;
+                                read += r;
+                            }
+                            if (read == 24 && (header[0] & 0xFF) == 0x89 && header[1] == 'P' && header[2] == 'N' && header[3] == 'G') {
+                                int w = ((header[16] & 0xFF) << 24) | ((header[17] & 0xFF) << 16) | ((header[18] & 0xFF) << 8) | (header[19] & 0xFF);
+                                int h = ((header[20] & 0xFF) << 24) | ((header[21] & 0xFF) << 16) | ((header[22] & 0xFF) << 8) | (header[23] & 0xFF);
+                                if (isStandardResolution(w, h)) {
+                                    if (name.contains("splash") || name.contains("menu") || name.contains("title") || name.contains("load") || name.contains("intro") || name.contains("bg")) {
+                                        return new Dimension(w, h);
+                                    }
+                                    if (fallbackStandard == null) {
+                                        fallbackStandard = new Dimension(w, h);
+                                    }
+                                }
+                            }
+                        } finally {
+                            is.close();
+                        }
+                    }
+                }
+                return fallbackStandard;
+            } finally {
+                zf.close();
+            }
+        } catch (Throwable ignore) {
+        }
+        return null;
+    }
+
+    private static boolean isStandardResolution(int w, int h) {
+        return (w == 240 && h == 320) || (w == 320 && h == 240)
+            || (w == 176 && h == 220) || (w == 128 && h == 160)
+            || (w == 176 && h == 208) || (w == 208 && h == 208)
+            || (w == 352 && h == 416) || (w == 360 && h == 640)
+            || (w == 640 && h == 360) || (w == 480 && h == 800)
+            || (w == 800 && h == 480);
     }
 
     private static Dimension parseResolutionString(String size) {

@@ -402,6 +402,12 @@ public class SwingDisplayComponent extends JComponent implements DisplayComponen
 		synchronized (this) {
 			graphicsSurface = null;
 			initialPressedSoftButton = null;
+			scale2xCacheImage = null;
+			scale2xCacheData = null;
+			adjustedCacheImage = null;
+			adjustedCacheData = null;
+			convolvedCacheImage = null;
+			ghostingCacheImage = null;
 		}
 	}
 

@@ -119,4 +119,6 @@ public interface DeviceDisplayImpl extends DeviceDisplay {
 
 	void setResizable(boolean state);
 
+	void resetCanvas();
+
 }

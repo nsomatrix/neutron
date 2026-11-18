@@ -1566,9 +1566,12 @@ public class Main extends JFrame {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
 						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
+						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+						if (deviceDisplay != null) {
+							deviceDisplay.resetCanvas();
+						}
 						if (gameRunning) {
 							org.neutron.app.ui.swing.SwingLoadingUI.onGameStarted();
-							DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 							if (deviceDisplay != null && deviceDisplay.isResizable()) {
 								Dimension targetRes = common.getTargetResolution();
 								if (targetRes != null) {
@@ -1592,7 +1595,6 @@ public class Main extends JFrame {
 						if (statusBar != null) {
 							statusBar.setGameRunning(gameRunning);
 						}
-						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
 						if (deviceDisplay != null) {
 							deviceDisplay.repaint(0, 0, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 						}
@@ -1608,6 +1610,10 @@ public class Main extends JFrame {
 						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
 						if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
 							((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
+						}
+						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+						if (deviceDisplay != null) {
+							deviceDisplay.resetCanvas();
 						}
 						org.neutron.app.ui.swing.SwingLoadingUI.startLoading(urlString, null);
 					}
@@ -2049,6 +2055,7 @@ public class Main extends JFrame {
         // resize the display area
         deviceDisplay.setDisplayPaintable(new Rectangle(0, 0, width, height - menuh));
         deviceDisplay.setDisplayRectangle(new Rectangle(0, 0, width, height));
+        deviceDisplay.resetCanvas();
         ((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
         // update display
         MIDletAccess ma = MIDletBridge.getMIDletAccess();
