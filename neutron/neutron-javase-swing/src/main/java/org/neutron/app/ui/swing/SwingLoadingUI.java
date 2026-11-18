@@ -446,24 +446,25 @@ public class SwingLoadingUI {
         g2.setColor(textSecondary);
         g2.drawString(subText, centerX - fmSub.stringWidth(subText) / 2, textY);
 
-        // 5. Total Playtime Counter (ss mm hh dd mm yy)
+        // 5. Total Playtime Badge in Bottom-Right Corner
         int timeFontSize = Math.max(9, Math.min(11, subFontSize));
         Font timeFont = new Font(fontName, Font.PLAIN, timeFontSize);
         g2.setFont(timeFont);
         FontMetrics fmTime = g2.getFontMetrics();
 
         String playtimeLabel = "Played: " + gamePlaytimeStr;
-        int badgePaddingH = 10;
-        int badgePaddingV = 4;
+        int badgePaddingH = 8;
+        int badgePaddingV = 3;
         int badgeW = fmTime.stringWidth(playtimeLabel) + badgePaddingH * 2;
         int badgeH = fmTime.getHeight() + badgePaddingV * 2;
-        int badgeX = centerX - badgeW / 2;
-        int badgeY = textY + 8;
+        int cornerMargin = scaleRef >= 240 ? 12 : 8;
+        int badgeX = width - badgeW - cornerMargin;
+        int badgeY = height - badgeH - cornerMargin;
 
         g2.setColor(badgeBg);
-        g2.fill(new RoundRectangle2D.Float(badgeX, badgeY, badgeW, badgeH, 12, 12));
+        g2.fill(new RoundRectangle2D.Float(badgeX, badgeY, badgeW, badgeH, 10, 10));
         g2.setColor(cardBorder);
-        g2.draw(new RoundRectangle2D.Float(badgeX, badgeY, badgeW, badgeH, 12, 12));
+        g2.draw(new RoundRectangle2D.Float(badgeX, badgeY, badgeW, badgeH, 10, 10));
 
         g2.setColor(textSecondary);
         g2.drawString(playtimeLabel, badgeX + badgePaddingH, badgeY + badgePaddingV + fmTime.getAscent());
