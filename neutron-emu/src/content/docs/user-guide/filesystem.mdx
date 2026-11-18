@@ -63,7 +63,7 @@ Neutron includes a built-in GUI inspector to manage saved data:
 Neutron fully implements the **JSR-75 FileConnection** specification (`javax.microedition.io.file.*`):
 
 - **Virtual Root Drives:** Emulates root file structures like `root/`, `memory_card/`, and `c:/`.
-- **Security & Integrity:** In v1.4.0, strict read-only mode checks (`Connector.READ`) are enforced throwing `IllegalModeException` on illegal write attempts.
+- **Security & Integrity:** In v1.5.0, strict read-only mode checks (`Connector.READ`) are enforced throwing `IllegalModeException` on illegal write attempts.
 - **Path Traversal Protection:** Relative path escapes (`../`) outside the isolated virtual root boundaries are blocked to prevent accidental host system modification.
 
 ---

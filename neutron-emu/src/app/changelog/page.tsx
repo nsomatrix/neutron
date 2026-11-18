@@ -18,9 +18,22 @@ interface Release {
 
 const releases: Release[] = [
   {
+    version: "1.5.0",
+    date: "2026-11-19",
+    tag: "latest",
+    changes: [
+      { type: "changed", description: "Released updated application binaries (neutron-1.5.0.jar & neutron-core-1.5.0.jar)" },
+      { type: "added", description: "Universal Drag & Drop: Full window-wide drop target supporting multi-file drops, .jad/.jar pair preference, and RFC 2483 URI list parsing on Linux" },
+      { type: "fixed", description: "MIDP 2.0 GameCanvas: Protected off-screen buffer lifecycle against premature invalidation during midlet startup and hot-swap" },
+      { type: "added", description: "Display Engine: Dynamic aspect-ratio letterboxing with active black margin blanking to prevent canvas ghosting across games" },
+      { type: "fixed", description: "Hot-Swap Stability: Guarded against launcher context race conditions during game transitions" },
+      { type: "added", description: "Native Bootloader: Theme-adaptive loading transitions with persistent cumulative playtime tracking" }
+    ],
+  },
+  {
     version: "1.4.0",
     date: "2026-11-06",
-    tag: "latest",
+    tag: "stable",
     changes: [
       { type: "changed", description: "Released updated application binaries (neutron-1.4.0.jar & neutron-core-1.4.0.jar)" },
       { type: "fixed", description: "J2ME Core & Math Integrity: Corrected Sprite reference pixel coordinates and transform matrix calculations across all 8 orientations" },

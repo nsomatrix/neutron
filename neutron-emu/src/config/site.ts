@@ -46,9 +46,9 @@ export const siteConfig = {
 
   announcement: {
     enabled: true,
-    message: "Neutron v1.4.0 is live with JSR-184 M3G, Micro3D, and xBRZ HD filters!",
+    message: "Neutron v1.5.0 is live with JSR-184 M3G, Micro3D, and xBRZ HD filters!",
     link: "/changelog",
-    linkText: "View v1.4.0 Release →",
+    linkText: "View v1.5.0 Release →",
   },
 
   features: [

@@ -9,7 +9,7 @@ order: 13
 Neutron can be launched directly from your command line or scripted in automated test harnesses.
 
 ```bash
-java -jar neutron-1.4.0.jar [options] [midlet-class | jar-path | jad-path]
+java -jar neutron-1.5.0.jar [options] [midlet-class | jar-path | jad-path]
 ```
 
 You can pass a compiled MIDlet `.jar` archive, a `.jad` descriptor file, or a specific MIDlet class name.
@@ -70,26 +70,26 @@ You can pass a compiled MIDlet `.jar` archive, a `.jad` descriptor file, or a sp
 ### 1. Launching a Game with Custom Resolution
 Launch a game directly with a 240x320 portrait mobile screen:
 ```bash
-java -jar neutron-1.4.0.jar --resizableDevice 240 320 ~/games/galaxy.jar
+java -jar neutron-1.5.0.jar --resizableDevice 240 320 ~/games/galaxy.jar
 ```
 
 ### 2. Multi-Profile Testing (Split-Screen / Isolated RMS)
 Run two independent instances with isolated saves and configuration files:
 ```bash
 # Player 1 Profile
-java -jar neutron-1.4.0.jar --id Player1 game.jar
+java -jar neutron-1.5.0.jar --id Player1 game.jar
 
 # Player 2 Profile
-java -jar neutron-1.4.0.jar --id Player2 game.jar
+java -jar neutron-1.5.0.jar --id Player2 game.jar
 ```
 
 ### 3. Headless Automated Testing & CI Pipelines
 Execute an automated test suite without opening a display, using in-memory RMS, and terminating on completion:
 ```bash
-java -jar neutron-1.4.0.jar --headless --rms memory --quit -Xautotest:http://localhost:8080/tests.jad
+java -jar neutron-1.5.0.jar --headless --rms memory --quit -Xautotest:http://localhost:8080/tests.jad
 ```
 
 ### 4. Running Neutron Core with Memory Constraints
 ```bash
-java -XX:+UseSerialGC -Xmx64m -jar neutron-core-1.4.0.jar game.jar
+java -XX:+UseSerialGC -Xmx64m -jar neutron-core-1.5.0.jar game.jar
 ```

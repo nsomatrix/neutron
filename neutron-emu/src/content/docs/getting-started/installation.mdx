@@ -14,8 +14,8 @@ Neutron is distributed in two release packages to fit different development and 
 
 | Package | Artifact | Typical Size | Description |
 |---------|----------|--------------|-------------|
-| **Neutron Express (Full GUI)** | `neutron-1.4.0.jar` | ~2.2 MB | Complete desktop edition with FlatLaf modern UI themes, menus, diagnostics, library explorer, and graphical controls. |
-| **Neutron Core (Optimized)** | `neutron-core-1.4.0.jar` | ~840 KB | Minimal distribution with an embedded LZMA2/XZ payload loader, fast startup, and ultra-compact disk footprint. |
+| **Neutron Express (Full GUI)** | `neutron-1.5.0.jar` | ~2.2 MB | Complete desktop edition with FlatLaf modern UI themes, menus, diagnostics, library explorer, and graphical controls. |
+| **Neutron Core (Optimized)** | `neutron-core-1.5.0.jar` | ~840 KB | Minimal distribution with an embedded LZMA2/XZ payload loader, fast startup, and ultra-compact disk footprint. |
 
 Both editions include identical J2ME subsystem support: MIDP 2.0, CLDC 1.1, MMAPI audio (WAV, MIDI, tone), MascotCapsule Micro3D v3, JSR-184 (M3G), Nokia UI DirectGraphics, JSR-75 (FileConnection), JSR-82, JSR-120 (WMA SMS), and OEM APIs (Sony Ericsson, Motorola, Samsung).
 
@@ -44,37 +44,37 @@ Because Neutron is packaged as executable JAR files, you can run it on Windows, 
 
 ```bash
 # Launch Neutron Express (Desktop GUI)
-java -jar neutron-1.4.0.jar
+java -jar neutron-1.5.0.jar
 
 # Launch Neutron Core (Minimal Footprint)
-java -jar neutron-core-1.4.0.jar
+java -jar neutron-core-1.5.0.jar
 ```
 
 You can also pass a game JAR file or JAD descriptor directly to start running immediately:
 
 ```bash
-java -jar neutron-1.4.0.jar path/to/game.jar
+java -jar neutron-1.5.0.jar path/to/game.jar
 ```
 
 ### Windows
 
-1. Download `neutron-1.4.0.jar` (or `neutron-core-1.4.0.jar`).
+1. Download `neutron-1.5.0.jar` (or `neutron-core-1.5.0.jar`).
 2. Double-click the `.jar` file to launch the emulator interface directly (if `.jar` file associations are set to Java).
 3. Or open Command Prompt / PowerShell and run:
    ```cmd
-   java -jar neutron-1.4.0.jar
+   java -jar neutron-1.5.0.jar
    ```
 
 ### macOS
 
-1. Download `neutron-1.4.0.jar` to your machine.
+1. Download `neutron-1.5.0.jar` to your machine.
 2. Open Terminal, navigate to your download directory, and execute:
    ```bash
-   java -jar neutron-1.4.0.jar
+   java -jar neutron-1.5.0.jar
    ```
 3. To open a game immediately:
    ```bash
-   java -jar neutron-1.4.0.jar /path/to/game.jar
+   java -jar neutron-1.5.0.jar /path/to/game.jar
    ```
 
 <Callout type="tip">
@@ -93,7 +93,7 @@ On macOS, Neutron automatically adapts native screen menubars and system appeara
    ```
 2. Run Neutron:
    ```bash
-   java -jar neutron-1.4.0.jar
+   java -jar neutron-1.5.0.jar
    ```
 
 ---
@@ -104,7 +104,7 @@ For fast access from anywhere in your shell, add an alias to your shell profile 
 
 ```bash
 # Bash / Zsh
-alias neutron='java -jar /path/to/neutron-1.4.0.jar'
+alias neutron='java -jar /path/to/neutron-1.5.0.jar'
 ```
 
 Once set, launch any game with:

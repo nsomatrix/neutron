@@ -102,7 +102,12 @@ def run_headless_midlet(jar_path, neutron_jar, duration=DEFAULT_TIMEOUT):
 
 def main():
     workspace = Path(__file__).resolve().parent.parent
-    neutron_jar = workspace / "neutron" / "neutron-javase-swing" / "build" / "libs" / "neutron-javase-swing-1.4.0.jar"
+    libs_dir = workspace / "neutron" / "neutron-javase-swing" / "build" / "libs"
+    neutron_jar = libs_dir / "neutron-javase-swing-1.5.0.jar"
+    if not neutron_jar.exists():
+        jars = sorted(libs_dir.glob("neutron-javase-swing-*.jar"))
+        if jars:
+            neutron_jar = jars[-1]
     
     if not neutron_jar.exists():
         print(f"Error: {neutron_jar} not found. Please build the project first.")

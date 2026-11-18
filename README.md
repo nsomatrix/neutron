@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://neutron-emu.vercel.app"><img src="https://img.shields.io/badge/docs-neutron--emu.vercel.app-00DC82?style=flat-square&logo=vercel" alt="Documentation Site" /></a>
-  <a href="https://github.com/nsomatrix/neutron/releases"><img src="https://img.shields.io/badge/release-v1.4.0-3b82f6?style=flat-square&logo=github" alt="Latest Release" /></a>
+  <a href="https://github.com/nsomatrix/neutron/releases"><img src="https://img.shields.io/badge/release-v1.5.0-3b82f6?style=flat-square&logo=github" alt="Latest Release" /></a>
   <img src="https://img.shields.io/badge/java-8%2B%20(17%2B%20rec)-f59e0b?style=flat-square&logo=openjdk" alt="Java Requirement" />
   <img src="https://img.shields.io/badge/profiles-MIDP%202.0%20%7C%20CLDC%201.1-8b5cf6?style=flat-square" alt="Profiles" />
   <img src="https://img.shields.io/badge/3D%20Graphics-Micro3D%20v3%20%7C%20JSR--184-06b6d4?style=flat-square" alt="3D Support" />
@@ -95,8 +95,8 @@ Neutron is distributed in two release packages to fit any use case:
 
 | Distribution | JAR File | Typical Size | Description |
 |--------------|----------|--------------|-------------|
-| **Neutron Express** | `neutron-1.4.0.jar` | **~2.2 MB** | Full-featured desktop edition featuring FlatLaf themes (macOS Dark/Light, Dracula, IntelliJ), Library Explorer, and graphical controls. |
-| **Neutron Core** | `neutron-core-1.4.0.jar` | **~840 KB** | Ultra-compact distribution with a high-ratio LZMA2/XZ payload decompressor (`CoreLauncher`). Boots in milliseconds with minimal RAM overhead. |
+| **Neutron Express** | `neutron-1.5.0.jar` | **~2.2 MB** | Full-featured desktop edition featuring FlatLaf themes (macOS Dark/Light, Dracula, IntelliJ), Library Explorer, and graphical controls. |
+| **Neutron Core** | `neutron-core-1.5.0.jar` | **~840 KB** | Ultra-compact distribution with a high-ratio LZMA2/XZ payload decompressor (`CoreLauncher`). Boots in milliseconds with minimal RAM overhead. |
 
 Both editions include identical J2ME subsystem support, 3D engines, scalers, and audio playback.
 
@@ -113,26 +113,26 @@ Grab the latest release binaries from our [Download Page](https://neutron-emu.ve
 
 ```bash
 # Download Neutron Express
-curl -LO https://github.com/nsomatrix/neutron/releases/download/1.4.0/neutron-1.4.0.jar
+curl -LO https://github.com/nsomatrix/neutron/releases/download/1.5.0/neutron-1.5.0.jar
 
 # Or download Neutron Core
-curl -LO https://github.com/nsomatrix/neutron/releases/download/1.4.0/neutron-core-1.4.0.jar
+curl -LO https://github.com/nsomatrix/neutron/releases/download/1.5.0/neutron-core-1.5.0.jar
 ```
 
 ### 3. Running a Game
 
 ```bash
 # Launch GUI directly
-java -jar neutron-1.4.0.jar
+java -jar neutron-1.5.0.jar
 
 # Launch a game immediately from the terminal
-java -jar neutron-1.4.0.jar path/to/game.jar
+java -jar neutron-1.5.0.jar path/to/game.jar
 
 # Run with a custom screen resolution (e.g. 240x320)
-java -jar neutron-1.4.0.jar --resizableDevice 240 320 path/to/game.jar
+java -jar neutron-1.5.0.jar --resizableDevice 240 320 path/to/game.jar
 
 # Run ultra-compact Core edition
-java -jar neutron-core-1.4.0.jar path/to/game.jar
+java -jar neutron-core-1.5.0.jar path/to/game.jar
 ```
 
 ---
@@ -177,8 +177,8 @@ cd neutron
 ```
 
 Compiled JARs will be generated under:
-- `neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.4.0.jar`
-- `neutron/neutron-core/build/libs/neutron-core-1.4.0.jar`
+- `neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.5.0.jar`
+- `neutron/neutron-core/build/libs/neutron-core-1.5.0.jar`
 
 ---
 

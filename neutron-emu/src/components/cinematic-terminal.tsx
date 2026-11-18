@@ -150,7 +150,7 @@ export function CinematicTerminal() {
 
     const logs = [
       "Starting JVM Runtime Environment",
-      "Loading Neutron Emulator Core v1.4.0",
+      "Loading Neutron Emulator Core v1.5.0",
       "Configuring execution subsystems",
       "  - Display: Canvas 320x240 @ 60 FPS",
       "  - Input: System keyboard mapping mode",
@@ -634,7 +634,7 @@ export function CinematicTerminal() {
                           </button>
                         </div>
                         <div className="space-y-1 text-[11px] text-neutral-400">
-                          <p className={`${activeTheme.textColor} font-bold text-xs`}>Neutron Emulator v1.4.0</p>
+                          <p className={`${activeTheme.textColor} font-bold text-xs`}>Neutron Emulator v1.5.0</p>
                           <p>Vendor: <span className="font-semibold text-neutral-300">nsomatrix</span></p>
                           <p>CoreDev: <span className="font-semibold text-neutral-300">Manish K</span></p>
                           <p>Platform: Java SE / Swing GUI</p>
