@@ -27,10 +27,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import logoImg from "@/assets/ntn.png";
 
-const EXPRESS_JAR_SHA256 = "0810c5d186200e28a343d82ad67e50555f6b30a1a7875b5ccbe390b735bc33e0";
+const EXPRESS_JAR_SHA256 = "192bba31154eee18ecf41fc5f771d8389a3a5bc9a208326031ecbbcf21d79aa6";
 const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.5.0/neutron-1.5.0.jar";
 
-const CORE_JAR_SHA256 = "fdd9eefdb45b81ac11db6ef341023c187c5a644b77b8bac65c750ea9ff5b05e5";
+const CORE_JAR_SHA256 = "587eb59d76f44b3739320b6d35dedb79a00b06cca4fad66570e94d56d22bbabf";
 const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.5.0/neutron-core-1.5.0.jar";
 
 interface DownloadButtonProps {

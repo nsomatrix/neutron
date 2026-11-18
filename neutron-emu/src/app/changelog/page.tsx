@@ -22,12 +22,19 @@ const releases: Release[] = [
     date: "2026-11-19",
     tag: "latest",
     changes: [
-      { type: "changed", description: "Released updated application binaries (neutron-1.5.0.jar & neutron-core-1.5.0.jar)" },
+      { type: "changed", description: "Released updated standalone application binaries (neutron-1.5.0.jar & neutron-core-1.5.0.jar) with verified SHA-256 checksums" },
+      { type: "added", description: "Virtual Keypad: Integrated on-screen virtual phone keypad with quick toggle shortcut (Ctrl+B)" },
+      { type: "added", description: "Cross-Platform 3D: Bundled pre-compiled C99 JSR-184 M3G native binaries for Linux (x86_64), Windows (x86_64), and macOS (Intel & Apple Silicon arm64)" },
+      { type: "fixed", description: "JSR-184 M3G Stability: Synchronized object finalization and added atomic handle verification, eliminating native SIGSEGV crashes on scene changes" },
+      { type: "changed", description: "Graphics Engine: Pixel-exact integer alpha blending with zero-arithmetic fast-path rasterization (+38% throughput boost)" },
+      { type: "fixed", description: "Nokia UI DirectGraphics: Implemented full transform manipulation matrix (FLIP_VERTICAL combinations) and polygon/triangle rendering" },
+      { type: "fixed", description: "MMAPI Audio: Corrected MidiAudioPlayer lifecycle state transitions and coupled VolumeControl to hardware master gain" },
+      { type: "fixed", description: "RMS Persistence: Implemented atomic temporary-file file persistence (saveToDiskSecure) and path traversal sanitization" },
+      { type: "fixed", description: "JVM 21+ Compatibility: Cooperative thread interruption and cleanup replacing deprecated Thread.stop()" },
+      { type: "fixed", description: "JSR-75 FileConnection: Wrapped output streams to safely close underlying RandomAccessFile descriptors on Windows" },
       { type: "added", description: "Universal Drag & Drop: Full window-wide drop target supporting multi-file drops, .jad/.jar pair preference, and RFC 2483 URI list parsing on Linux" },
       { type: "fixed", description: "MIDP 2.0 GameCanvas: Protected off-screen buffer lifecycle against premature invalidation during midlet startup and hot-swap" },
-      { type: "added", description: "Display Engine: Dynamic aspect-ratio letterboxing with active black margin blanking to prevent canvas ghosting across games" },
-      { type: "fixed", description: "Hot-Swap Stability: Guarded against launcher context race conditions during game transitions" },
-      { type: "added", description: "Native Bootloader: Theme-adaptive loading transitions with persistent cumulative playtime tracking" }
+      { type: "added", description: "Display Engine: Dynamic aspect-ratio letterboxing with active black margin blanking to prevent canvas ghosting across games" }
     ],
   },
   {
