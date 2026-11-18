@@ -927,4 +927,140 @@ public class M3GTest {
 		int centerPixel = pixels[32 * 64 + 32];
 		assertEquals(0xFFFF0000, centerPixel);
 	}
+
+	@Test
+	public void testNegativeTranslatedGraphicsClamping() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		final boolean[] drawRGBInvoked = new boolean[1];
+
+		// Mock a translated graphics context with negative clip coordinates (similar to Outland 3D)
+		Graphics g = new Graphics() {
+			public int getClipX() { return -20; }
+			public int getClipY() { return -30; }
+			public int getClipWidth() { return 120; }
+			public int getClipHeight() { return 130; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {
+				drawRGBInvoked[0] = true;
+				assertTrue("Offset must never be negative: " + offset, offset >= 0);
+				assertTrue("X must never be negative: " + x, x >= 0);
+				assertTrue("Y must never be negative: " + y, y >= 0);
+				assertTrue("Width must be non-negative: " + width, width >= 0);
+				assertTrue("Height must be non-negative: " + height, height >= 0);
+				assertTrue("Blit right boundary must not exceed destination width: " + (x + width), x + width <= 100);
+				assertTrue("Blit bottom boundary must not exceed destination height: " + (y + height), y + height <= 100);
+				assertTrue("Offset + extent must fit within buffer", offset + (height - 1) * scanlength + width <= rgbData.length);
+			}
+		};
+
+		g3d.bindTarget(g);
+		g3d.setViewport(0, 0, 100, 100);
+		Background bg = new Background();
+		bg.setColor(0xFF445566);
+		g3d.clear(bg);
+		g3d.releaseTarget();
+
+		assertTrue("drawRGB should have been called safely", drawRGBInvoked[0]);
+	}
+
+	@Test
+	public void testCompletelyOffscreenViewport() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		final boolean[] drawRGBInvoked = new boolean[1];
+
+		Graphics g = new Graphics() {
+			public int getClipX() { return 0; }
+			public int getClipY() { return 0; }
+			public int getClipWidth() { return 100; }
+			public int getClipHeight() { return 100; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {
+				drawRGBInvoked[0] = true;
+			}
+		};
+
+		g3d.bindTarget(g);
+		// Completely off-screen viewport to the top-left
+		g3d.setViewport(-200, -200, 50, 50);
+		Background bg = new Background();
+		bg.setColor(0xFF112233);
+		g3d.clear(bg);
+		g3d.releaseTarget();
+
+		assertFalse("drawRGB should not be invoked when viewport is completely outside destination", drawRGBInvoked[0]);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testZeroSizeViewportThrowsIllegalArgumentException() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		Graphics g = new Graphics() {
+			public int getClipX() { return 0; }
+			public int getClipY() { return 0; }
+			public int getClipWidth() { return 100; }
+			public int getClipHeight() { return 100; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {}
+		};
+
+		try {
+			g3d.bindTarget(g);
+			// Per JSR-184 specification, width <= 0 or height <= 0 MUST throw IllegalArgumentException
+			g3d.setViewport(10, 10, 0, 0);
+		} finally {
+			if (g3d.getTarget() != null) {
+				g3d.releaseTarget();
+			}
+		}
+	}
+
+	@Test
+	public void testViewportLargerThanTargetClamping() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		final int[] capturedBounds = new int[4];
+
+		Graphics g = new Graphics() {
+			public int getClipX() { return 0; }
+			public int getClipY() { return 0; }
+			public int getClipWidth() { return 80; }
+			public int getClipHeight() { return 80; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {
+				capturedBounds[0] = x;
+				capturedBounds[1] = y;
+				capturedBounds[2] = width;
+				capturedBounds[3] = height;
+			}
+		};
+
+		g3d.bindTarget(g);
+		// Massive viewport partially overlapping the 80x80 target
+		g3d.setViewport(-50, -50, 500, 500);
+		Background bg = new Background();
+		bg.setColor(0xFF555555);
+		g3d.clear(bg);
+		g3d.releaseTarget();
+
+		assertEquals(0, capturedBounds[0]);
+		assertEquals(0, capturedBounds[1]);
+		assertEquals(80, capturedBounds[2]);
+		assertEquals(80, capturedBounds[3]);
+	}
+
+	@Test
+	public void testRapidRebindCycles() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		for (int i = 0; i < 10; i++) {
+			final int size = 32 + i * 16;
+			Graphics g = new Graphics() {
+				public int getClipX() { return 0; }
+				public int getClipY() { return 0; }
+				public int getClipWidth() { return size; }
+				public int getClipHeight() { return size; }
+				public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {}
+			};
+			g3d.bindTarget(g);
+			g3d.setViewport(0, 0, size, size);
+			Background bg = new Background();
+			bg.setColor(0xFF000000 | (i * 20));
+			g3d.clear(bg);
+			g3d.releaseTarget();
+			assertNull(g3d.getTarget());
+		}
+	}
 }

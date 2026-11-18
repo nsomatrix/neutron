@@ -87,7 +87,18 @@ public class NoUiDisplayComponent implements DisplayComponent {
 	}
 
 
-	private void fireDisplayRepaint(J2SEGraphicsSurface graphicsSurface)
+	public J2SEGraphicsSurface getGraphicsSurface() {
+		if (graphicsSurface == null) {
+			Device device = DeviceFactory.getDevice();
+			if (device != null) {
+				graphicsSurface = new J2SEGraphicsSurface(
+						device.getDeviceDisplay().getFullWidth(), device.getDeviceDisplay().getFullHeight(), false, 0x000000);
+			}
+		}
+		return graphicsSurface;
+	}
+
+	public void fireDisplayRepaint(J2SEGraphicsSurface graphicsSurface)
 	{
 		if (displayRepaintListener != null) {
 			displayRepaintListener.repaintInvoked(graphicsSurface);

@@ -49,8 +49,10 @@ import javax.microedition.lcdui.game.GameCanvas;
 import javax.microedition.lcdui.game.Sprite;
 
 import org.neutron.DisplayAccess;
+import org.neutron.DisplayComponent;
 import org.neutron.MIDletAccess;
 import org.neutron.MIDletBridge;
+import org.neutron.app.ui.noui.NoUiDisplayComponent;
 import org.neutron.app.ui.swing.SwingDisplayComponent;
 import org.neutron.app.util.IOUtils;
 import org.neutron.device.Device;
@@ -472,15 +474,30 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
             gameCanvasFpsLimiter.limit(maxFps);
         }
         if (gameCanvasImage != null) {
-            J2SEGraphicsSurface surface = ((SwingDisplayComponent) context.getDisplayComponent()).getGraphicsSurface();
-            if (surface != null) {
-                surface.getGraphics().drawImage(
-                        ((J2SEMutableImage) gameCanvasImage).getImage(), 
-                        x, y, x + width, y + height, 
-                        x, y, x + width, y + height, 
-                        null);
-                ((SwingDisplayComponent) context.getDisplayComponent()).fireDisplayRepaint(
-                        surface, 0, 0, surface.getImage().getWidth(), surface.getImage().getHeight());
+            DisplayComponent dc = context.getDisplayComponent();
+            if (dc instanceof SwingDisplayComponent) {
+                SwingDisplayComponent sdc = (SwingDisplayComponent) dc;
+                J2SEGraphicsSurface surface = sdc.getGraphicsSurface();
+                if (surface != null) {
+                    surface.getGraphics().drawImage(
+                            ((J2SEMutableImage) gameCanvasImage).getImage(), 
+                            x, y, x + width, y + height, 
+                            x, y, x + width, y + height, 
+                            null);
+                    sdc.fireDisplayRepaint(
+                            surface, 0, 0, surface.getImage().getWidth(), surface.getImage().getHeight());
+                }
+            } else if (dc instanceof NoUiDisplayComponent) {
+                NoUiDisplayComponent nudc = (NoUiDisplayComponent) dc;
+                J2SEGraphicsSurface surface = nudc.getGraphicsSurface();
+                if (surface != null) {
+                    surface.getGraphics().drawImage(
+                            ((J2SEMutableImage) gameCanvasImage).getImage(), 
+                            x, y, x + width, y + height, 
+                            x, y, x + width, y + height, 
+                            null);
+                    nudc.fireDisplayRepaint(surface);
+                }
             }
         }
     }
