@@ -1568,18 +1568,32 @@ public class Main extends JFrame {
 						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
 						if (gameRunning) {
 							org.neutron.app.ui.swing.SwingLoadingUI.onGameStarted();
+							DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
+							if (deviceDisplay != null && deviceDisplay.isResizable()) {
+								Dimension targetRes = common.getTargetResolution();
+								if (targetRes != null) {
+									int targetW = targetRes.width;
+									int targetH = targetRes.height;
+									if (deviceDisplay.getFullWidth() != targetW || deviceDisplay.getFullHeight() != targetH) {
+										devicePanel.setPreferredSize(new Dimension(targetW, targetH));
+										setDeviceSize(deviceDisplay, targetW, targetH);
+										pack();
+										devicePanel.setPreferredSize(null);
+									}
+								}
+							}
 						} else {
 							org.neutron.app.ui.swing.SwingLoadingUI.dismiss();
+							if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
+								((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
+							}
 						}
 						updateResizeButtonVisibility();
 						if (statusBar != null) {
 							statusBar.setGameRunning(gameRunning);
 						}
 						DeviceDisplayImpl deviceDisplay = (DeviceDisplayImpl) DeviceFactory.getDevice().getDeviceDisplay();
-						if (deviceDisplay != null && deviceDisplay.isResizable()) {
-							if (deviceDisplay.getFullWidth() > 800 || deviceDisplay.getFullHeight() > 800) {
-								setDeviceSize(deviceDisplay, 240, 320);
-							}
+						if (deviceDisplay != null) {
 							deviceDisplay.repaint(0, 0, deviceDisplay.getFullWidth(), deviceDisplay.getFullHeight());
 						}
 						devicePanel.revalidate();
@@ -1592,6 +1606,9 @@ public class Main extends JFrame {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
 						org.neutron.app.ui.swing.SwingSleepUI.resetSleepState();
+						if (devicePanel != null && devicePanel.getDisplayComponent() != null) {
+							((SwingDisplayComponent) devicePanel.getDisplayComponent()).init();
+						}
 						org.neutron.app.ui.swing.SwingLoadingUI.startLoading(urlString, null);
 					}
 				});

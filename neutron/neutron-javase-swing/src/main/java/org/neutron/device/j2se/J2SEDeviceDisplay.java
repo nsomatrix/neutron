@@ -28,6 +28,7 @@ package org.neutron.device.j2se;
 
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.MediaTracker;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
@@ -208,6 +209,22 @@ public class J2SEDeviceDisplay implements DeviceDisplayImpl
 			return;
 		}
 		
+		int canvasW = (current instanceof Canvas) ? ((Canvas) current).getWidth() : displayRectangle.width;
+		int canvasH = (current instanceof Canvas) ? ((Canvas) current).getHeight() : displayRectangle.height;
+		int surfaceW = graphicsSurface.getWidth();
+		int surfaceH = graphicsSurface.getHeight();
+
+		if (surfaceW > canvasW) {
+			Graphics2D g2 = graphicsSurface.getGraphics();
+			g2.setColor(java.awt.Color.BLACK);
+			g2.fillRect(canvasW, 0, surfaceW - canvasW, surfaceH);
+		}
+		if (surfaceH > canvasH) {
+			Graphics2D g2 = graphicsSurface.getGraphics();
+			g2.setColor(java.awt.Color.BLACK);
+			g2.fillRect(0, canvasH, surfaceW, surfaceH - canvasH);
+		}
+
 		Graphics g = graphicsSurface.getGraphics();
 		g.setColor(foregroundColor);
 		java.awt.Shape oldclip = g.getClip();

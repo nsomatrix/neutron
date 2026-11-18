@@ -30,6 +30,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.awt.Dimension;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -921,6 +922,63 @@ public class Common implements Neutron, CommonInterface {
     
     public void setSuiteName(String name) {
     	midletSuiteName = name;
+    }
+
+    public Dimension getTargetResolution() {
+        if (jad != null) {
+            String size = jad.getProperty("Nokia-MIDlet-Original-Display-Size");
+            if (size == null) {
+                size = jad.getProperty("Nokia-MIDlet-Target-Display-Size");
+            }
+            if (size != null) {
+                Dimension d = parseResolutionString(size);
+                if (d != null) {
+                    return d;
+                }
+            }
+            String wStr = jad.getProperty("MIDlet-Screen-Width");
+            String hStr = jad.getProperty("MIDlet-Screen-Height");
+            if (wStr != null && hStr != null) {
+                try {
+                    int w = Integer.parseInt(wStr.trim());
+                    int h = Integer.parseInt(hStr.trim());
+                    if (w >= 64 && h >= 64) {
+                        return new Dimension(w, h);
+                    }
+                } catch (NumberFormatException ignore) {
+                }
+            }
+        }
+        if (midletClassOrUrl != null) {
+            java.util.regex.Pattern p = java.util.regex.Pattern.compile("(?:^|[_-])(\\d{2,3})x(\\d{2,3})(?:$|[._-])", java.util.regex.Pattern.CASE_INSENSITIVE);
+            java.util.regex.Matcher m = p.matcher(midletClassOrUrl);
+            if (m.find()) {
+                try {
+                    int w = Integer.parseInt(m.group(1));
+                    int h = Integer.parseInt(m.group(2));
+                    if (w >= 64 && h >= 64) {
+                        return new Dimension(w, h);
+                    }
+                } catch (NumberFormatException ignore) {
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Dimension parseResolutionString(String size) {
+        if (size == null) return null;
+        String[] parts = size.split("[,xX]");
+        if (parts.length == 2) {
+            try {
+                int w = Integer.parseInt(parts[0].trim());
+                int h = Integer.parseInt(parts[1].trim());
+                if (w >= 64 && h >= 64) {
+                    return new Dimension(w, h);
+                }
+            } catch (NumberFormatException ignore) {}
+        }
+        return null;
     }
 
     public Vector getLoadedEntries() {
