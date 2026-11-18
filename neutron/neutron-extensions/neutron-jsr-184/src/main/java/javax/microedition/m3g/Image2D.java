@@ -30,8 +30,6 @@ public class Image2D extends Object3D {
 	public static final int RGB = 99;
 	public static final int RGBA = 100;
 
-	static long tempHandle;
-
 	//------------------------------------------------------------------
 	// Constructor(s)
 	//------------------------------------------------------------------
@@ -125,7 +123,6 @@ public class Image2D extends Object3D {
 		Image cgfxImage = (Image) image;
 
 		final int finalFormat = format;
-		tempHandle = 0;
 
 		final int width = cgfxImage.getWidth();
 		final int height = cgfxImage.getHeight();
@@ -184,15 +181,15 @@ public class Image2D extends Object3D {
 				break;
 		}
 
-		// excute in UI thread
+		final long[] handleContainer = new long[1];
 		Platform.executeInUIThread(
 				new M3gRunnable() {
 					@Override
 					void doRun() {
-						tempHandle = createHandle(finalFormat, width, height, byteArr);
+						handleContainer[0] = createHandle(finalFormat, width, height, byteArr);
 					}
 				});
-		return tempHandle;
+		return handleContainer[0];
 	}
 
 	//Platform.heuristicGC();

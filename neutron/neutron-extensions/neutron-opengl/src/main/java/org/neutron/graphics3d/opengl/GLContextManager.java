@@ -33,12 +33,11 @@ public class GLContextManager {
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
             GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_CORE_PROFILE);
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_FORWARD_COMPAT, GLFW.GLFW_TRUE);
+            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_COMPAT_PROFILE);
 
             window = GLFW.glfwCreateWindow(1, 1, "Neutron-Offscreen", 0, 0);
             if (window == 0) {
-                // Fall back to legacy 2.1 context for older GPUs
+                // Fall back to legacy / default context for older GPUs or platforms
                 GLFW.glfwDefaultWindowHints();
                 GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
                 window = GLFW.glfwCreateWindow(1, 1, "Neutron-Offscreen", 0, 0);
@@ -60,6 +59,11 @@ public class GLContextManager {
     public static synchronized void makeCurrent() {
         if (available && window != 0) {
             GLFW.glfwMakeContextCurrent(window);
+            try {
+                GL.createCapabilities();
+            } catch (Throwable t) {
+                // Ignore if already initialized or failed
+            }
         }
     }
 

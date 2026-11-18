@@ -79,21 +79,21 @@ public class AffineTrans {
 		m00 = tmp.x;
 		m01 = tmp.y;
 		m02 = tmp.z;
-		m03 = mpx * tmp.x + mpy * tmp.y + mpz * tmp.z + 2048 >> 12;
+		m03 = (int) (((long) mpx * tmp.x + (long) mpy * tmp.y + (long) mpz * tmp.z + 2048) >> 12);
 
 		Vector3D.outerProduct(look, tmp, tmp);
 		tmp.unit();
 		m10 = tmp.x;
 		m11 = tmp.y;
 		m12 = tmp.z;
-		m13 = mpx * tmp.x + mpy * tmp.y + mpz * tmp.z + 2048 >> 12;
+		m13 = (int) (((long) mpx * tmp.x + (long) mpy * tmp.y + (long) mpz * tmp.z + 2048) >> 12);
 
 		tmp.set(look);
 		tmp.unit();
 		m20 = tmp.x;
 		m21 = tmp.y;
 		m22 = tmp.z;
-		m23 = mpx * tmp.x + mpy * tmp.y + mpz * tmp.z + 2048 >> 12;
+		m23 = (int) (((long) mpx * tmp.x + (long) mpy * tmp.y + (long) mpz * tmp.z + 2048) >> 12);
 	}
 
 	public final void mul(AffineTrans a) {
@@ -251,9 +251,9 @@ public class AffineTrans {
 	public final Vector3D transform(Vector3D v) {
 		if (v == null) throw new NullPointerException();
 		
-		int x = (v.x * m00 + v.y * m01 + v.z * m02 + 2048 >> 12) + m03;
-		int y = (v.x * m10 + v.y * m11 + v.z * m12 + 2048 >> 12) + m13;
-		int z = (v.x * m20 + v.y * m21 + v.z * m22 + 2048 >> 12) + m23;
+		int x = (int) ((((long) v.x * m00 + (long) v.y * m01 + (long) v.z * m02 + 2048) >> 12) + m03);
+		int y = (int) ((((long) v.x * m10 + (long) v.y * m11 + (long) v.z * m12 + 2048) >> 12) + m13);
+		int z = (int) ((((long) v.x * m20 + (long) v.y * m21 + (long) v.z * m22 + 2048) >> 12) + m23);
 		return new Vector3D(x, y, z);
 	}
 
@@ -264,25 +264,25 @@ public class AffineTrans {
 	final void rotate(Vector3D v) {
 		int x = v.x, y = v.y, z = v.z;
 		
-		v.x = (x * m00 + y * m10 + z * m20 + 2048 >> 12);
-		v.y = (x * m01 + y * m11 + z * m21 + 2048 >> 12);
-		v.z = (x * m02 + y * m12 + z * m22 + 2048 >> 12);
+		v.x = (int) (((long) x * m00 + (long) y * m10 + (long) z * m20 + 2048) >> 12);
+		v.y = (int) (((long) x * m01 + (long) y * m11 + (long) z * m21 + 2048) >> 12);
+		v.z = (int) (((long) x * m02 + (long) y * m12 + (long) z * m22 + 2048) >> 12);
 	}
 	
 	final void scale(Vector3D v) {
 		int x = v.x, y = v.y, z = v.z;
 		
-		m00 = m00 * x + 2048 >> 12;
-		m01 = m01 * y + 2048 >> 12;
-		m02 = m02 * z + 2048 >> 12;
+		m00 = (int) (((long) m00 * x + 2048) >> 12);
+		m01 = (int) (((long) m01 * y + 2048) >> 12);
+		m02 = (int) (((long) m02 * z + 2048) >> 12);
 		
-		m10 = m10 * x + 2048 >> 12;
-		m11 = m11 * y + 2048 >> 12;
-		m12 = m12 * z + 2048 >> 12;
+		m10 = (int) (((long) m10 * x + 2048) >> 12);
+		m11 = (int) (((long) m11 * y + 2048) >> 12);
+		m12 = (int) (((long) m12 * z + 2048) >> 12);
 		
-		m20 = m20 * x + 2048 >> 12;
-		m21 = m21 * y + 2048 >> 12;
-		m22 = m22 * z + 2048 >> 12;
+		m20 = (int) (((long) m20 * x + 2048) >> 12);
+		m21 = (int) (((long) m21 * y + 2048) >> 12);
+		m22 = (int) (((long) m22 * z + 2048) >> 12);
 	}
 
 	final void mulA2(AffineTrans a1, AffineTrans a2) {
@@ -294,18 +294,18 @@ public class AffineTrans {
 		int r10 = a2.m10, r11 = a2.m11, r12 = a2.m12, r13 = a2.m13;
 		int r20 = a2.m20, r21 = a2.m21, r22 = a2.m22, r23 = a2.m23;
 
-		m00 =  l00 * r00 + l01 * r10 + l02 * r20 + 2048 >> 12;
-		m01 =  l00 * r01 + l01 * r11 + l02 * r21 + 2048 >> 12;
-		m02 =  l00 * r02 + l01 * r12 + l02 * r22 + 2048 >> 12;
-		m03 = (l00 * r03 + l01 * r13 + l02 * r23 + 2048 >> 12) + a1.m03;
-		m10 =  l10 * r00 + l11 * r10 + l12 * r20 + 2048 >> 12;
-		m11 =  l10 * r01 + l11 * r11 + l12 * r21 + 2048 >> 12;
-		m12 =  l10 * r02 + l11 * r12 + l12 * r22 + 2048 >> 12;
-		m13 = (l10 * r03 + l11 * r13 + l12 * r23 + 2048 >> 12) + a1.m13;
-		m20 =  l20 * r00 + l21 * r10 + l22 * r20 + 2048 >> 12;
-		m21 =  l20 * r01 + l21 * r11 + l22 * r21 + 2048 >> 12;
-		m22 =  l20 * r02 + l21 * r12 + l22 * r22 + 2048 >> 12;
-		m23 = (l20 * r03 + l21 * r13 + l22 * r23 + 2048 >> 12) + a1.m23;
+		m00 = (int) (((long) l00 * r00 + (long) l01 * r10 + (long) l02 * r20 + 2048) >> 12);
+		m01 = (int) (((long) l00 * r01 + (long) l01 * r11 + (long) l02 * r21 + 2048) >> 12);
+		m02 = (int) (((long) l00 * r02 + (long) l01 * r12 + (long) l02 * r22 + 2048) >> 12);
+		m03 = (int) ((((long) l00 * r03 + (long) l01 * r13 + (long) l02 * r23 + 2048) >> 12) + a1.m03);
+		m10 = (int) (((long) l10 * r00 + (long) l11 * r10 + (long) l12 * r20 + 2048) >> 12);
+		m11 = (int) (((long) l10 * r01 + (long) l11 * r11 + (long) l12 * r21 + 2048) >> 12);
+		m12 = (int) (((long) l10 * r02 + (long) l11 * r12 + (long) l12 * r22 + 2048) >> 12);
+		m13 = (int) ((((long) l10 * r03 + (long) l11 * r13 + (long) l12 * r23 + 2048) >> 12) + a1.m13);
+		m20 = (int) (((long) l20 * r00 + (long) l21 * r10 + (long) l22 * r20 + 2048) >> 12);
+		m21 = (int) (((long) l20 * r01 + (long) l21 * r11 + (long) l22 * r21 + 2048) >> 12);
+		m22 = (int) (((long) l20 * r02 + (long) l21 * r12 + (long) l22 * r22 + 2048) >> 12);
+		m23 = (int) ((((long) l20 * r03 + (long) l21 * r13 + (long) l22 * r23 + 2048) >> 12) + a1.m23);
 	}
 	
 	final boolean isIdentity() {

@@ -70,6 +70,9 @@ public class Graphics3D {
 	private long handle;
 	private Object buffer;
 	private int cur_width, cur_height;
+	private int cur_clipX, cur_clipY, cur_clipW, cur_clipH;
+	private boolean hasCustomViewport = false;
+	private int unionVpX, unionVpY, unionVpW, unionVpH;
 
 	private Camera camera = null;
 	private Vector lights = new Vector();
@@ -234,8 +237,13 @@ public class Graphics3D {
 						}
 					});
 			currentTarget = finalG;
+			hasCustomViewport = false;
 			cur_width = width;
 			cur_height = height;
+			cur_clipX = clipX;
+			cur_clipY = clipY;
+			cur_clipW = clipW > 0 ? clipW : width;
+			cur_clipH = clipH > 0 ? clipH : height;
 		} else if (target instanceof Image2D) {
 			Image2D img = (Image2D) target;
 
@@ -286,15 +294,15 @@ public class Graphics3D {
 				byteBuf.position(0);
 				byteBuf.asIntBuffer().get(intData, 0, w * h);
 
-				int vx = getViewportX();
-				int vy = getViewportY();
-				int vw = getViewportWidth();
-				int vh = getViewportHeight();
+				int vx = hasCustomViewport ? unionVpX : getViewportX();
+				int vy = hasCustomViewport ? unionVpY : getViewportY();
+				int vw = hasCustomViewport ? unionVpW : getViewportWidth();
+				int vh = hasCustomViewport ? unionVpH : getViewportHeight();
 
-				int startX = Math.max(0, vx);
-				int startY = Math.max(0, vy);
-				int endX = Math.min(w, vx + vw);
-				int endY = Math.min(h, vy + vh);
+				int startX = Math.max(vx, cur_clipX);
+				int startY = Math.max(vy, cur_clipY);
+				int endX = Math.min(Math.min(w, vx + vw), cur_clipX + cur_clipW);
+				int endY = Math.min(Math.min(h, vy + vh), cur_clipY + cur_clipH);
 				int blitW = endX - startX;
 				int blitH = endY - startY;
 
@@ -303,6 +311,7 @@ public class Graphics3D {
 					finalG.drawRGB(intData, offset, w, startX, startY, blitW, blitH, false);
 				}
 				buffer = null;
+				hasCustomViewport = false;
 			}
 		} else if (currentTarget instanceof Image2D) {
 			Platform.executeInUIThread(
@@ -327,6 +336,22 @@ public class Graphics3D {
 				|| width > Defs.MAX_VIEWPORT_DIMENSION
 				|| height > Defs.MAX_VIEWPORT_DIMENSION) {
 			throw new IllegalArgumentException();
+		}
+		if (!hasCustomViewport) {
+			unionVpX = x;
+			unionVpY = y;
+			unionVpW = width;
+			unionVpH = height;
+			hasCustomViewport = true;
+		} else {
+			int minX = Math.min(unionVpX, x);
+			int minY = Math.min(unionVpY, y);
+			int maxX = Math.max(unionVpX + unionVpW, x + width);
+			int maxY = Math.max(unionVpY + unionVpH, y + height);
+			unionVpX = minX;
+			unionVpY = minY;
+			unionVpW = maxX - minX;
+			unionVpH = maxY - minY;
 		}
 		_setViewport(handle, x + offsetX, y + offsetY, width, height);
 	}

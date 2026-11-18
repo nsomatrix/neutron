@@ -129,11 +129,12 @@ public class Vector3D {
 			z >>= shift;
 		}
 		
-		int i = Util3D.sqrt(x * x + y * y + z * z);
+		long sumSq = (long) x * x + (long) y * y + (long) z * z;
+		int i = (int) (Math.sqrt(sumSq) + 0.5);
 		if (i != 0) {
-			this.x = (x << 12) / i;
-			this.y = (y << 12) / i;
-			this.z = (z << 12) / i;
+			this.x = (int) (((long) x << 12) / i);
+			this.y = (int) (((long) y << 12) / i);
+			this.z = (int) (((long) z << 12) / i);
 		} else {
 			this.x = 0;
 			this.y = 0;

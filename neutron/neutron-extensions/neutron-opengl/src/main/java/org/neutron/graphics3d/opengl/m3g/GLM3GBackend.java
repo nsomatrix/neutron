@@ -169,7 +169,7 @@ public class GLM3GBackend implements M3GBackend {
                 System.arraycopy(srcPixels, 0, data, 0, Math.min(srcPixels.length, data.length));
             }
         } else if (currentTarget instanceof javax.microedition.lcdui.Graphics) {
-            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(srcPixels, 0, width, 0, 0, width, height, true);
+            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(srcPixels, 0, width, 0, 0, width, height, false);
         }
     }
 

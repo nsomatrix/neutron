@@ -287,4 +287,253 @@ public class GL11Impl implements GL11 {
             buffers[offset + i] = GL15.glGenBuffers();
         }
     }
+
+    private static float toFloat(int fixed) {
+        return fixed / 65536.0f;
+    }
+
+    private static float[] toFloatArray(int[] fixed, int offset, int count) {
+        float[] f = new float[count];
+        for (int i = 0; i < count; i++) {
+            f[i] = toFloat(fixed[offset + i]);
+        }
+        return f;
+    }
+
+    private static float[] toFloatArray(IntBuffer fixed, int count) {
+        float[] f = new float[count];
+        int pos = fixed.position();
+        for (int i = 0; i < count; i++) {
+            f[i] = toFloat(fixed.get(pos + i));
+        }
+        return f;
+    }
+
+    // Common-Lite Fixed-Point API
+    @Override
+    public void glClearColorx(int red, int green, int blue, int alpha) {
+        glClearColor(toFloat(red), toFloat(green), toFloat(blue), toFloat(alpha));
+    }
+
+    @Override
+    public void glClearDepthx(int depth) {
+        glClearDepthf(toFloat(depth));
+    }
+
+    @Override
+    public void glColor4x(int red, int green, int blue, int alpha) {
+        glColor4f(toFloat(red), toFloat(green), toFloat(blue), toFloat(alpha));
+    }
+
+    @Override
+    public void glFrustumx(int left, int right, int bottom, int top, int zNear, int zFar) {
+        glFrustumf(toFloat(left), toFloat(right), toFloat(bottom), toFloat(top), toFloat(zNear), toFloat(zFar));
+    }
+
+    @Override
+    public void glLightModelx(int pname, int param) {
+        org.lwjgl.opengl.GL11.glLightModeli(pname, param);
+    }
+
+    @Override
+    public void glLightModelxv(int pname, int[] params, int offset) {
+        float[] f = toFloatArray(params, offset, 4);
+        glLightModelfv(pname, f, 0);
+    }
+
+    @Override
+    public void glLightModelxv(int pname, IntBuffer params) {
+        float[] f = toFloatArray(params, Math.min(params.remaining(), 4));
+        glLightModelfv(pname, f, 0);
+    }
+
+    @Override
+    public void glLightx(int light, int pname, int param) {
+        org.lwjgl.opengl.GL11.glLighti(light, pname, param);
+    }
+
+    @Override
+    public void glLightxv(int light, int pname, int[] params, int offset) {
+        float[] f = toFloatArray(params, offset, 4);
+        glLightfv(light, pname, f, 0);
+    }
+
+    @Override
+    public void glLightxv(int light, int pname, IntBuffer params) {
+        float[] f = toFloatArray(params, Math.min(params.remaining(), 4));
+        glLightfv(light, pname, f, 0);
+    }
+
+    @Override
+    public void glLineWidthx(int width) {
+        org.lwjgl.opengl.GL11.glLineWidth(toFloat(width));
+    }
+
+    @Override
+    public void glLoadMatrixx(int[] m, int offset) {
+        float[] f = toFloatArray(m, offset, 16);
+        glLoadMatrixf(f, 0);
+    }
+
+    @Override
+    public void glLoadMatrixx(IntBuffer m) {
+        float[] f = toFloatArray(m, 16);
+        glLoadMatrixf(f, 0);
+    }
+
+    @Override
+    public void glMaterialx(int face, int pname, int param) {
+        org.lwjgl.opengl.GL11.glMateriali(face, pname, param);
+    }
+
+    @Override
+    public void glMaterialxv(int face, int pname, int[] params, int offset) {
+        float[] f = toFloatArray(params, offset, 4);
+        glMaterialfv(face, pname, f, 0);
+    }
+
+    @Override
+    public void glMaterialxv(int face, int pname, IntBuffer params) {
+        float[] f = toFloatArray(params, Math.min(params.remaining(), 4));
+        glMaterialfv(face, pname, f, 0);
+    }
+
+    @Override
+    public void glMultMatrixx(int[] m, int offset) {
+        float[] f = toFloatArray(m, offset, 16);
+        glMultMatrixf(f, 0);
+    }
+
+    @Override
+    public void glMultMatrixx(IntBuffer m) {
+        float[] f = toFloatArray(m, 16);
+        glMultMatrixf(f, 0);
+    }
+
+    @Override
+    public void glMultiTexCoord4x(int target, int s, int t, int r, int q) {
+        org.lwjgl.opengl.GL13.glMultiTexCoord4f(target, toFloat(s), toFloat(t), toFloat(r), toFloat(q));
+    }
+
+    @Override
+    public void glNormal3x(int nx, int ny, int nz) {
+        org.lwjgl.opengl.GL11.glNormal3f(toFloat(nx), toFloat(ny), toFloat(nz));
+    }
+
+    @Override
+    public void glOrthox(int left, int right, int bottom, int top, int zNear, int zFar) {
+        glOrthof(toFloat(left), toFloat(right), toFloat(bottom), toFloat(top), toFloat(zNear), toFloat(zFar));
+    }
+
+    @Override
+    public void glPointSizex(int size) {
+        org.lwjgl.opengl.GL11.glPointSize(toFloat(size));
+    }
+
+    @Override
+    public void glPolygonOffsetx(int factor, int units) {
+        org.lwjgl.opengl.GL11.glPolygonOffset(toFloat(factor), toFloat(units));
+    }
+
+    @Override
+    public void glRotatex(int angle, int x, int y, int z) {
+        glRotatef(toFloat(angle), toFloat(x), toFloat(y), toFloat(z));
+    }
+
+    @Override
+    public void glSampleCoveragex(int value, boolean invert) {
+        org.lwjgl.opengl.GL13.glSampleCoverage(toFloat(value), invert);
+    }
+
+    @Override
+    public void glScalex(int x, int y, int z) {
+        glScalef(toFloat(x), toFloat(y), toFloat(z));
+    }
+
+    @Override
+    public void glTexEnvx(int target, int pname, int param) {
+        org.lwjgl.opengl.GL11.glTexEnvi(target, pname, param);
+    }
+
+    @Override
+    public void glTexEnvxv(int target, int pname, int[] params, int offset) {
+        float[] f = toFloatArray(params, offset, 4);
+        glTexEnvfv(target, pname, f, 0);
+    }
+
+    @Override
+    public void glTexEnvxv(int target, int pname, IntBuffer params) {
+        float[] f = toFloatArray(params, Math.min(params.remaining(), 4));
+        glTexEnvfv(target, pname, f, 0);
+    }
+
+    @Override
+    public void glTexParameterx(int target, int pname, int param) {
+        glTexParameteri(target, pname, param);
+    }
+
+    @Override
+    public void glTexParameterxv(int target, int pname, int[] params, int offset) {
+        float[] f = toFloatArray(params, offset, 4);
+        glTexParameterfv(target, pname, f, 0);
+    }
+
+    @Override
+    public void glTexParameterxv(int target, int pname, IntBuffer params) {
+        float[] f = toFloatArray(params, Math.min(params.remaining(), 4));
+        glTexParameterfv(target, pname, f, 0);
+    }
+
+    @Override
+    public void glTranslatex(int x, int y, int z) {
+        glTranslatef(toFloat(x), toFloat(y), toFloat(z));
+    }
+
+    // Buffer Overloads
+    @Override
+    public void glLightModelfv(int pname, FloatBuffer params) {
+        org.lwjgl.opengl.GL11.glLightModelfv(pname, params);
+    }
+
+    @Override
+    public void glLightfv(int light, int pname, FloatBuffer params) {
+        org.lwjgl.opengl.GL11.glLightfv(light, pname, params);
+    }
+
+    @Override
+    public void glLoadMatrixf(FloatBuffer m) {
+        org.lwjgl.opengl.GL11.glLoadMatrixf(m);
+    }
+
+    @Override
+    public void glMaterialfv(int face, int pname, FloatBuffer params) {
+        org.lwjgl.opengl.GL11.glMaterialfv(face, pname, params);
+    }
+
+    @Override
+    public void glMultMatrixf(FloatBuffer m) {
+        org.lwjgl.opengl.GL11.glMultMatrixf(m);
+    }
+
+    @Override
+    public void glTexEnvfv(int target, int pname, float[] params, int offset) {
+        FloatBuffer buf = FloatBuffer.wrap(params, offset, params.length - offset);
+        org.lwjgl.opengl.GL11.glTexEnvfv(target, pname, buf);
+    }
+
+    @Override
+    public void glTexEnvfv(int target, int pname, FloatBuffer params) {
+        org.lwjgl.opengl.GL11.glTexEnvfv(target, pname, params);
+    }
+
+    @Override
+    public void glTexParameterfv(int target, int pname, float[] params, int offset) {
+        FloatBuffer buf = FloatBuffer.wrap(params, offset, params.length - offset);
+        org.lwjgl.opengl.GL11.glTexParameterfv(target, pname, buf);
+    }
+
+    @Override
+    public void glTexParameterfv(int target, int pname, FloatBuffer params) {
+        org.lwjgl.opengl.GL11.glTexParameterfv(target, pname, params);
+    }
 }

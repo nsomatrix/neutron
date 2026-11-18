@@ -136,5 +136,51 @@ public interface GL10 extends GL {
     void glTranslatef(float x, float y, float z);
     void glVertexPointer(int size, int type, int stride, Buffer pointer);
     void glViewport(int x, int y, int width, int height);
+
+    // Common-Lite Fixed-Point API
+    void glClearColorx(int red, int green, int blue, int alpha);
+    void glClearDepthx(int depth);
+    void glColor4x(int red, int green, int blue, int alpha);
+    void glFrustumx(int left, int right, int bottom, int top, int zNear, int zFar);
+    void glLightModelx(int pname, int param);
+    void glLightModelxv(int pname, int[] params, int offset);
+    void glLightModelxv(int pname, IntBuffer params);
+    void glLightx(int light, int pname, int param);
+    void glLightxv(int light, int pname, int[] params, int offset);
+    void glLightxv(int light, int pname, IntBuffer params);
+    void glLineWidthx(int width);
+    void glLoadMatrixx(int[] m, int offset);
+    void glLoadMatrixx(IntBuffer m);
+    void glMaterialx(int face, int pname, int param);
+    void glMaterialxv(int face, int pname, int[] params, int offset);
+    void glMaterialxv(int face, int pname, IntBuffer params);
+    void glMultMatrixx(int[] m, int offset);
+    void glMultMatrixx(IntBuffer m);
+    void glMultiTexCoord4x(int target, int s, int t, int r, int q);
+    void glNormal3x(int nx, int ny, int nz);
+    void glOrthox(int left, int right, int bottom, int top, int zNear, int zFar);
+    void glPointSizex(int size);
+    void glPolygonOffsetx(int factor, int units);
+    void glRotatex(int angle, int x, int y, int z);
+    void glSampleCoveragex(int value, boolean invert);
+    void glScalex(int x, int y, int z);
+    void glTexEnvx(int target, int pname, int param);
+    void glTexEnvxv(int target, int pname, int[] params, int offset);
+    void glTexEnvxv(int target, int pname, IntBuffer params);
+    void glTexParameterx(int target, int pname, int param);
+    void glTexParameterxv(int target, int pname, int[] params, int offset);
+    void glTexParameterxv(int target, int pname, IntBuffer params);
+    void glTranslatex(int x, int y, int z);
+
+    // Buffer Overloads
+    void glLightModelfv(int pname, FloatBuffer params);
+    void glLightfv(int light, int pname, FloatBuffer params);
+    void glLoadMatrixf(FloatBuffer m);
+    void glMaterialfv(int face, int pname, FloatBuffer params);
+    void glMultMatrixf(FloatBuffer m);
+    void glTexEnvfv(int target, int pname, float[] params, int offset);
+    void glTexEnvfv(int target, int pname, FloatBuffer params);
+    void glTexParameterfv(int target, int pname, float[] params, int offset);
+    void glTexParameterfv(int target, int pname, FloatBuffer params);
 }
 

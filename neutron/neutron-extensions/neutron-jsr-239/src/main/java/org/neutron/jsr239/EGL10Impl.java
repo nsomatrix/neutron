@@ -195,9 +195,44 @@ public class EGL10Impl implements EGL11 {
             SurfaceImpl surf = (SurfaceImpl) surface;
             if (surf.fbo != null && surf.pixelBuffer != null) {
                 surf.fbo.readPixels(surf.pixelBuffer);
-                if (surf.target instanceof javax.microedition.lcdui.Graphics) {
+                if (surf.target instanceof org.neutron.graphics3d.spi.DirectFrameSurface) {
+                    org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) surf.target;
+                    int[] dst = dfs.getImageData();
+                    if (dst != null) {
+                        System.arraycopy(surf.pixelBuffer, 0, dst, 0, Math.min(surf.pixelBuffer.length, dst.length));
+                    }
+                } else if (surf.target instanceof javax.microedition.lcdui.Graphics) {
                     javax.microedition.lcdui.Graphics g = (javax.microedition.lcdui.Graphics) surf.target;
-                    g.drawRGB(surf.pixelBuffer, 0, surf.width, 0, 0, surf.width, surf.height, true);
+                    g.drawRGB(surf.pixelBuffer, 0, surf.width, 0, 0, surf.width, surf.height, false);
+                } else if (surf.target instanceof javax.microedition.lcdui.game.GameCanvas) {
+                    javax.microedition.lcdui.game.GameCanvas gc = (javax.microedition.lcdui.game.GameCanvas) surf.target;
+                    try {
+                        java.lang.reflect.Method m = javax.microedition.lcdui.game.GameCanvas.class.getDeclaredMethod("getGraphics");
+                        m.setAccessible(true);
+                        javax.microedition.lcdui.Graphics g = (javax.microedition.lcdui.Graphics) m.invoke(gc);
+                        if (g != null) {
+                            g.drawRGB(surf.pixelBuffer, 0, surf.width, 0, 0, surf.width, surf.height, false);
+                            gc.flushGraphics();
+                        }
+                    } catch (Throwable ignored) {}
+                } else if (surf.target instanceof javax.microedition.lcdui.Canvas) {
+                    javax.microedition.lcdui.Canvas c = (javax.microedition.lcdui.Canvas) surf.target;
+                    try {
+                        org.neutron.device.Device dev = org.neutron.device.DeviceFactory.getDevice();
+                        if (dev != null && dev.getDeviceDisplay() != null) {
+                            org.neutron.device.DeviceDisplay dd = dev.getDeviceDisplay();
+                            java.lang.reflect.Method m = dd.getClass().getMethod("getScreenSurface");
+                            Object s = m.invoke(dd);
+                            if (s instanceof org.neutron.graphics3d.spi.DirectFrameSurface) {
+                                org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) s;
+                                int[] dst = dfs.getImageData();
+                                if (dst != null) {
+                                    System.arraycopy(surf.pixelBuffer, 0, dst, 0, Math.min(surf.pixelBuffer.length, dst.length));
+                                }
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                    c.repaint();
                 }
             }
         }

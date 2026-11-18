@@ -334,7 +334,11 @@ public class Graphics3D {
 		int clipW = graphics.getClipWidth();
 		int clipH = graphics.getClipHeight();
 		
-		if (!MascotME.fbSizeWorkaround) {
+		if (graphics instanceof org.neutron.graphics3d.spi.DirectFrameSurface) {
+			org.neutron.graphics3d.spi.DirectFrameSurface dfs = (org.neutron.graphics3d.spi.DirectFrameSurface) graphics;
+			fbWidth = dfs.getWidth();
+			fbHeight = dfs.getHeight();
+		} else if (!MascotME.fbSizeWorkaround) {
 			fbWidth = Math.max(clipX + clipW, 0);
 			fbHeight = Math.max(clipY + clipH, 0);
 		} else {
@@ -2371,9 +2375,9 @@ public class Graphics3D {
 
 			int tx, ty, tz;
 			if (trans != null) {
-				tx = ((m00 * vx + m01 * vy + m02 * vz + 2048) >> 12) + m03;
-				ty = ((m10 * vx + m11 * vy + m12 * vz + 2048) >> 12) + m13;
-				tz = ((m20 * vx + m21 * vy + m22 * vz + 2048) >> 12) + m23;
+				tx = (int) ((((long) m00 * vx + (long) m01 * vy + (long) m02 * vz + 2048) >> 12) + m03);
+				ty = (int) ((((long) m10 * vx + (long) m11 * vy + (long) m12 * vz + 2048) >> 12) + m13);
+				tz = (int) ((((long) m20 * vx + (long) m21 * vy + (long) m22 * vz + 2048) >> 12) + m23);
 			} else {
 				tx = vx; ty = vy; tz = vz;
 			}
@@ -2385,27 +2389,28 @@ public class Graphics3D {
 
 			if (projectionMode == PROJ_PERSPECTIVE) {
 				int viewZ = tz;
-				if (viewZ < perspectiveNear) viewZ = perspectiveNear;
+				int near = perspectiveNear > 0 ? perspectiveNear : 1;
+				if (viewZ < near) viewZ = near;
 
-				int numX = tx * scaleX;
-				int numY = ty * scaleY;
+				long numX = (long) tx * scaleX;
+				long numY = (long) ty * scaleY;
 				if (Graphics3DConfig.isSubpixelPrecision()) {
-					int halfZ = viewZ >> 1;
-					sx = (numX >= 0 ? (numX + halfZ) / viewZ : (numX - halfZ) / viewZ) + centerX;
-					sy = (numY >= 0 ? (numY + halfZ) / viewZ : (numY - halfZ) / viewZ) + centerY;
+					long halfZ = viewZ >> 1;
+					sx = (int) ((numX >= 0 ? (numX + halfZ) / viewZ : (numX - halfZ) / viewZ) + centerX);
+					sy = (int) ((numY >= 0 ? (numY + halfZ) / viewZ : (numY - halfZ) / viewZ) + centerY);
 				} else {
-					sx = (numX / viewZ) + centerX;
-					sy = (numY / viewZ) + centerY;
+					sx = (int) ((numX / viewZ) + centerX);
+					sy = (int) ((numY / viewZ) + centerY);
 				}
 			} else {
-				int numX = tx * scaleX;
-				int numY = ty * scaleY;
+				long numX = (long) tx * scaleX;
+				long numY = (long) ty * scaleY;
 				if (Graphics3DConfig.isSubpixelPrecision()) {
-					sx = (numX >= 0 ? (numX + 2048) >> 12 : (numX - 2048) >> 12) + centerX;
-					sy = (numY >= 0 ? (numY + 2048) >> 12 : (numY - 2048) >> 12) + centerY;
+					sx = (int) ((numX >= 0 ? (numX + 2048) >> 12 : (numX - 2048) >> 12) + centerX);
+					sy = (int) ((numY >= 0 ? (numY + 2048) >> 12 : (numY - 2048) >> 12) + centerY);
 				} else {
-					sx = (numX >> 12) + centerX;
-					sy = (numY >> 12) + centerY;
+					sx = (int) ((numX >> 12) + centerX);
+					sy = (int) ((numY >> 12) + centerY);
 				}
 			}
 
@@ -2486,28 +2491,28 @@ public class Graphics3D {
 
 			int intensity = ambIntensity;
 
-			int dot = nx * lx + ny * ly + nz * lz;
-			if(dot > minLight) intensity += ((dot >> 12) * dirIntensity) >> 12;
+			long dot = (long) nx * lx + (long) ny * ly + (long) nz * lz;
+			if (dot > minLight) intensity += (int) (((dot >> 12) * dirIntensity) >> 12);
 
-			if(intensity > 4095) intensity = 4095;
+			if (intensity > 4095) intensity = 4095;
 			lightVtx[writeIdx] = (short) intensity;
 
-			if(useEnvMap) {
-				int dotU = (nx * envUx + ny * envUy + nz * envUz) >> 12;
+			if (useEnvMap) {
+				int dotU = (int) (((long) nx * envUx + (long) ny * envUy + (long) nz * envUz) >> 12);
 
 				dotU = (dotU + 4096) >> 1;
-				if(dotU > 4095) dotU = 4095;
-				else if(dotU < 0) dotU = 0;
+				if (dotU > 4095) dotU = 4095;
+				else if (dotU < 0) dotU = 0;
 				
 				//Only 64x envmaps are supported by mcv3, 65 is also more closer to reference impl
 				dotU = (dotU * 65) >> 8;
 				envUVs[writeIdx * 2] = (short) dotU;
 
-				int dotV = (nx * envVx + ny * envVy + nz * envVz) >> 12;
+				int dotV = (int) (((long) nx * envVx + (long) ny * envVy + (long) nz * envVz) >> 12);
 
 				dotV = (dotV + 4096) >> 1;
-				if(dotV > 4095) dotV = 4095;
-				else if(dotV < 0) dotV = 0;
+				if (dotV > 4095) dotV = 4095;
+				else if (dotV < 0) dotV = 0;
 				
 				dotV = (dotV * 65) >> 8;
 				envUVs[writeIdx * 2 + 1] = (short) dotV;

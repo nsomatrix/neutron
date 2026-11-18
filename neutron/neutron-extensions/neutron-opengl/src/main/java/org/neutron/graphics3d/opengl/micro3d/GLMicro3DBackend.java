@@ -157,7 +157,7 @@ public class GLMicro3DBackend implements Micro3DBackend {
                 }
             }
         } else if (currentTarget instanceof javax.microedition.lcdui.Graphics) {
-            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(srcPixels, 0, width, 0, 0, width, height, true);
+            ((javax.microedition.lcdui.Graphics) currentTarget).drawRGB(srcPixels, 0, width, 0, 0, width, height, false);
         }
     }
 
