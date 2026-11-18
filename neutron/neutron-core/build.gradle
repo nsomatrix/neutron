@@ -38,6 +38,8 @@ dependencies {
     implementation project(':neutron:neutron-extensions:neutron-jsr-82')
     implementation project(':neutron:neutron-extensions:neutron-siemensapi')
     implementation project(':neutron:neutron-extensions:neutron-micro3d')
+    implementation project(':neutron:neutron-extensions:neutron-opengl')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-239')
     implementation project(':neutron:neutron-extensions:neutron-oem-apis')
     implementation project(':neutron:neutron-extensions:neutron-jsr-234')
     implementation project(':neutron:neutron-extensions:neutron-jsr-226')
@@ -68,6 +70,8 @@ task rawJar(type: Jar) {
               ':neutron:neutron-extensions:neutron-jsr-82:jar',
               ':neutron:neutron-extensions:neutron-siemensapi:jar',
               ':neutron:neutron-extensions:neutron-micro3d:jar',
+              ':neutron:neutron-extensions:neutron-opengl:jar',
+              ':neutron:neutron-extensions:neutron-jsr-239:jar',
               ':neutron:neutron-extensions:neutron-oem-apis:jar',
               ':neutron:neutron-extensions:neutron-jsr-234:jar',
               ':neutron:neutron-extensions:neutron-jsr-226:jar',
