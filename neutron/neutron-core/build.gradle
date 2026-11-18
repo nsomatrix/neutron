@@ -43,6 +43,10 @@ dependencies {
     implementation project(':neutron:neutron-extensions:neutron-oem-apis')
     implementation project(':neutron:neutron-extensions:neutron-jsr-234')
     implementation project(':neutron:neutron-extensions:neutron-jsr-226')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-172')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-179')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-211')
+    implementation project(':neutron:neutron-extensions:neutron-jsr-256')
     implementation project(':neutron:neutron-extensions:neutron-device-large')
     implementation project(':neutron:neutron-extensions:neutron-device-minimum')
     implementation project(':neutron:neutron-extensions:neutron-device-resizable')
@@ -75,6 +79,10 @@ task rawJar(type: Jar) {
               ':neutron:neutron-extensions:neutron-oem-apis:jar',
               ':neutron:neutron-extensions:neutron-jsr-234:jar',
               ':neutron:neutron-extensions:neutron-jsr-226:jar',
+              ':neutron:neutron-extensions:neutron-jsr-172:jar',
+              ':neutron:neutron-extensions:neutron-jsr-179:jar',
+              ':neutron:neutron-extensions:neutron-jsr-211:jar',
+              ':neutron:neutron-extensions:neutron-jsr-256:jar',
               ':neutron:neutron-extensions:neutron-device-large:jar',
               ':neutron:neutron-extensions:neutron-device-minimum:jar',
               ':neutron:neutron-extensions:neutron-device-resizable:jar',
