@@ -34,6 +34,13 @@ public class PlaytimeTrackerTest {
     }
 
     @Test
+    public void testFormatPlaytimeYears() {
+        // 2 years + 45 days + 10 hours + 15 min + 30 sec
+        long seconds = (2L * 365 + 45) * 86400 + 10 * 3600 + 15 * 60 + 30;
+        assertEquals("2y 45d 10h 15m", PlaytimeTracker.formatPlaytime(seconds));
+    }
+
+    @Test
     public void testNormalizeKey() {
         assertEquals("unknown", PlaytimeTracker.normalizeKey(null));
         assertEquals("unknown", PlaytimeTracker.normalizeKey(""));
