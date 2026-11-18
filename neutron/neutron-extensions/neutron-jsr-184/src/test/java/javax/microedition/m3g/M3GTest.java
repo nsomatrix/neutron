@@ -856,4 +856,75 @@ public class M3GTest {
 				e.getMessage().contains("not found") || e.getMessage().contains("Load error"));
 		}
 	}
+
+	@Test
+	public void testAlphaWriteDisabledImmediateRender() {
+		Graphics3D g3d = Graphics3D.getInstance();
+		final int[] pixels = new int[64 * 64];
+		java.util.Arrays.fill(pixels, 0xFF336699);
+
+		class TestSurfaceGraphics extends Graphics implements org.neutron.graphics3d.spi.DirectFrameSurface {
+			public int getClipX() { return 0; }
+			public int getClipY() { return 0; }
+			public int getClipWidth() { return 64; }
+			public int getClipHeight() { return 64; }
+			public int getWidth() { return 64; }
+			public int getHeight() { return 64; }
+			public int[] getImageData() { return pixels; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {
+				for (int r = 0; r < height; r++) {
+					for (int c = 0; c < width; c++) {
+						int srcARGB = rgbData[offset + r * scanlength + c];
+						if (processAlpha) {
+							int srcA = srcARGB >>> 24;
+							if (srcA > 0) {
+								pixels[(y + r) * 64 + (x + c)] = srcARGB;
+							}
+						} else {
+							pixels[(y + r) * 64 + (x + c)] = srcARGB;
+						}
+					}
+				}
+			}
+		}
+		Graphics g = new TestSurfaceGraphics();
+
+		g3d.bindTarget(g, true, 0);
+
+		Background bg = new Background();
+		bg.setColorClearEnable(false);
+		bg.setDepthClearEnable(true);
+		g3d.clear(bg);
+
+		Camera cam = new Camera();
+		cam.setPerspective(60.0f, 1.0f, 0.1f, 100.0f);
+		g3d.setCamera(cam, null);
+
+		VertexBuffer vb = new VertexBuffer();
+		VertexArray va = new VertexArray(3, 3, 2);
+		short[] rawPos = new short[] {
+			0, 20, -40,
+			-20, -20, -40,
+			20, -20, -40
+		};
+		va.set(0, 3, rawPos);
+		vb.setPositions(va, 0.5f, new float[] { 0.0f, 0.0f, 0.0f });
+		vb.setDefaultColor(0xFFFF0000);
+
+		TriangleStripArray tsa = new TriangleStripArray(0, new int[] { 3 });
+
+		Appearance app = new Appearance();
+		CompositingMode comp = new CompositingMode();
+		comp.setBlending(CompositingMode.ALPHA);
+		comp.setDepthTestEnable(true);
+		comp.setDepthWriteEnable(true);
+		comp.setAlphaWriteEnable(false);
+		app.setCompositingMode(comp);
+
+		g3d.render(vb, tsa, app, null);
+		g3d.releaseTarget();
+
+		int centerPixel = pixels[32 * 64 + 32];
+		assertEquals(0xFFFF0000, centerPixel);
+	}
 }

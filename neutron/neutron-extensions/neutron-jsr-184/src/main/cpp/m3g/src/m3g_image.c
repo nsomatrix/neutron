@@ -211,6 +211,20 @@ static void convertARGBToBGRA8(const M3Guint *src, M3Gsizei count, M3Gubyte *dst
     }
 }
 
+/*!
+ * \internal \brief ARGB -> BGR8_32
+ */
+static void convertARGBToBGR832(const M3Guint *src, M3Gsizei count, M3Gubyte *dst)
+{
+    while (count--) {
+        M3Guint argb = M3G_ALPHA_MASK | *src++;
+        *dst++ = (M3Gubyte) BLUE(argb);
+        *dst++ = (M3Gubyte) GREEN(argb);
+        *dst++ = (M3Gubyte) RED(argb);
+        *dst++ = (M3Gubyte) ALPHA(argb);
+    }
+}
+
 #undef RED
 #undef GREEN
 #undef BLUE
@@ -256,8 +270,10 @@ static void convertFromARGB(const M3Guint *src,
         convertARGBToRGB832(src, count, dst);
         break;
     case M3G_BGRA8:
-    case M3G_BGR8_32:
         convertARGBToBGRA8(src, count, dst);
+        break;
+    case M3G_BGR8_32:
+        convertARGBToBGR832(src, count, dst);
         break;
     default:
         M3G_ASSERT(M3G_FALSE);  /* conversion not supported */
@@ -380,6 +396,21 @@ static void convertBGRA8ToARGB(const M3Gubyte *src, M3Gsizei count, M3Guint *dst
 }
 
 /*!
+ * \internal \brief BGR8_32 -> ARGB
+ */
+static void convertBGR832ToARGB(const M3Gubyte *src, M3Gsizei count, M3Guint *dst)
+{
+    while (count--) {
+        M3Guint argb = M3G_ALPHA_MASK;
+        argb |=  (M3Guint)(*src++);
+        argb |= ((M3Guint)(*src++)) <<  8;
+        argb |= ((M3Guint)(*src++)) << 16;
+        *dst++ = argb;
+        src++;
+    }
+}
+
+/*!
  * \internal
  * \brief Converts a span of pixels to ARGB
  *
@@ -416,8 +447,10 @@ static void convertToARGB(M3GPixelFormat srcFormat,
         convertRGB832ToARGB(src, count, dst);
         break;
     case M3G_BGRA8:
-    case M3G_BGR8_32:
         convertBGRA8ToARGB(src, count, dst);
+        break;
+    case M3G_BGR8_32:
+        convertBGR832ToARGB(src, count, dst);
         break;
     default:
         M3G_ASSERT(M3G_FALSE);  /* conversion not supported */
@@ -538,6 +571,30 @@ static void fastConvertBGRAToRGBA(const M3Gubyte *src, M3Gsizei srcStride,
     }
 }
 #endif /* #if defined (M3G_HW_ARMV6) */
+
+/*!
+ * \internal
+ * \brief Fast path for RGBA <-> BGR8_32 conversion with guaranteed 0xFF alpha
+ */
+static void fastConvertRGBAToBGR832(const M3Gubyte *src, M3Gsizei count, M3Gubyte *dst)
+{
+    const M3Guint *s = (const M3Guint *)src;
+    M3Guint *d = (M3Guint *)dst;
+    while (count--) {
+        M3Guint p = *s++;
+        *d++ = 0xFF000000u | ((p & 0x00FF0000u) >> 16) | (p & 0x0000FF00u) | ((p & 0x000000FFu) << 16);
+    }
+}
+
+static void fastConvertBGR832Rect(const M3Gubyte *src, M3Gsizei srcStride,
+                                  M3Gsizei width, M3Gsizei height,
+                                  M3Gubyte *dst, M3Gsizei dstStride)
+{
+    int y;
+    for (y = 0; y < height; ++y) {
+        fastConvertRGBAToBGR832(src + y * srcStride, width, dst + y * dstStride);
+    }
+}
 
 /*--------------------------------------------------------------------*/
 
@@ -879,11 +936,16 @@ static void m3gConvertPixels(M3GPixelFormat srcFormat, const M3Gubyte *src,
 
         /* Check the source and destination formats to avoid 
            the intermediate ARGB format conversion. */
-        if (((srcFormat == M3G_RGBA8 && (dstFormat == M3G_BGRA8 || dstFormat == M3G_BGR8_32))
-            || (dstFormat == M3G_RGBA8 && (srcFormat == M3G_BGRA8 || srcFormat == M3G_BGR8_32))) 
+        if (((srcFormat == M3G_RGBA8 && dstFormat == M3G_BGRA8)
+            || (dstFormat == M3G_RGBA8 && srcFormat == M3G_BGRA8)) 
             && (n > 2) && ((*(const int *)endianTest) == 1)) {
             /* use fast path for RGBA<->BGRA conversion */
             fastConvertBGRAToRGBA(src, n * srcBpp, n, 1, dst);
+        } else if (((srcFormat == M3G_RGBA8 && dstFormat == M3G_BGR8_32)
+            || (dstFormat == M3G_RGBA8 && srcFormat == M3G_BGR8_32))
+            && ((*(const int *)endianTest) == 1)) {
+            /* use fast path for RGBA<->BGR8_32 conversion with opaque 0xFF alpha */
+            fastConvertRGBAToBGR832(src, n, dst);
         } else if (srcFormat == M3G_ARGB8 && dstFormat != M3G_ARGB8) {
             convertFromARGB((M3Guint*)src, n, dstFormat, dst);
         } else if (srcFormat != M3G_ARGB8 && dstFormat == M3G_ARGB8) {
@@ -1503,14 +1565,21 @@ static void m3gConvertPixelRect(
 {
     /* Detect any fast path cases */
     
-    if ((srcFormat == M3G_BGRA8 || srcFormat == M3G_BGR8_32)
-        && dstFormat == M3G_RGBA8) {
+    if (srcFormat == M3G_BGRA8 && dstFormat == M3G_RGBA8) {
         if (width > 2 && dstStride == width*4) {
 
             const char endianTest[4] = { 1, 0, 0, 0 };
             if ((*(const int *)endianTest) == 1) {
                 fastConvertBGRAToRGBA(src, srcStride, width, height, dst);
             }
+            return;
+        }
+    }
+    else if (((srcFormat == M3G_BGR8_32 && dstFormat == M3G_RGBA8)
+             || (srcFormat == M3G_RGBA8 && dstFormat == M3G_BGR8_32))) {
+        const char endianTest[4] = { 1, 0, 0, 0 };
+        if ((*(const int *)endianTest) == 1) {
+            fastConvertBGR832Rect(src, srcStride, width, height, dst, dstStride);
             return;
         }
     }

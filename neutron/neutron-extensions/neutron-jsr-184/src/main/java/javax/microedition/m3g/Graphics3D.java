@@ -300,7 +300,7 @@ public class Graphics3D {
 
 				if (blitW > 0 && blitH > 0) {
 					int offset = startY * w + startX;
-					finalG.drawRGB(intData, offset, w, startX, startY, blitW, blitH, true);
+					finalG.drawRGB(intData, offset, w, startX, startY, blitW, blitH, false);
 				}
 				buffer = null;
 			}
