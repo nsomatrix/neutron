@@ -171,15 +171,16 @@ public abstract class Object3D {
 	/**
 	 * Native peer finalization
 	 */
-	private void doFinalize() {
+	private synchronized void doFinalize() {
 		if (handle != 0) {
-			// finalize native peer
-			Platform.finalizeObject(handle, iInterface);
-			Interface.deregister(this, iInterface);
-
-			// reset handles
-			iInterface = null;
+			long h = handle;
+			Interface iface = iInterface;
 			handle = 0;
+			iInterface = null;
+
+			// finalize native peer
+			Platform.finalizeObject(h, iface);
+			Interface.deregister(h, iface);
 		}
 	}
 

@@ -52,6 +52,12 @@ public class SwingDialogWindow
    */
   public static boolean show(Frame parent, String title, final SwingDialogPanel panel, boolean hasCancel)
   {
+    if (java.awt.GraphicsEnvironment.isHeadless()
+        || Boolean.getBoolean("java.awt.headless")
+        || Boolean.getBoolean("neutron.test.mode")
+        || System.getProperty("org.gradle.test.worker") != null) {
+      return false;
+    }
     final JDialog dialog = new JDialog(parent, title, true);
     dialog.getContentPane().setLayout(new BorderLayout());
     dialog.getContentPane().add(panel, BorderLayout.CENTER);

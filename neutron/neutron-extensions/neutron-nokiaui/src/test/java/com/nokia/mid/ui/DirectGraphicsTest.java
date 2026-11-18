@@ -164,5 +164,87 @@ public class DirectGraphicsTest {
         DirectGraphics dg = new DirectGraphicsImp(g);
         dg.drawPixels((int[]) null, true, 0, 0, 0, 0, 10, 10, 0, DirectGraphics.TYPE_INT_8888_ARGB);
     }
+
+    @Test
+    public void testDrawPixelsVerticalFlipManipulations() {
+        RecordingGraphics g = new RecordingGraphics();
+        DirectGraphics dg = new DirectGraphicsImp(g);
+        int[] pixels = new int[] {
+            1, 2, 3,
+            4, 5, 6
+        };
+
+        // 3x2 image: width=3, height=2
+        // FLIP_VERTICAL | ROTATE_90 -> dW=2, dH=3
+        dg.drawPixels(pixels, false, 0, 3, 0, 0, 3, 2, 
+                DirectGraphics.FLIP_VERTICAL | DirectGraphics.ROTATE_90, DirectGraphics.TYPE_INT_888_RGB);
+        assertTrue(g.drawRgbCalled);
+        assertEquals(2, g.lastRgbWidth);
+        assertEquals(3, g.lastRgbHeight);
+        assertNotNull(g.lastRgbData);
+        assertEquals(6, g.lastRgbData.length);
+        // col=0,row=0 (1) -> dstX=0, dstY=0
+        // col=2,row=0 (3) -> dstX=0, dstY=2
+        // col=0,row=1 (4) -> dstX=1, dstY=0
+        assertEquals(1, g.lastRgbData[0]);
+        assertEquals(4, g.lastRgbData[1]);
+        assertEquals(3, g.lastRgbData[4]);
+
+        // FLIP_VERTICAL | ROTATE_270 -> dW=2, dH=3
+        dg.drawPixels(pixels, false, 0, 3, 0, 0, 3, 2, 
+                DirectGraphics.FLIP_VERTICAL | DirectGraphics.ROTATE_270, DirectGraphics.TYPE_INT_888_RGB);
+        assertEquals(2, g.lastRgbWidth);
+        assertEquals(3, g.lastRgbHeight);
+
+        // FLIP_VERTICAL | ROTATE_180 -> dW=3, dH=2
+        dg.drawPixels(pixels, false, 0, 3, 0, 0, 3, 2, 
+                DirectGraphics.FLIP_VERTICAL | DirectGraphics.ROTATE_180, DirectGraphics.TYPE_INT_888_RGB);
+        assertEquals(3, g.lastRgbWidth);
+        assertEquals(2, g.lastRgbHeight);
+    }
+
+    @Test
+    public void testTriangleAndPolygonRendering() {
+        class TriangleRecordingGraphics extends RecordingGraphics {
+            int lineCount = 0;
+            int fillTriCount = 0;
+            int lastColor = 0;
+
+            @Override
+            public void drawLine(int x1, int y1, int x2, int y2) {
+                lineCount++;
+            }
+
+            @Override
+            public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3) {
+                fillTriCount++;
+            }
+
+            @Override
+            public void setColor(int RGB) {
+                this.lastColor = RGB;
+            }
+
+            @Override
+            public int getColor() {
+                return this.lastColor;
+            }
+        }
+
+        TriangleRecordingGraphics tg = new TriangleRecordingGraphics();
+        DirectGraphics dg = new DirectGraphicsImp(tg);
+
+        dg.drawTriangle(10, 10, 50, 10, 25, 40, 0xFF00AAFF);
+        assertEquals("drawTriangle must draw 3 boundary lines", 3, tg.lineCount);
+
+        dg.fillTriangle(10, 10, 50, 10, 25, 40, 0xFF00AAFF);
+        assertEquals("fillTriangle must call underlying fillTriangle once", 1, tg.fillTriCount);
+
+        int[] xPts = new int[] { 0, 10, 20, 10 };
+        int[] yPts = new int[] { 10, 0, 10, 20 };
+        dg.fillPolygon(xPts, 0, yPts, 0, 4, 0xFF00AAFF);
+        // Quad convex polygon decomposes into 2 triangles
+        assertEquals("fillPolygon with 4 vertices must emit 2 triangles", 3, tg.fillTriCount);
+    }
 }
 

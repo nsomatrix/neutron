@@ -175,4 +175,34 @@ public class ManagerCreatePlayerTest {
         assertEquals(1, controls.length);
         assertSame(c1, controls[0]);
     }
+
+    @Test
+    public void testMidiAudioPlayerLifecycleAndVolumeControl() throws Exception {
+        MidiAudioPlayer player = new MidiAudioPlayer();
+        assertEquals(Player.UNREALIZED, player.getState());
+
+        player.realize();
+        assertEquals(Player.REALIZED, player.getState());
+
+        player.prefetch();
+        assertEquals(Player.PREFETCHED, player.getState());
+
+        player.deallocate();
+        assertEquals(Player.REALIZED, player.getState());
+
+        javax.microedition.media.control.VolumeControl vc = 
+                (javax.microedition.media.control.VolumeControl) player.getControl("VolumeControl");
+        assertNotNull("VolumeControl must be present on MidiAudioPlayer", vc);
+        assertEquals(100, vc.getLevel());
+        assertFalse(vc.isMuted());
+
+        vc.setLevel(65);
+        assertEquals(65, vc.getLevel());
+
+        vc.setMute(true);
+        assertTrue(vc.isMuted());
+
+        player.close();
+        assertEquals(Player.CLOSED, player.getState());
+    }
 }

@@ -131,4 +131,12 @@ public class Message {
 	public static void addListener(MessageListener newListener) {
 		listeners.add(newListener);
 	}
+
+	public static void removeListener(MessageListener listener) {
+		listeners.remove(listener);
+	}
+
+	public static void clearListeners() {
+		listeners.clear();
+	}
 }

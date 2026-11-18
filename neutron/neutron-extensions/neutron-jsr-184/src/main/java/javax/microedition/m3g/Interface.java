@@ -73,7 +73,7 @@ class Interface {
 	/**
 	 * Handle of the native interface object.
 	 */
-	private long handle;
+	long handle;
 
 	/**
 	 * Global handle-to-Object3D map used to both find the Java
@@ -250,12 +250,23 @@ class Interface {
 	}
 
 	/**
+	 * Forces removal of an object handle from the handle-to-object map.
+	 */
+	static final void deregister(long handle, Interface self) {
+		if (self != null && self.liveObjects != null) {
+			self.liveObjects.remove(new Long(handle));
+			if (self.liveObjects.isEmpty() && self.iShutdown) {
+				self.registeredFinalize();
+			}
+		}
+	}
+
+	/**
 	 * Forces removal of an object from the handle-to-object map.
 	 */
 	static final void deregister(Object3D obj, Interface self) {
-		self.liveObjects.remove(new Long(obj.handle));
-		if (self.liveObjects.isEmpty() && self.iShutdown) {
-			self.registeredFinalize();
+		if (obj != null) {
+			deregister(obj.handle, self);
 		}
 	}
 
@@ -263,9 +274,8 @@ class Interface {
 	 * Forces removal of an object from the handle-to-object map.
 	 */
 	static final void deregister(Loader obj, Interface self) {
-		self.liveObjects.remove(new Long(obj.handle));
-		if (self.liveObjects.isEmpty() && self.iShutdown) {
-			self.registeredFinalize();
+		if (obj != null) {
+			deregister(obj.handle, self);
 		}
 	}
 

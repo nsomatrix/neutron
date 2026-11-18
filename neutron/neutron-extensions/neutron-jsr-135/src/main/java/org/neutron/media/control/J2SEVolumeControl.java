@@ -19,11 +19,27 @@
 package org.neutron.media.control;
 
 import javax.microedition.media.control.VolumeControl;
+import javax.sound.midi.MidiChannel;
+import javax.sound.midi.Synthesizer;
+import javax.sound.sampled.FloatControl;
+import javax.sound.sampled.Line;
 
 public class J2SEVolumeControl implements VolumeControl
 {
     private int level = 100;
     private boolean muted = false;
+    private Line audioLine;
+    private Synthesizer synthesizer;
+
+    public void setAudioLine(Line line) {
+        this.audioLine = line;
+        applyVolume();
+    }
+
+    public void setSynthesizer(Synthesizer synth) {
+        this.synthesizer = synth;
+        applyVolume();
+    }
 
     public int getLevel()
     {
@@ -35,7 +51,7 @@ public class J2SEVolumeControl implements VolumeControl
         return muted;
     }
 
-    public int setLevel(int level)
+    public synchronized int setLevel(int level)
     {
         if (level < 0) {
             level = 0;
@@ -43,12 +59,48 @@ public class J2SEVolumeControl implements VolumeControl
             level = 100;
         }
         this.level = level;
+        applyVolume();
         return this.level;
     }
 
-    public void setMute(boolean mute)
+    public synchronized void setMute(boolean mute)
     {
         this.muted = mute;
+        applyVolume();
+    }
+
+    private void applyVolume() {
+        if (audioLine != null && audioLine.isOpen()) {
+            try {
+                if (audioLine.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+                    FloatControl gain = (FloatControl) audioLine.getControl(FloatControl.Type.MASTER_GAIN);
+                    if (muted || level <= 0) {
+                        gain.setValue(gain.getMinimum());
+                    } else {
+                        float min = gain.getMinimum();
+                        float max = gain.getMaximum();
+                        float dB = (float) (Math.log10(level / 100.0) * 20.0);
+                        if (dB < min) dB = min;
+                        if (dB > max) dB = max;
+                        gain.setValue(dB);
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+
+        if (synthesizer != null && synthesizer.isOpen()) {
+            try {
+                MidiChannel[] channels = synthesizer.getChannels();
+                if (channels != null) {
+                    int midiVol = (muted || level <= 0) ? 0 : (int) Math.round(level * 1.27);
+                    for (int i = 0; i < channels.length; i++) {
+                        if (channels[i] != null) {
+                            channels[i].controlChange(7, midiVol);
+                        }
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
     }
 
 }

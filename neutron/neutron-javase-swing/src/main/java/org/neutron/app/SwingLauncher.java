@@ -29,11 +29,9 @@ public class SwingLauncher {
 
             boolean cacheValid = false;
             if (payloadJar.exists() && payloadJar.length() > 0 && stampFile.exists()) {
-                try {
+                try (java.io.FileInputStream fis = new java.io.FileInputStream(stampFile)) {
                     byte[] b = new byte[(int) stampFile.length()];
-                    java.io.FileInputStream fis = new java.io.FileInputStream(stampFile);
                     int read = fis.read(b);
-                    fis.close();
                     if (read > 0 && currentStamp.equals(new String(b, 0, read).trim())) {
                         cacheValid = true;
                     }
@@ -42,29 +40,37 @@ public class SwingLauncher {
             }
 
             if (!cacheValid) {
-                InputStream is = conn.getInputStream();
                 File tempFile = File.createTempFile("neutron-swing-payload-", ".tmp", tempDir);
-                XZInputStream xzIn = new XZInputStream(is);
-                FileOutputStream fos = new FileOutputStream(tempFile);
-                byte[] buffer = new byte[32768];
-                int n;
-                while ((n = xzIn.read(buffer)) != -1) {
-                    fos.write(buffer, 0, n);
-                }
-                fos.close();
-                xzIn.close();
-                is.close();
-
-                if (payloadJar.exists()) {
-                    payloadJar.delete();
-                }
-                tempFile.renameTo(payloadJar);
-
                 try {
-                    FileOutputStream stampFos = new FileOutputStream(stampFile);
-                    stampFos.write(currentStamp.getBytes());
-                    stampFos.close();
-                } catch (Exception ignore) {
+                    try (InputStream is = conn.getInputStream();
+                         XZInputStream xzIn = new XZInputStream(is);
+                         FileOutputStream fos = new FileOutputStream(tempFile)) {
+                        byte[] buffer = new byte[32768];
+                        int n;
+                        while ((n = xzIn.read(buffer)) != -1) {
+                            fos.write(buffer, 0, n);
+                        }
+                        fos.flush();
+                    }
+
+                    try {
+                        java.nio.file.Files.move(tempFile.toPath(), payloadJar.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+                                java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+                    } catch (java.nio.file.AtomicMoveNotSupportedException e) {
+                        java.nio.file.Files.move(tempFile.toPath(), payloadJar.toPath(),
+                                java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                    }
+
+                    try (FileOutputStream stampFos = new FileOutputStream(stampFile)) {
+                        stampFos.write(currentStamp.getBytes());
+                        stampFos.flush();
+                    } catch (Exception ignore) {
+                    }
+                } finally {
+                    if (tempFile.exists()) {
+                        tempFile.delete();
+                    }
                 }
             }
 

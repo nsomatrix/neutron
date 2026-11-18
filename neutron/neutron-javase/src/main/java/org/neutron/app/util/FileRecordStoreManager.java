@@ -100,7 +100,11 @@ public class FileRecordStoreManager implements RecordStoreManager {
 	}
 
 	protected File getSuiteFolder() {
-		return new File(Config.getConfigPath(), "suite-" + emulator.getSuiteName());
+		String suite = emulator != null ? emulator.getSuiteName() : null;
+		String safeSuiteName = (suite != null && !suite.trim().isEmpty()) 
+				? suite.replaceAll("[^a-zA-Z0-9._-]", "_") 
+				: "default";
+		return new File(Config.getConfigPath(), "suite-" + safeSuiteName);
 	}
 
 	private static String escapeCharacter(String charcter) {
@@ -263,12 +267,12 @@ public class FileRecordStoreManager implements RecordStoreManager {
 		RecordStoreImpl store = null;
 		try {
 			store = new RecordStoreImpl(this);
-			DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(recordStoreFile)));
-			int size = store.readHeader(dis);
-			for (int i = 0; i < size; i++) {
-				store.readRecord(dis);
+			try (DataInputStream dis = new DataInputStream(new BufferedInputStream(new FileInputStream(recordStoreFile)))) {
+				int size = store.readHeader(dis);
+				for (int i = 0; i < size; i++) {
+					store.readRecord(dis);
+				}
 			}
-			dis.close();
 		} catch (FileNotFoundException e) {
 			throw e;
 		} catch (IOException e) {
@@ -296,21 +300,35 @@ public class FileRecordStoreManager implements RecordStoreManager {
 
 	private synchronized void saveToDiskSecure(final File recordStoreFile, final RecordStoreImpl recordStore)
 			throws RecordStoreException {
-		if (!recordStoreFile.getParentFile().exists()) {
-			if (!recordStoreFile.getParentFile().mkdirs()) {
+		File parent = recordStoreFile.getParentFile();
+		if (parent != null && !parent.exists()) {
+			if (!parent.mkdirs() && !parent.exists()) {
 				throw new RecordStoreException("Unable to create recordStore directory");
 			}
 		}
+		File tempFile = new File(parent, recordStoreFile.getName() + ".tmp");
 		try {
-			DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(recordStoreFile)));
-			recordStore.writeHeader(dos);
-			RecordEnumeration re = recordStore.enumerateRecords(null, null, false);
-			while (re.hasNextElement()) {
-				recordStore.writeRecord(dos, re.nextRecordId());
+			try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(tempFile)))) {
+				recordStore.writeHeader(dos);
+				RecordEnumeration re = recordStore.enumerateRecords(null, null, false);
+				while (re.hasNextElement()) {
+					recordStore.writeRecord(dos, re.nextRecordId());
+				}
+				dos.flush();
 			}
-			dos.close();
+			try {
+				java.nio.file.Files.move(tempFile.toPath(), recordStoreFile.toPath(),
+						java.nio.file.StandardCopyOption.REPLACE_EXISTING,
+						java.nio.file.StandardCopyOption.ATOMIC_MOVE);
+			} catch (java.nio.file.AtomicMoveNotSupportedException e) {
+				java.nio.file.Files.move(tempFile.toPath(), recordStoreFile.toPath(),
+						java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+			}
 		} catch (IOException e) {
-			Logger.error("RecordStore.saveToDisk: ERROR writting object to " + recordStoreFile.getName(), e);
+			if (tempFile.exists()) {
+				tempFile.delete();
+			}
+			Logger.error("RecordStore.saveToDisk: ERROR writing object to " + recordStoreFile.getName(), e);
 			throw new RecordStoreException(e.getMessage());
 		}
 	}

@@ -91,6 +91,13 @@ public class SwingErrorMessageDialogPanel extends SwingDialogPanel implements Me
 	 * @see org.neutron.app.ui.MessageListener#showMessage(int, java.lang.String, java.lang.String, java.lang.Throwable)
 	 */
 	public void showMessage(int level, String title, String text, Throwable throwable) {
+		if (java.awt.GraphicsEnvironment.isHeadless()
+				|| Boolean.getBoolean("java.awt.headless")
+				|| Boolean.getBoolean("neutron.test.mode")
+				|| System.getProperty("org.gradle.test.worker") != null) {
+			return;
+		}
+
 		switch (level) {
 		case Message.ERROR:
 			iconLabel.setIcon(UIManager.getIcon("OptionPane.errorIcon"));

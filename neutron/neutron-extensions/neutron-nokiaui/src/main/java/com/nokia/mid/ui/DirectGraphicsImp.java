@@ -154,29 +154,36 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @param argbColor
      */
     public void drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor) {
+        int oldColor = graphics.getColor();
+        graphics.setColor(argbColor & 0x00FFFFFF);
+        graphics.drawLine(x1, y1, x2, y2);
+        graphics.drawLine(x2, y2, x3, y3);
+        graphics.drawLine(x3, y3, x1, y1);
+        graphics.setColor(oldColor);
     }
     
-    /** Not supported
-     * @param xPoints
-     * @param xOffset
-     * @param yPoints
-     * @param yOffset
-     * @param nPoints
-     * @param argbColor
-     */
     public void fillPolygon(int xPoints[], int xOffset, int yPoints[], int yOffset, int nPoints, int argbColor) {
+        if (xPoints == null || yPoints == null) {
+            throw new NullPointerException();
+        }
+        if (nPoints < 3) {
+            return;
+        }
+        int oldColor = graphics.getColor();
+        graphics.setColor(argbColor & 0x00FFFFFF);
+        int ox = xPoints[xOffset];
+        int oy = yPoints[yOffset];
+        for (int i = 1; i < nPoints - 1; i++) {
+            graphics.fillTriangle(ox, oy, xPoints[xOffset + i], yPoints[yOffset + i], xPoints[xOffset + i + 1], yPoints[yOffset + i + 1]);
+        }
+        graphics.setColor(oldColor);
     }
     
-    /** Not supported
-     * @param x1
-     * @param y1
-     * @param x2
-     * @param y2
-     * @param x3
-     * @param y3
-     * @param argbColor
-     */
     public void fillTriangle(int x1, int y1, int x2, int y2, int x3, int y3, int argbColor) {
+        int oldColor = graphics.getColor();
+        graphics.setColor(argbColor & 0x00FFFFFF);
+        graphics.fillTriangle(x1, y1, x2, y2, x3, y3);
+        graphics.setColor(oldColor);
     }
     
     //manipulations are not supported!
@@ -358,6 +365,18 @@ public class DirectGraphicsImp implements DirectGraphics{
                     case (FLIP_HORIZONTAL | ROTATE_270):
                         dstX = row;
                         dstY = col;
+                        break;
+                    case (FLIP_VERTICAL | ROTATE_90):
+                        dstX = row;
+                        dstY = col;
+                        break;
+                    case (FLIP_VERTICAL | ROTATE_180):
+                        dstX = width - 1 - col;
+                        dstY = row;
+                        break;
+                    case (FLIP_VERTICAL | ROTATE_270):
+                        dstX = height - 1 - row;
+                        dstY = width - 1 - col;
                         break;
                     default:
                         dstX = col;

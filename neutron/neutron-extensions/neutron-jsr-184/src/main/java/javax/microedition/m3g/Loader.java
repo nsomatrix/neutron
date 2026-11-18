@@ -986,12 +986,14 @@ public class Loader {
 //#endif // RD_JAVA_OMJ
 
 	// Finalization method for Symbian
-	private void registeredFinalize() {
+	private synchronized void registeredFinalize() {
 		if (handle != 0) {
-			Platform.finalizeObject(handle, iInterface);
-			Interface.deregister(this, iInterface);
-			iInterface = null;
+			long h = handle;
+			Interface iface = iInterface;
 			handle = 0;
+			iInterface = null;
+			Platform.finalizeObject(h, iface);
+			Interface.deregister(h, iface);
 		}
 	}
 

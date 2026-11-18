@@ -266,6 +266,8 @@ public class Main extends JFrame {
 
 	private SwingStatusBar statusBar = new SwingStatusBar();
 
+	private SwingErrorMessageDialogPanel messageDialogPanel;
+
 	private JCheckBoxMenuItem menuShowMouseCoordinates;
 
 	private JCheckBoxMenuItem menuVirtualButtons;
@@ -1715,7 +1717,8 @@ public class Main extends JFrame {
 
 		getContentPane().add(statusBar, "South");
 
-		Message.addListener(new SwingErrorMessageDialogPanel(this));
+		messageDialogPanel = new SwingErrorMessageDialogPanel(this);
+		Message.addListener(messageDialogPanel);
 
 		DropTransferHandler dropHandler = new DropTransferHandler();
 		devicePanel.setTransferHandler(dropHandler);
@@ -1983,6 +1986,10 @@ public class Main extends JFrame {
 
 	@Override
 	public void dispose() {
+		if (messageDialogPanel != null) {
+			Message.removeListener(messageDialogPanel);
+			messageDialogPanel = null;
+		}
 		Config.removeConfigChangeListener(configChangeListener);
 		updateAwtEventListener(false);
 		if (menuTimer != null) {

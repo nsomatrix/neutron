@@ -43,10 +43,11 @@ import org.neutron.media.control.J2SEVolumeControl;
 
 class MidiAudioPlayer implements Player, MetaEventListener 
 {
-    private int state;
+    private int state = UNREALIZED;
     
 	private Sequence  sequence = null;             // The contents of a MIDI file
 	private Sequencer sequencer = null;            // We play MIDI Sequences with a Sequencer
+	private Synthesizer synth = null;              // Connected synthesizer
 	private Vector    vListeners = null;           // All PlayerListeners for this audio
 	private int       iLoopCount = 1;
 	private boolean   metaListenerAdded = false;
@@ -55,33 +56,34 @@ class MidiAudioPlayer implements Player, MetaEventListener
 	{
 		try {
     		// First, get a Sequencer to play sequences of MIDI events
-    		//That is, to send events to a Synthesizer at the right time.
     		sequencer = MidiSystem.getSequencer( ); // Used to play sequences
     		sequencer.open(); // Turn it on.
-    		//Get a Synthesizer for the Sequencer to send notes to
-    		Synthesizer synth = MidiSystem.getSynthesizer( );
+    		// Get a Synthesizer for the Sequencer to send notes to
+    		synth = MidiSystem.getSynthesizer( );
     		synth.open( ); // acquire whatever resources it needs
-    		//The Sequencer obtained above may be connected to a Synthesizer
-    		//by default, or it may not. Therefore, we explicitly connect it.
+    		// Connect sequencer to synthesizer
     		Transmitter transmitter = sequencer.getTransmitter( );
     		Receiver receiver = synth.getReceiver( );
     		transmitter.setReceiver(receiver);
-    		//Read the sequence from the file and tell the sequencer about it
+    		// Read the sequence from the file and tell the sequencer about it
     		sequence = MidiSystem.getSequence( stream );
     		sequencer.setSequence(sequence);
+    		volumeControl.setSynthesizer(synth);
+    		state = UNREALIZED;
+    		return true;
 	    } catch(UnsatisfiedLinkError e) { 
 	        e.printStackTrace(); 
+	        return false;
 	    } catch(IOException e) { 
 	        e.printStackTrace(); 
+	        return false;
 	    } catch(MidiUnavailableException e) {
 	        e.printStackTrace(); 
+	        return false;
 	    } catch( InvalidMidiDataException e ) { 
 	        e.printStackTrace(); 
+	        return false;
 	    }
-	    
-	    state = UNREALIZED;
-	    
-		return false;
 	}
 
 	protected void dispose() 
@@ -100,19 +102,37 @@ class MidiAudioPlayer implements Player, MetaEventListener
 		}
 	}
 
-	public void close() 
+	public synchronized void close() 
 	{
 		Manager.mediaDone( this );
+		state = CLOSED;
+		volumeControl.setSynthesizer(null);
 		if( sequencer != null ) {
 			if (metaListenerAdded) {
 				sequencer.removeMetaEventListener(this);
 				metaListenerAdded = false;
 			}
 			sequencer.close();
+			sequencer = null;
+		}
+		if (synth != null) {
+			synth.close();
+			synth = null;
 		}
 	}
 
-	public void deallocate() {
+	public synchronized void deallocate() {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state == STARTED) {
+			try {
+				stop();
+			} catch (MediaException ignored) {}
+		}
+		if (state == PREFETCHED) {
+			state = REALIZED;
+		}
 	}
 
 	public String getContentType() {
@@ -134,14 +154,25 @@ class MidiAudioPlayer implements Player, MetaEventListener
 		return state;
 	}
 
-	public void prefetch() throws MediaException {
-		// TODO Auto-generated method stub
-
+	public synchronized void prefetch() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state == UNREALIZED) {
+			realize();
+		}
+		if (state == REALIZED) {
+			state = PREFETCHED;
+		}
 	}
 
-	public void realize() throws MediaException {
-		// TODO Auto-generated method stub
-
+	public synchronized void realize() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state == UNREALIZED) {
+			state = REALIZED;
+		}
 	}
 
 	public synchronized void removePlayerListener(PlayerListener playerListener) 
@@ -167,7 +198,16 @@ class MidiAudioPlayer implements Player, MetaEventListener
 		return now;
 	}
 
-	public void start() throws MediaException {
+	public synchronized void start() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state == UNREALIZED) {
+			realize();
+		}
+		if (state == REALIZED) {
+			prefetch();
+		}
 		if (sequencer != null) {
 			if (!metaListenerAdded) {
 				sequencer.addMetaEventListener( this );
@@ -178,7 +218,10 @@ class MidiAudioPlayer implements Player, MetaEventListener
 		}
 	}
 
-	public void stop() throws MediaException {
+	public synchronized void stop() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
 		if( sequencer != null ) {
 			sequencer.stop();
 			state = PREFETCHED;

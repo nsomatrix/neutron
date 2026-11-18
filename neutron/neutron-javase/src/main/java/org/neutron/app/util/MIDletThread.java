@@ -184,11 +184,17 @@ public class MIDletThread extends Thread {
 						}
 					}
 					if (t.isAlive()) {
-						Logger.warn("MIDlet thread [" + t.getName() + "] did not terminate on interrupt. Stopping thread forcefully.");
+						Logger.warn("MIDlet thread [" + t.getName() + "] did not terminate on interrupt.");
+						t.interrupt();
 						try {
-							t.stop();
-						} catch (Throwable e) {
-							Logger.error("Failed to stop thread forcefully", e);
+							java.lang.reflect.Method stopMethod = Thread.class.getMethod("stop");
+							stopMethod.invoke(t);
+						} catch (java.lang.reflect.InvocationTargetException ite) {
+							if (!(ite.getCause() instanceof UnsupportedOperationException)) {
+								Logger.debug("Thread.stop failed: " + ite.getCause());
+							}
+						} catch (Throwable ignored) {
+							// Thread.stop() permanently removed or blocked in modern JVMs
 						}
 					}
 				}

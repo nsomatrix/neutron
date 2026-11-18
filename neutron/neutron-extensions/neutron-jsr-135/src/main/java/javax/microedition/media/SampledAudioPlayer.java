@@ -82,6 +82,9 @@ class SampledAudioPlayer implements Player, LineListener
 				clip = (Clip) AudioSystem.getLine( info2 );
 		    	clip.open( audioInputStream );
 	        }
+			if (clip != null) {
+				volumeControl.setAudioLine(clip);
+			}
 	    } 
 	    catch( UnsupportedAudioFileException e ){ e.printStackTrace(); return false; }
 	    catch( IOException e ){ e.printStackTrace(); return false; }
@@ -104,6 +107,7 @@ class SampledAudioPlayer implements Player, LineListener
 	{
 		Manager.mediaDone( this );
 		state = CLOSED;
+		volumeControl.setAudioLine(null);
 		if( clip != null )
 		{
 			if (lineListenerAdded) {

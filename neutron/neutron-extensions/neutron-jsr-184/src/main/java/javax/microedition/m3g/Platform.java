@@ -98,13 +98,18 @@ class Platform {
 
 	static final native void finalizeInterface(long handle);
 
-	static final void finalizeObject(long handle) {
+	static final synchronized void finalizeObject(long handle) {
+		if (handle == 0 || !libraryLoaded) return;
 		try {
 			_finalizeObject(handle);
 		} catch (Throwable ignored) {}
 	}
 
-	static final void finalizeObject(long handle, Interface aInterface) {
+	static final synchronized void finalizeObject(long handle, Interface aInterface) {
+		if (handle == 0 || !libraryLoaded) return;
+		if (aInterface != null && (!aInterface.isFullyInitialized() || aInterface.handle == 0)) {
+			return;
+		}
 		try {
 			_finalizeObject(handle);
 		} catch (Throwable ignored) {}

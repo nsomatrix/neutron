@@ -562,12 +562,16 @@ public class FileSystemFileConnection implements FileConnection {
          */
         this.opendOutputStream = (OutputStream) doPrivilegedIO(new PrivilegedExceptionAction() {
             public Object run() throws IOException {
-                RandomAccessFile raf = new RandomAccessFile(file, "rw");
+                final RandomAccessFile raf = new RandomAccessFile(file, "rw");
                 raf.seek(byteOffset);
                 return new FileOutputStream(raf.getFD()) {
                     public void close() throws IOException {
                         FileSystemFileConnection.this.opendOutputStream = null;
-                        super.close();
+                        try {
+                            super.close();
+                        } finally {
+                            raf.close();
+                        }
                     }
                 };
             }

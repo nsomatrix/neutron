@@ -43,11 +43,11 @@ import org.neutron.graphics3d.spi.DirectFrameSurface;
 
 public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics implements DirectFrameSurface {
 
-    private static final int COLOR_CACHE_SIZE = 4096;
+    private static final int COLOR_CACHE_SIZE = 1024;
     private static final int COLOR_CACHE_MASK = COLOR_CACHE_SIZE - 1;
-    private static final int[] colorCacheKeys = new int[COLOR_CACHE_SIZE];
-    private static final Color[] colorCacheValues = new Color[COLOR_CACHE_SIZE];
-    private static final boolean[] colorCachePresent = new boolean[COLOR_CACHE_SIZE];
+    private final int[] colorCacheKeys = new int[COLOR_CACHE_SIZE];
+    private final Color[] colorCacheValues = new Color[COLOR_CACHE_SIZE];
+    private final boolean[] colorCachePresent = new boolean[COLOR_CACHE_SIZE];
 
     private int lastColorRGB = -1;
     private Color lastColor = null;
@@ -439,7 +439,9 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics imple
             break;
         }
         case Sprite.TRANS_MIRROR_ROT270: {
+            t.translate(0, width);
             t.rotate(Math.PI * 3 / 2);
+            t.translate(width, 0);
             t.scale(-1, 1);
             break;
         }
@@ -590,6 +592,15 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics imple
     }
 
     private void blendPixel(int[] destData, int destOffset, int srcARGB) {
+        int srcA = srcARGB >>> 24;
+        if (srcA == 0) {
+            return;
+        }
+        if (srcA == 255) {
+            destData[destOffset] = srcARGB;
+            return;
+        }
+
         int destRGB = destData[destOffset];
         int destR = (destRGB >> 16) & 0xff;
         int destG = (destRGB >> 8) & 0xff;
@@ -597,12 +608,10 @@ public class J2SEDisplayGraphics extends javax.microedition.lcdui.Graphics imple
         int srcR = (srcARGB >> 16) & 0xff;
         int srcG = (srcARGB >> 8) & 0xff;
         int srcB = srcARGB & 0xff;
-        int srcA = srcARGB >>> 24;
 
-        int oneMinusSrcA = 0xff - srcA;
-        destR = ((srcR * srcA) >> 8) + ((destR * oneMinusSrcA) >> 8);
-        destG = ((srcG * srcA) >> 8) + ((destG * oneMinusSrcA) >> 8);
-        destB = ((srcB * srcA) >> 8) + ((destB * oneMinusSrcA) >> 8);
+        destR += (((srcR - destR) * srcA + 128) >> 8);
+        destG += (((srcG - destG) * srcA + 128) >> 8);
+        destB += (((srcB - destB) * srcA + 128) >> 8);
         
         destData[destOffset] = 0xff000000 | (destR << 16) | (destG << 8) | destB;
     }

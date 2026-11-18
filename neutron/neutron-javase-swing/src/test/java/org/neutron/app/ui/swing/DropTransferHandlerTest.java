@@ -22,7 +22,13 @@ public class DropTransferHandlerTest {
 
     @Before
     public void setUp() {
+        org.neutron.app.ui.Message.clearListeners();
         handler = new DropTransferHandler();
+    }
+
+    @org.junit.After
+    public void tearDown() {
+        org.neutron.app.ui.Message.clearListeners();
     }
 
     @Test

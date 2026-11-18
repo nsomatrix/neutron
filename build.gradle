@@ -17,6 +17,10 @@ subprojects {
             onlyIf { !gradle.taskGraph.hasTask(":run") }
         }
     }
+
+    tasks.withType(Test) {
+        systemProperty 'neutron.test.mode', 'true'
+    }
 }
 
 task run {
