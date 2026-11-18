@@ -68,7 +68,7 @@ public class SwingLoadingUI {
     private static volatile String gameVendor = "Java™ Application";
     private static volatile String gameVersion = "";
     private static volatile String gameProfile = "MIDP-2.0";
-    private static volatile String gamePlaytimeStr = "00hh 00mm 00ss";
+    private static volatile String gamePlaytimeStr = "Never";
     private static volatile Image gameIcon = null;
 
     /**

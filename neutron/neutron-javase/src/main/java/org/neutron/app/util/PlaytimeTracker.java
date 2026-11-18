@@ -162,12 +162,12 @@ public class PlaytimeTracker {
     }
 
     /**
-     * Format seconds into ss mm hh dd mm yy breakdown.
-     * E.g. "00hh 00mm 00ss", "01hh 25mm 40ss", or "01yy 02mm 05dd 04hh 20mm 15ss".
+     * Format seconds into industry standard clean unit shorthand (Steam & RetroArch style).
+     * E.g. "Never", "45s", "12m 30s", "1h 45m 20s", "2d 5h 30m", or "1y 45d 12h".
      */
     public static String formatPlaytime(long totalSeconds) {
         if (totalSeconds <= 0) {
-            return "00hh 00mm 00ss";
+            return "Never";
         }
         long sec = totalSeconds % 60;
         long totalMin = totalSeconds / 60;
@@ -175,22 +175,27 @@ public class PlaytimeTracker {
         long totalHours = totalMin / 60;
         long hr = totalHours % 24;
         long totalDays = totalHours / 24;
-        long day = totalDays % 30;
-        long totalMonths = totalDays / 30;
-        long mo = totalMonths % 12;
-        long yr = totalMonths / 12;
+        long day = totalDays % 365;
+        long yr = totalDays / 365;
 
         StringBuilder sb = new StringBuilder();
         if (yr > 0) {
-            sb.append(String.format("%02dyy ", yr));
+            sb.append(yr).append("y ");
         }
-        if (mo > 0 || yr > 0) {
-            sb.append(String.format("%02dmm ", mo));
+        if (day > 0) {
+            sb.append(day).append("d ");
         }
-        if (day > 0 || mo > 0 || yr > 0) {
-            sb.append(String.format("%02ddd ", day));
+        if (hr > 0) {
+            sb.append(hr).append("h ");
         }
-        sb.append(String.format("%02dhh %02dmm %02dss", hr, min, sec));
+        if (min > 0 || (hr > 0 && sec > 0 && yr == 0 && day == 0)) {
+            sb.append(min).append("m ");
+        }
+        if (yr == 0 && day == 0) {
+            if (sec > 0 || sb.length() == 0) {
+                sb.append(sec).append("s");
+            }
+        }
         return sb.toString().trim();
     }
 }

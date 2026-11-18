@@ -7,29 +7,30 @@ public class PlaytimeTrackerTest {
 
     @Test
     public void testFormatPlaytimeZero() {
-        assertEquals("00hh 00mm 00ss", PlaytimeTracker.formatPlaytime(0));
-        assertEquals("00hh 00mm 00ss", PlaytimeTracker.formatPlaytime(-10));
+        assertEquals("Never", PlaytimeTracker.formatPlaytime(0));
+        assertEquals("Never", PlaytimeTracker.formatPlaytime(-10));
     }
 
     @Test
     public void testFormatPlaytimeSecondsAndMinutes() {
-        assertEquals("00hh 00mm 45ss", PlaytimeTracker.formatPlaytime(45));
-        assertEquals("00hh 02mm 05ss", PlaytimeTracker.formatPlaytime(125));
+        assertEquals("45s", PlaytimeTracker.formatPlaytime(45));
+        assertEquals("2m 5s", PlaytimeTracker.formatPlaytime(125));
     }
 
     @Test
     public void testFormatPlaytimeHours() {
-        assertEquals("01hh 02mm 05ss", PlaytimeTracker.formatPlaytime(3725));
-        assertEquals("23hh 59mm 59ss", PlaytimeTracker.formatPlaytime(86399));
+        assertEquals("1h", PlaytimeTracker.formatPlaytime(3600));
+        assertEquals("1h 2m 5s", PlaytimeTracker.formatPlaytime(3725));
+        assertEquals("23h 59m 59s", PlaytimeTracker.formatPlaytime(86399));
     }
 
     @Test
     public void testFormatPlaytimeDays() {
         // 1 day + 1 hour + 2 min + 5 sec = 86400 + 3600 + 120 + 5 = 90125
-        assertEquals("01dd 01hh 02mm 05ss", PlaytimeTracker.formatPlaytime(90125));
+        assertEquals("1d 1h 2m", PlaytimeTracker.formatPlaytime(90125));
         // 5 days + 12 hours + 30 min + 15 sec
         long seconds = 5 * 86400 + 12 * 3600 + 30 * 60 + 15;
-        assertEquals("05dd 12hh 30mm 15ss", PlaytimeTracker.formatPlaytime(seconds));
+        assertEquals("5d 12h 30m", PlaytimeTracker.formatPlaytime(seconds));
     }
 
     @Test
