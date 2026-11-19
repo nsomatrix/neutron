@@ -24,12 +24,18 @@ public class GLM3GBackendTest {
 
     @Test
     public void testSPIRegistration() {
-        Graphics3DConfig.setBackendType(RenderBackendType.OPENGL);
-        OpenGLRenderBackend.registerIfAvailable();
+        System.setProperty("neutron.3d.experimental_gl_m3g", "true");
+        try {
+            Graphics3DConfig.setBackendType(RenderBackendType.OPENGL);
+            OpenGLRenderBackend.registerIfAvailable();
 
-        if (GLM3GBackend.getInstance().isAvailable()) {
-            M3GBackend active = Graphics3DProvider.getActiveM3GBackend();
-            Assert.assertNotNull("Active M3G backend must be registered when OpenGL is available", active);
+            if (GLM3GBackend.getInstance().isAvailable()) {
+                M3GBackend active = Graphics3DProvider.getActiveM3GBackend();
+                Assert.assertNotNull("Active M3G backend must be registered when OpenGL is available", active);
+            }
+        } finally {
+            System.clearProperty("neutron.3d.experimental_gl_m3g");
+            Graphics3DProvider.registerM3GBackend(null);
         }
     }
 

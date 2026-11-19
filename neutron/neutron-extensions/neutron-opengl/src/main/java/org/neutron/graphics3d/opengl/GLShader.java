@@ -24,6 +24,9 @@ public class GLShader {
         if (GL20.glGetProgrami(programId, GL20.GL_LINK_STATUS) == GL20.GL_FALSE) {
             String log = GL20.glGetProgramInfoLog(programId);
             Logger.error("Failed to link GLSL program (" + vertexResource + "): " + log);
+            GL20.glDeleteShader(vShader);
+            GL20.glDeleteShader(fShader);
+            throw new RuntimeException("Failed to link GLSL program (" + vertexResource + "): " + log);
         }
 
         GL20.glDeleteShader(vShader);
@@ -57,6 +60,8 @@ public class GLShader {
         if (GL20.glGetShaderi(shader, GL20.GL_COMPILE_STATUS) == GL20.GL_FALSE) {
             String log = GL20.glGetShaderInfoLog(shader);
             Logger.error("GLSL compile error: " + log);
+            GL20.glDeleteShader(shader);
+            throw new RuntimeException("GLSL compile error: " + log);
         }
         return shader;
     }

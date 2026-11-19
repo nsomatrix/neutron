@@ -154,8 +154,6 @@ public class Texture {
 		
 		widthBit = countBits(width);
 		heightBit = countBits(height);
-		//Only 64x64 sphere textures are supported in MascotCapsule v3
-		if (!isForModel) widthBit = heightBit = 6;
 		
 		//Padding for NPOT textures
 		paddedWidth = (1 << widthBit);
@@ -165,9 +163,7 @@ public class Texture {
 			byte[] paddedBitmap = new byte[paddedWidth * paddedHeight];
 			
 			for (int y = 0; y < height; y++) {
-				for (int x = 0; x < width; x++) {
-					paddedBitmap[y * paddedWidth + x] = bitmapData[y * width + x];
-				}
+				System.arraycopy(bitmapData, y * width, paddedBitmap, y * paddedWidth, width);
 			}
 			
 			bitmapData = paddedBitmap;
@@ -198,11 +194,11 @@ public class Texture {
 	}
 	
 	private final int countBits(int x) {
-		for (int i = 0; i < 32; i++) {
-			if(1 << i >= x) return i;
+		if (x <= 1) return 0;
+		for (int i = 0; i < 31; i++) {
+			if ((1 << i) >= x) return i;
 		}
-		
-		return 0;
+		return 30;
 	}
 
 	final void generateShadedPalette() {

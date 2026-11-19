@@ -7,15 +7,19 @@ Automates headless execution of J2ME midlets and benchmarks to verify engine sta
 import os
 import sys
 import time
+import re
 import subprocess
 from pathlib import Path
 
 DEFAULT_TIMEOUT = 5  # seconds per midlet
 
 def run_headless_midlet(jar_path, neutron_jar, duration=DEFAULT_TIMEOUT):
+    stem = Path(jar_path).stem
+    dump_path = f"/tmp/{stem}.png"
     cmd = [
         "java",
         "-Djava.awt.headless=true",
+        f"-Dneutron.headless.dump_frame={dump_path}",
         "-jar",
         neutron_jar,
         "--headless",
@@ -35,7 +39,7 @@ def run_headless_midlet(jar_path, neutron_jar, duration=DEFAULT_TIMEOUT):
         try:
             stdout, stderr = proc.communicate(timeout=duration)
         except subprocess.TimeoutExpired:
-            # Reaching timeout without crashing is a SUCCESS for interactive midlets!
+            # Reaching timeout without crashing is an interactive loop
             proc.terminate()
             try:
                 stdout, stderr = proc.communicate(timeout=1.0)
@@ -66,6 +70,26 @@ def run_headless_midlet(jar_path, neutron_jar, duration=DEFAULT_TIMEOUT):
                     "log": combined
                 }
             
+            summary_match = re.search(r"Headless summary: total frames=(\d+), non-zero frames=(\d+)", combined)
+            if summary_match:
+                total_frames = int(summary_match.group(1))
+                non_zero_frames = int(summary_match.group(2))
+                if total_frames > 0 and non_zero_frames == 0:
+                    return {
+                        "jar": Path(jar_path).name,
+                        "status": "FAIL",
+                        "reason": f"Blank screen: {total_frames} frames but 0 non-zero frames",
+                        "elapsed": f"{elapsed:.1f}s",
+                        "log": combined
+                    }
+                return {
+                    "jar": Path(jar_path).name,
+                    "status": "PASS",
+                    "reason": f"Ran stably ({non_zero_frames}/{total_frames} non-zero frames)",
+                    "elapsed": f"{elapsed:.1f}s",
+                    "log": combined
+                }
+
             return {
                 "jar": Path(jar_path).name,
                 "status": "PASS",
@@ -84,6 +108,19 @@ def run_headless_midlet(jar_path, neutron_jar, duration=DEFAULT_TIMEOUT):
                 "elapsed": f"{elapsed:.1f}s",
                 "log": combined
             }
+
+        summary_match = re.search(r"Headless summary: total frames=(\d+), non-zero frames=(\d+)", combined)
+        if summary_match:
+            total_frames = int(summary_match.group(1))
+            non_zero_frames = int(summary_match.group(2))
+            return {
+                "jar": Path(jar_path).name,
+                "status": "PASS",
+                "reason": f"Completed cleanly ({non_zero_frames}/{total_frames} non-zero frames)",
+                "elapsed": f"{elapsed:.1f}s",
+                "log": combined
+            }
+
         return {
             "jar": Path(jar_path).name,
             "status": "PASS",

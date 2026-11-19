@@ -89,16 +89,20 @@ public class OpenGLRenderBackend {
 
     public static void registerIfAvailable() {
         if (Graphics3DConfig.getBackendType() == RenderBackendType.OPENGL && GLContextManager.isAvailable()) {
-            org.neutron.graphics3d.opengl.micro3d.GLMicro3DBackend micro3D = org.neutron.graphics3d.opengl.micro3d.GLMicro3DBackend.getInstance();
-            if (micro3D.init()) {
-                Graphics3DProvider.registerMicro3DBackend(micro3D);
-                Logger.info("OpenGL Micro3D Hardware Backend registered as active provider.");
+            if (Boolean.getBoolean("neutron.3d.experimental_gl_micro3d")) {
+                org.neutron.graphics3d.opengl.micro3d.GLMicro3DBackend micro3D = org.neutron.graphics3d.opengl.micro3d.GLMicro3DBackend.getInstance();
+                if (micro3D.init()) {
+                    Graphics3DProvider.registerMicro3DBackend(micro3D);
+                    Logger.info("OpenGL Micro3D Hardware Backend registered as active provider.");
+                }
             }
 
-            org.neutron.graphics3d.opengl.m3g.GLM3GBackend m3g = org.neutron.graphics3d.opengl.m3g.GLM3GBackend.getInstance();
-            if (m3g.init()) {
-                Graphics3DProvider.registerM3GBackend(m3g);
-                Logger.info("OpenGL M3G Hardware Backend registered as active provider.");
+            if (Boolean.getBoolean("neutron.3d.experimental_gl_m3g")) {
+                org.neutron.graphics3d.opengl.m3g.GLM3GBackend m3g = org.neutron.graphics3d.opengl.m3g.GLM3GBackend.getInstance();
+                if (m3g.init()) {
+                    Graphics3DProvider.registerM3GBackend(m3g);
+                    Logger.info("OpenGL M3G Hardware Backend registered as active provider.");
+                }
             }
         }
     }

@@ -151,4 +151,58 @@ public class Micro3DTest {
 		// Reset provider
 		org.neutron.graphics3d.Graphics3DProvider.registerMicro3DBackend(null);
 	}
+
+	@Test
+	public void testGalaxyOnFireAssetsLoadAndRender() throws Exception {
+		java.io.File mbacFile = new java.io.File("/tmp/test_alien.mbac");
+		java.io.File bmpFile = new java.io.File("/tmp/test_ships.bmp");
+		if (!mbacFile.exists() || !bmpFile.exists()) return;
+
+		byte[] mbacData = java.nio.file.Files.readAllBytes(mbacFile.toPath());
+		byte[] bmpData = java.nio.file.Files.readAllBytes(bmpFile.toPath());
+
+		Figure figure = new Figure(mbacData);
+		Texture texture = new Texture(bmpData, true);
+		figure.setTexture(texture);
+
+		Assert.assertTrue("Figure must have vertices", figure.getNumVertices() > 0);
+		Assert.assertTrue("Figure must have polyT3 or polyT4", figure.getNumPolyT3() > 0 || figure.getNumPolyT4() > 0);
+
+		FigureLayout layout = new FigureLayout();
+		layout.setScale(512, 512);
+		layout.setCenter(120, 160);
+
+		Effect3D effect = new Effect3D();
+		Light light = new Light(new Vector3D(0, 4096, 0), 1024, 2048);
+		effect.setLight(light);
+
+		final int[] drawnPixels = new int[240 * 320];
+		final boolean[] drawCalled = new boolean[1];
+
+		Graphics g = new Graphics() {
+			public int getClipX() { return 0; }
+			public int getClipY() { return 0; }
+			public int getClipWidth() { return 240; }
+			public int getClipHeight() { return 320; }
+			public void drawRGB(int[] rgbData, int offset, int scanlength, int x, int y, int width, int height, boolean processAlpha) {
+				drawCalled[0] = true;
+				System.arraycopy(rgbData, offset, drawnPixels, 0, Math.min(rgbData.length, drawnPixels.length));
+			}
+		};
+
+		// 1. Test Software backend
+		org.neutron.graphics3d.Graphics3DConfig.setBackendType(org.neutron.graphics3d.RenderBackendType.SOFTWARE);
+		Graphics3D g3d = new Graphics3D();
+		g3d.bind(g);
+		g3d.renderFigure(figure, 0, 0, layout, effect);
+		g3d.flush();
+		g3d.release(g);
+
+		Assert.assertTrue("drawRGB should have been called in software mode", drawCalled[0]);
+		int nonZeroCount = 0;
+		for (int p : drawnPixels) {
+			if (p != 0) nonZeroCount++;
+		}
+		Assert.assertTrue("Software rasterizer must render pixels", nonZeroCount > 0);
+	}
 }

@@ -50,8 +50,8 @@ public class MascotME {
 	
 	// Performance hack, high performance impact.
 	// Disables support of 2D graphics inbetween 3D geometry.
-	// Framebuffer will be drawn on screen only when Graphics3D is released (by API design 3D graphics should be drawn on each flush).
-	static boolean no2DInbetween = true;
+	// Framebuffer will be drawn on screen on each flush, adhering strictly to the MascotCapsule v3 spec.
+	static boolean no2DInbetween = false;
 	// Performance hack, low performance impact.
 	// Overwrites existing 2D screen content by disabling alpha blending when framebuffer is drawn on the screen for the first time.
 	static boolean overwrite2D = false;

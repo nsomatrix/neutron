@@ -37,9 +37,51 @@ import org.neutron.device.j2se.J2SEGraphicsSurface;
 
 public class NoUiDisplayComponent implements DisplayComponent {
 
+	private static volatile int totalFrames = 0;
+	private static volatile int nonZeroFrames = 0;
+	private static volatile int nonZeroPixelsLastFrame = 0;
+	private static boolean shutdownHookRegistered = false;
+
 	private J2SEGraphicsSurface graphicsSurface;
 
 	private DisplayRepaintListener displayRepaintListener;
+
+	public NoUiDisplayComponent() {
+		synchronized (NoUiDisplayComponent.class) {
+			if (!shutdownHookRegistered) {
+				shutdownHookRegistered = true;
+				Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+					@Override
+					public void run() {
+						org.neutron.log.Logger.info("Headless summary: total frames=" + totalFrames + 
+								", non-zero frames=" + nonZeroFrames + 
+								", last non-zero pixels=" + nonZeroPixelsLastFrame);
+						String dumpPath = System.getProperty("neutron.headless.dump_frame");
+						if (dumpPath != null && graphicsSurface != null && graphicsSurface.getImage() != null) {
+							try {
+								javax.imageio.ImageIO.write(graphicsSurface.getImage(), "PNG", new java.io.File(dumpPath));
+								org.neutron.log.Logger.info("Headless dumped final frame to: " + dumpPath);
+							} catch (Exception e) {
+								org.neutron.log.Logger.error("Failed to dump headless frame to " + dumpPath, e);
+							}
+						}
+					}
+				}, "Headless-Summary-Hook"));
+			}
+		}
+	}
+
+	public static int getTotalFrames() {
+		return totalFrames;
+	}
+
+	public static int getNonZeroFrames() {
+		return nonZeroFrames;
+	}
+
+	public static int getNonZeroPixelsLastFrame() {
+		return nonZeroPixelsLastFrame;
+	}
 	
 	public void addDisplayRepaintListener(DisplayRepaintListener l) {
 		displayRepaintListener = l;
@@ -100,6 +142,23 @@ public class NoUiDisplayComponent implements DisplayComponent {
 
 	public void fireDisplayRepaint(J2SEGraphicsSurface graphicsSurface)
 	{
+		totalFrames++;
+		if (graphicsSurface != null) {
+			int[] pixels = graphicsSurface.getImageData();
+			if (pixels != null) {
+				int nonZero = 0;
+				for (int i = 0; i < pixels.length; i++) {
+					if ((pixels[i] & 0x00FFFFFF) != 0) {
+						nonZero++;
+					}
+				}
+				nonZeroPixelsLastFrame = nonZero;
+				if (nonZero > 0) {
+					nonZeroFrames++;
+				}
+			}
+		}
+
 		if (displayRepaintListener != null) {
 			displayRepaintListener.repaintInvoked(graphicsSurface);
 		}

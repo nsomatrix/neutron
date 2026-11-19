@@ -24,12 +24,18 @@ public class GLMicro3DBackendTest {
 
     @Test
     public void testSPIRegistration() {
-        Graphics3DConfig.setBackendType(RenderBackendType.OPENGL);
-        OpenGLRenderBackend.registerIfAvailable();
+        System.setProperty("neutron.3d.experimental_gl_micro3d", "true");
+        try {
+            Graphics3DConfig.setBackendType(RenderBackendType.OPENGL);
+            OpenGLRenderBackend.registerIfAvailable();
 
-        if (GLMicro3DBackend.getInstance().isAvailable()) {
-            Micro3DBackend active = Graphics3DProvider.getActiveMicro3DBackend();
-            Assert.assertNotNull("Active Micro3D backend must be registered when OpenGL is available", active);
+            if (GLMicro3DBackend.getInstance().isAvailable()) {
+                Micro3DBackend active = Graphics3DProvider.getActiveMicro3DBackend();
+                Assert.assertNotNull("Active Micro3D backend must be registered when OpenGL is available", active);
+            }
+        } finally {
+            System.clearProperty("neutron.3d.experimental_gl_micro3d");
+            Graphics3DProvider.registerMicro3DBackend(null);
         }
     }
 
