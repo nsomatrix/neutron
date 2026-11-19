@@ -1,0 +1,24 @@
+{
+  "id": "nokia-3310",
+  "name": "Nokia 3310 / 3410",
+  "vendor": "Nokia",
+  "platform": "Series 30",
+  "screen": {
+    "width": 96,
+    "height": 65,
+    "color_depth_bits": 1,
+    "is_color": false
+  },
+  "keypad": "Numeric 12-key + Softkeys",
+  "cldc_version": "1.0",
+  "midp_version": "1.0",
+  "heap_kb": 180,
+  "supported_apis": [
+    "MIDP-1.0",
+    "CLDC-1.0"
+  ],
+  "softkey_codes": {
+    "soft1": -6,
+    "soft2": -7
+  }
+}

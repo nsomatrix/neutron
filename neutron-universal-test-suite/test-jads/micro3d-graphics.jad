@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: micro3d-graphics.jar
+MIDlet-Jar-Size: 9797
+MIDlet-Name: micro3d-graphics
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: micro3d-graphics,,org.neutron.tests.micro3d.Micro3dGraphicsMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

@@ -1,0 +1,102 @@
+[
+  {
+    "id": "CORPUS-01",
+    "title": "Avatar LAPRO",
+    "vendor": "TeaMobi / Gameloft",
+    "source": "tmp/Avatar_LAPRO.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.0",
+    "target_screen": "240x320",
+    "category": "MMORPG / 2.5D Isometric",
+    "permissions": [
+      "socket",
+      "http",
+      "sms"
+    ],
+    "expected_behavior": "Boots cleanly, loads resources, displays animated login/splash screen, accepts numeric/softkey input without throwing uncaught exceptions"
+  },
+  {
+    "id": "CORPUS-02",
+    "title": "Bounce Tales",
+    "vendor": "Nokia Corporation / Rovio",
+    "source": "/home/manish/Downloads/Bounce-Tales_J2ME_EN_v204.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "240x320",
+    "category": "2D Physics Platformer",
+    "permissions": [],
+    "expected_behavior": "Boots cleanly, executes physics simulation loop, renders 2D tiled background, responds to arrow/numpad controls"
+  },
+  {
+    "id": "CORPUS-03",
+    "title": "Galaxy on Fire 3D",
+    "vendor": "Fishlabs Entertainment",
+    "source": "/home/manish/Downloads/galaxy_on_fire_3d_240x320-40670.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "240x320",
+    "category": "Space Combat 3D (JSR-184 M3G / Abyss Engine)",
+    "permissions": [],
+    "expected_behavior": "Parses M3G binary chunk streams, initializes 3D scene graph, renders 3D starfield and ship models at >=30 FPS"
+  },
+  {
+    "id": "CORPUS-04",
+    "title": "Need for Speed Carbon",
+    "vendor": "EA Mobile / Ideaworks3D",
+    "source": "/home/manish/Downloads/NEEDFORSPEEDCARBON_E72.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "320x240 (Landscape E72)",
+    "category": "3D Racing Simulator",
+    "permissions": [],
+    "expected_behavior": "Adapts to 320x240 landscape orientation, renders 3D car models and city tracks, executes polyphonic engine sounds"
+  },
+  {
+    "id": "CORPUS-05",
+    "title": "Rollercoaster Rush 3D",
+    "vendor": "Digital Chocolate",
+    "source": "/home/manish/Downloads/rollrush_en_fr_it_de_es_pt_nokian8.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "240x320",
+    "category": "3D Arcade Action",
+    "permissions": [],
+    "expected_behavior": "Renders 3D coaster tracks, calculates perspective camera movement, maintains consistent frame timing"
+  },
+  {
+    "id": "CORPUS-06",
+    "title": "Juiced 2 Hot Import Nights",
+    "vendor": "Juice Games / THQ Wireless",
+    "source": "/home/manish/Downloads/juiced_2_hot_import_143742.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "240x320",
+    "category": "3D Racing & Drift",
+    "permissions": [],
+    "expected_behavior": "Initializes 3D figure models, loads vehicle textures, executes drift physics"
+  },
+  {
+    "id": "CORPUS-07",
+    "title": "Outland 3D",
+    "vendor": "Realore Studios",
+    "source": "/home/manish/Downloads/outland3d_qbw6u2v9.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "240x320",
+    "category": "3D Space Action",
+    "permissions": [],
+    "expected_behavior": "Renders immediate and retained mode M3G models, executes particle explosions and HUD overlays"
+  },
+  {
+    "id": "CORPUS-08",
+    "title": "Counter Terrorist",
+    "vendor": "Inlogic Software",
+    "source": "/home/manish/Downloads/contrterro_Ab4yGCVS.jar",
+    "profile": "MIDP-2.0",
+    "config": "CLDC-1.1",
+    "target_screen": "240x320",
+    "category": "2D Tactical Shooter",
+    "permissions": [],
+    "expected_behavior": "Renders multi-layer 2D tilemaps, animates character sprites, handles rapid directional input"
+  }
+]

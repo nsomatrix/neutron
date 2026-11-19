@@ -1,0 +1,38 @@
+{
+  "endurance_framework": "Neutron Soak and Degradation Testing",
+  "version": "1.5.0",
+  "supported_profiles": [
+    {
+      "name": "Smoke Soak",
+      "duration_seconds": 5,
+      "description": "Rapid sanity soak to confirm rendering and audio threads run without immediate crash."
+    },
+    {
+      "name": "Standard Soak",
+      "duration_seconds": 300,
+      "description": "5-minute continuous test measuring FPS stability and memory leak accumulation."
+    },
+    {
+      "name": "Extended Soak",
+      "duration_seconds": 1800,
+      "description": "30-minute endurance session exercising audio looping, RMS cycles, and 2D/3D scenes."
+    },
+    {
+      "name": "Full Endurance Soak",
+      "duration_seconds": 3600,
+      "description": "1-hour deep endurance test tracking thread leaks, memory growth, and GC pause times."
+    },
+    {
+      "name": "Overnight Soak",
+      "duration_seconds": 21600,
+      "description": "6-hour continuous stress run for final release validation."
+    }
+  ],
+  "failure_detection_thresholds": {
+    "max_fps_drop_percent": 30.0,
+    "max_heap_growth_mb_per_hour": 15.0,
+    "max_unhandled_exceptions": 0,
+    "hang_watchdog_timeout_seconds": 30
+  }
+}
+

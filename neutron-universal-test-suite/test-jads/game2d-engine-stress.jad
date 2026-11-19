@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: game2d-engine-stress.jar
+MIDlet-Jar-Size: 11339
+MIDlet-Name: game2d-engine-stress
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: game2d-engine-stress,,org.neutron.tests.game2d.Game2dEngineStressMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

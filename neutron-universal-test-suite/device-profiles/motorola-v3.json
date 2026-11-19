@@ -1,0 +1,26 @@
+{
+  "id": "motorola-v3",
+  "name": "Motorola RAZR V3",
+  "vendor": "Motorola",
+  "platform": "Synergy OS",
+  "screen": {
+    "width": 176,
+    "height": 220,
+    "color_depth_bits": 18,
+    "is_color": true
+  },
+  "keypad": "Flat Metal D-Pad + 2 Softkeys",
+  "cldc_version": "1.0",
+  "midp_version": "2.0",
+  "heap_kb": 2048,
+  "supported_apis": [
+    "MIDP-2.0",
+    "CLDC-1.0",
+    "Moto-FunLight",
+    "MMAPI"
+  ],
+  "softkey_codes": {
+    "soft1": -21,
+    "soft2": -22
+  }
+}

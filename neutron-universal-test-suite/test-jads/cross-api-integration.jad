@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: cross-api-integration.jar
+MIDlet-Jar-Size: 10693
+MIDlet-Name: cross-api-integration
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: cross-api-integration,,org.neutron.tests.integration.CrossApiIntegrationMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

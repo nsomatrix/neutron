@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: cldc-runtime-conformance.jar
+MIDlet-Jar-Size: 18704
+MIDlet-Name: cldc-runtime-conformance
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: cldc-runtime-conformance,,org.neutron.tests.cldc.CldcRuntimeConformanceMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

@@ -1,0 +1,17 @@
+suite_id,jar,status,passed_tests,failed_tests,total_tests,elapsed_seconds,total_frames,nonzero_frames
+cldc-runtime-conformance,cldc-runtime-conformance.jar,PASSED,9,0,9,8.08,5,5
+cross-api-integration,cross-api-integration.jar,PASSED,4,0,4,8.06,26,26
+endurance-soak,endurance-soak.jar,PASSED,0,0,0,8.07,308,308
+game2d-engine-stress,game2d-engine-stress.jar,PASSED,5,0,5,8.08,13,13
+gcf-networking,gcf-networking.jar,PASSED,3,0,3,8.05,9,9
+lcdui-graphics-canvas,lcdui-graphics-canvas.jar,PASSED,6,0,6,8.06,14,14
+lcdui-ui-components,lcdui-ui-components.jar,PASSED,6,0,6,8.09,7,7
+m3g-3d-graphics,m3g-3d-graphics.jar,PASSED,6,0,6,8.07,12,12
+micro3d-graphics,micro3d-graphics.jar,PASSED,5,0,5,8.09,11,11
+midp-standard-apis,midp-standard-apis.jar,PASSED,5,0,5,8.06,11,11
+mmapi-audio-media,mmapi-audio-media.jar,PASSED,5,0,5,8.06,9,9
+oem-extensions,oem-extensions.jar,PASSED,5,0,5,8.09,9,9
+optional-jsrs,optional-jsrs.jar,PASSED,4,0,4,8.07,3,3
+performance-benchmark,performance-benchmark.jar,PASSED,0,0,0,8.12,8,8
+rms-storage-stress,rms-storage-stress.jar,PASSED,3,0,3,8.07,3,3
+security-sandbox,security-sandbox.jar,PASSED,3,0,3,8.17,7,7
