@@ -205,4 +205,103 @@ public class ManagerCreatePlayerTest {
         player.close();
         assertEquals(Player.CLOSED, player.getState());
     }
+
+    @Test
+    public void testSampledAudioPlayerLifecycleAndStateTransitions() throws Exception {
+        SampledAudioPlayer player = new SampledAudioPlayer();
+        assertEquals(Player.UNREALIZED, player.getState());
+
+        player.realize();
+        assertEquals(Player.REALIZED, player.getState());
+
+        player.prefetch();
+        assertEquals(Player.PREFETCHED, player.getState());
+
+        player.deallocate();
+        assertEquals(Player.REALIZED, player.getState());
+
+        player.prefetch();
+        assertEquals(Player.PREFETCHED, player.getState());
+
+        long setTime = player.setMediaTime(50000L);
+        assertEquals(50000L, setTime);
+
+        player.close();
+        assertEquals(Player.CLOSED, player.getState());
+
+        try {
+            player.start();
+            fail("start() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.stop();
+            fail("stop() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.prefetch();
+            fail("prefetch() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.realize();
+            fail("realize() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.deallocate();
+            fail("deallocate() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.setLoopCount(2);
+            fail("setLoopCount() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.setMediaTime(1000L);
+            fail("setMediaTime() on closed SampledAudioPlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+    }
+
+    @Test
+    public void testPCTonePlayerLifecycleAndClosedState() throws Exception {
+        Player player = Manager.createPlayer(Manager.TONE_DEVICE_LOCATOR);
+        assertTrue(player instanceof org.neutron.media.audio.PCTonePlayer);
+
+        player.realize();
+        assertEquals(Player.REALIZED, player.getState());
+
+        player.prefetch();
+        assertEquals(Player.PREFETCHED, player.getState());
+
+        player.close();
+        assertEquals(Player.CLOSED, player.getState());
+
+        try {
+            player.start();
+            fail("start() on closed PCTonePlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.stop();
+            fail("stop() on closed PCTonePlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.prefetch();
+            fail("prefetch() on closed PCTonePlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.realize();
+            fail("realize() on closed PCTonePlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+
+        try {
+            player.deallocate();
+            fail("deallocate() on closed PCTonePlayer must throw IllegalStateException");
+        } catch (IllegalStateException expected) {}
+    }
 }

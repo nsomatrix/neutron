@@ -103,7 +103,7 @@ class SampledAudioPlayer implements Player, LineListener
 		}
 	}
 
-	public void close() 
+	public synchronized void close() 
 	{
 		Manager.mediaDone( this );
 		state = CLOSED;
@@ -114,23 +114,44 @@ class SampledAudioPlayer implements Player, LineListener
 				clip.removeLineListener(this);
 				lineListenerAdded = false;
 			}
-			clip.flush();
-	    	clip.close();
+			try {
+				if (clip.isRunning()) {
+					clip.stop();
+				}
+				clip.flush();
+				clip.close();
+			} catch (Throwable ignore) {}
+			clip = null;
 		}
 		
 		try 
 	    {
-			if( decodedStream != null )
+			if( decodedStream != null ) {
 				decodedStream.close();
-			if( audioInputStream != null )
+				decodedStream = null;
+			}
+			if( audioInputStream != null ) {
 				audioInputStream.close();
+				audioInputStream = null;
+			}
 	    } 
 	    catch( IOException e ) { e.printStackTrace(); }
 	}
 
-	public void deallocate() {
+	public synchronized void deallocate() {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state == STARTED) {
+			try {
+				stop();
+			} catch (MediaException ignored) {}
+		}
 		if( clip != null )
 			clip.flush();
+		if (state == PREFETCHED) {
+			state = REALIZED;
+		}
 	}
 
 	public String getContentType() {
@@ -150,17 +171,26 @@ class SampledAudioPlayer implements Player, LineListener
 		return 0;
 	}
 
-	public int getState() {
+	public synchronized int getState() {
 		return state;
 	}
 
-	public void prefetch() throws MediaException {
+	public synchronized void prefetch() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state < REALIZED) {
+			realize();
+		}
 		if (state < PREFETCHED) {
 			state = PREFETCHED;
 		}
 	}
 
-	public void realize() throws MediaException {
+	public synchronized void realize() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
 		if (state < REALIZED) {
 			state = REALIZED;
 		}
@@ -173,7 +203,10 @@ class SampledAudioPlayer implements Player, LineListener
 		vListeners.remove( playerListener );
 	}
 
-	public void setLoopCount(int count) {
+	public synchronized void setLoopCount(int count) {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
 		if (count == 0 || count < -1) {
 			throw new IllegalArgumentException("Invalid loop count: " + count);
 		}
@@ -181,13 +214,25 @@ class SampledAudioPlayer implements Player, LineListener
 			clip.loop( count == -1 ? Clip.LOOP_CONTINUOUSLY : (count - 1) );
 	}
 
-	public long setMediaTime(long now) throws MediaException {
+	public synchronized long setMediaTime(long now) throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
 		if( clip != null )
 			clip.setMicrosecondPosition( now );
-		return 0;
+		return now;
 	}
 
-	public void start() throws MediaException {
+	public synchronized void start() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
+		if (state == STARTED) {
+			return;
+		}
+		if (state < PREFETCHED) {
+			prefetch();
+		}
 		if( clip != null )
 		{
 			if (!lineListenerAdded) {
@@ -199,7 +244,10 @@ class SampledAudioPlayer implements Player, LineListener
 		}
 	}
 
-	public void stop() throws MediaException {
+	public synchronized void stop() throws MediaException {
+		if (state == CLOSED) {
+			throw new IllegalStateException("Player is closed");
+		}
 		if( clip != null )
 			clip.stop();
 		if (state == STARTED) {

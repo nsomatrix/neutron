@@ -97,16 +97,34 @@ public abstract class BasicPlayer implements Player
       this.timeBase = timeBase;
    }
    
-   public void deallocate()
+   public synchronized void deallocate()
    {
+      if (getState() == Player.CLOSED) {
+         throw new IllegalStateException("Player is closed");
+      }
    }
    
-   public void prefetch() throws MediaException
+   public synchronized void prefetch() throws MediaException
    {
+      if (getState() == Player.CLOSED) {
+         throw new IllegalStateException("Player is closed");
+      }
+      if (getState() < Player.REALIZED) {
+         realize();
+      }
+      if (getState() < Player.PREFETCHED) {
+         setState(Player.PREFETCHED);
+      }
    }
    
-   public void realize() throws MediaException
+   public synchronized void realize() throws MediaException
    {
+      if (getState() == Player.CLOSED) {
+         throw new IllegalStateException("Player is closed");
+      }
+      if (getState() < Player.REALIZED) {
+         setState(Player.REALIZED);
+      }
    }
       
    public synchronized void setLoopCount(int count)

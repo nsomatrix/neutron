@@ -26,6 +26,7 @@ package org.neutron.media.audio;
 import javax.microedition.media.Control;
 import javax.microedition.media.Manager;
 import javax.microedition.media.MediaException;
+import javax.microedition.media.Player;
 import javax.microedition.media.control.ToneControl;
 
 import org.neutron.media.BasicPlayer;
@@ -57,8 +58,17 @@ public class PCTonePlayer extends BasicPlayer
       }
    }
    
-   public void close()
+   public synchronized void close()
    {
+      try
+      {
+         this.setRunning(false);
+         this.setState(Player.CLOSED);
+      }
+      catch(Exception e)
+      {
+         e.printStackTrace();
+      }
    }
    
    public String getContentType()
@@ -68,9 +78,15 @@ public class PCTonePlayer extends BasicPlayer
    
    public synchronized void start() throws MediaException
    {
+      if (getState() == Player.CLOSED) {
+         throw new IllegalStateException("Player is closed");
+      }
       try
       {
-         new Thread(this).start();
+         this.setRunning(true);
+         Thread toneThread = new Thread(this, "Neutron-TonePlayer");
+         toneThread.setDaemon(true);
+         toneThread.start();
          super.start();
       }
       catch(Exception e)
@@ -81,9 +97,13 @@ public class PCTonePlayer extends BasicPlayer
    
    public synchronized void stop() throws MediaException
    {
+      if (getState() == Player.CLOSED) {
+         throw new IllegalStateException("Player is closed");
+      }
       try
       {
          this.setRunning(false);
+         super.stop();
       }
       catch(Exception e)
       {

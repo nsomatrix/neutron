@@ -70,10 +70,10 @@ class Platform {
 			if (is != null) {
 				File tempLib = File.createTempFile("libjavam3g_", ext);
 				tempLib.deleteOnExit();
-				try (FileOutputStream fos = new FileOutputStream(tempLib)) {
+				try (InputStream in = is; FileOutputStream fos = new FileOutputStream(tempLib)) {
 					byte[] buf = new byte[8192];
 					int read;
-					while ((read = is.read(buf)) != -1) {
+					while ((read = in.read(buf)) != -1) {
 						fos.write(buf, 0, read);
 					}
 				}
