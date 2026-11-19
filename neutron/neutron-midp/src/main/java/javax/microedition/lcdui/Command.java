@@ -50,6 +50,7 @@ public class Command {
 	private Command itemCommand;
 
 	String label;
+	private String longLabel;
 
 	int commandType;
 
@@ -66,8 +67,8 @@ public class Command {
 	}
 
 	public Command(String shortLabel, String longLabel, int commandType, int priority) {
-		// TODO implement
 		this(shortLabel, commandType, priority);
+		this.longLabel = longLabel;
 	}
 
 	public int getCommandType() {
@@ -79,8 +80,7 @@ public class Command {
 	}
 
 	public String getLongLabel() {
-		// TODO implement;
-		return label;
+		return longLabel;
 	}
 
 	public int getPriority() {

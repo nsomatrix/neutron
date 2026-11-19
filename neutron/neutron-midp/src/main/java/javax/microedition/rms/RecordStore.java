@@ -61,7 +61,9 @@ public class RecordStore
     public static RecordStore openRecordStore(String recordStoreName, boolean createIfNecessary, int authmode, boolean writable)
     		throws RecordStoreException, RecordStoreFullException, RecordStoreNotFoundException
     {
-		// TODO Not yet implemented
+        if (authmode != AUTHMODE_PRIVATE && authmode != AUTHMODE_ANY) {
+            throw new IllegalArgumentException("Invalid authorization mode: " + authmode);
+        }
     	return openRecordStore(recordStoreName, createIfNecessary);
     }
 	
@@ -69,7 +71,9 @@ public class RecordStore
     public static RecordStore openRecordStore(String recordStoreName, String vendorName, String suiteName)
     		throws RecordStoreException, RecordStoreNotFoundException
 	{
-		// TODO Not yet implemented
+        if (recordStoreName == null || recordStoreName.length() == 0 || recordStoreName.length() > 32) {
+            throw new IllegalArgumentException("Invalid record store name: " + recordStoreName);
+        }
     	return openRecordStore(recordStoreName, false);
 	}
 	
@@ -201,7 +205,9 @@ public class RecordStore
     public void setMode(int authmode, boolean writable)
     		throws RecordStoreException
 	{
-		// TODO Not yet implemented
+        if (authmode != AUTHMODE_PRIVATE && authmode != AUTHMODE_ANY) {
+            throw new IllegalArgumentException("Invalid authorization mode: " + authmode);
+        }
 	}
 	
     public void setRecord(int recordId, byte[] newData, int offset, int numBytes)

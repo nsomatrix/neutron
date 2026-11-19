@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: threading-concurrency.jar
+MIDlet-Jar-Size: 12348
+MIDlet-Name: threading-concurrency
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: threading-concurrency,,org.neutron.tests.threading.ThreadingConcurrencyMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

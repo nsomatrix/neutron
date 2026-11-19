@@ -24,7 +24,7 @@
 package com.nokia.mid.sound;
 
 
-// Only empty methods, sound is currently not supported
+// Nokia UI Sound API implementation
 
 public class Sound 
 {
@@ -34,78 +34,81 @@ public class Sound
 	public static final int FORMAT_TONE = 1;
 	public static final int FORMAT_WAV = 5;
 	
+	private int gain = 255;
+	private int state = SOUND_STOPPED;
+	private SoundListener listener;
 	
     public Sound(byte data[], int type) 
     {
+        if (data == null) {
+            state = SOUND_UNINITIALIZED;
+        }
     }
-    
     
     public Sound(int freq, long duration) 
     {
     }
     
-    
     public static int getConcurrentSoundCount(int type) 
     {
-        return 0;
+        return 1;
     }
-    
     
     public int getGain() 
     {
-        return 0;
+        return gain;
     }
-    
     
     public void setGain(int gain) 
     {
+        if (gain < 0) gain = 0;
+        if (gain > 255) gain = 255;
+        this.gain = gain;
     }
-    
     
     public int getState() 
     {
-        return SOUND_STOPPED;
+        return state;
     }
-    
     
     public static int[] getSupportedFormats() 
     {
-        return new int[0];
+        return new int[] { FORMAT_TONE, FORMAT_WAV };
     }
-    
     
     public void init(byte data[], int type) 
     {    
+        state = SOUND_STOPPED;
     }
-    
     
     public void init(int freq, long duration) 
     {
+        state = SOUND_STOPPED;
     }
-    
     
     public synchronized void play(int loop) 
     {        
+        state = SOUND_PLAYING;
     }
-    
     
     public void stop() 
     {
+        state = SOUND_STOPPED;
     }
-    
      
     public void release() 
     {
+        state = SOUND_UNINITIALIZED;
     }
-    
     
     public void resume() 
     {
+        state = SOUND_PLAYING;
     }
-    
     
     public void setSoundListener(SoundListener listener) 
     {
+        this.listener = listener;
     }
     
 }

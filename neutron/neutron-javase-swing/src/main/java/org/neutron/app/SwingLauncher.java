@@ -79,9 +79,17 @@ public class SwingLauncher {
                 System.setProperty("java.class.path", payloadJar.getAbsolutePath() + (existingCp != null && !existingCp.isEmpty() ? File.pathSeparator + existingCp : ""));
             }
 
+            String targetClassName = "org.neutron.app.Main";
+            if (args != null && args.length > 0 && ("--headless".equals(args[0]) || "-headless".equals(args[0]))) {
+                targetClassName = "org.neutron.app.Headless";
+                String[] stripped = new String[args.length - 1];
+                System.arraycopy(args, 1, stripped, 0, stripped.length);
+                args = stripped;
+            }
+
             URLClassLoader classLoader = new URLClassLoader(new URL[]{payloadJar.toURI().toURL()}, SwingLauncher.class.getClassLoader());
             Thread.currentThread().setContextClassLoader(classLoader);
-            Class<?> mainClass = Class.forName("org.neutron.app.Main", true, classLoader);
+            Class<?> mainClass = Class.forName(targetClassName, true, classLoader);
             Method mainMethod = mainClass.getMethod("main", String[].class);
             mainMethod.invoke(null, (Object) args);
         } catch (Throwable t) {

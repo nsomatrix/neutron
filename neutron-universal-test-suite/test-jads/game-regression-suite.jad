@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: game-regression-suite.jar
+MIDlet-Jar-Size: 10369
+MIDlet-Name: game-regression-suite
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: game-regression-suite,,org.neutron.tests.regression.GameRegressionMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

@@ -130,7 +130,7 @@ public class DirectGraphicsImp implements DirectGraphics{
      * @return
      */
     public int getNativePixelFormat() {
-        return TYPE_BYTE_1_GRAY;
+        return TYPE_INT_8888_ARGB;
     }
     
     /** Not supported

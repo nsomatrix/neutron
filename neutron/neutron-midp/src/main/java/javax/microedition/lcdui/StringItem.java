@@ -44,21 +44,23 @@ public class StringItem extends Item {
 		setText(text);
 	}
 	
+	private Font font;
+
 	public int getAppearanceMode() {
 		return appearanceMode;
 	}
 	
 	public Font getFont() {
-    	// TODO implement
-		return Font.getDefaultFont();
+		return font != null ? font : Font.getDefaultFont();
 	}
 	
 	public void setFont(Font font) {
-    	// TODO implement
+		this.font = font;
+		repaint();
 	}
 
 	public void setPreferredSize(int width, int height) {
-    	// TODO implement
+		super.setPreferredSize(width, height);
 	}
 	
 	public String getText() {

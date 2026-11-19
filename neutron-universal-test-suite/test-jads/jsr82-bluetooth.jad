@@ -1,0 +1,8 @@
+MIDlet-Jar-URL: jsr82-bluetooth.jar
+MIDlet-Jar-Size: 8104
+MIDlet-Name: jsr82-bluetooth
+MIDlet-Vendor: Neutron Universal Testing Framework
+MIDlet-Version: 1.0.0
+MIDlet-1: jsr82-bluetooth,,org.neutron.tests.bluetooth.Jsr82BluetoothMIDlet
+MicroEdition-Configuration: CLDC-1.1
+MicroEdition-Profile: MIDP-2.0

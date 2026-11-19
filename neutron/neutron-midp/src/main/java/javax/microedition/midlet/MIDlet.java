@@ -107,7 +107,13 @@ public abstract class MIDlet {
 	}
 
 	public final void resumeRequest() {
-		// TODO implement
+		MIDletAccess access = MIDletBridge.getMIDletAccess(this);
+		if (access != null) {
+			try {
+				access.startApp();
+			} catch (Throwable ignore) {
+			}
+		}
 	}
 
 }

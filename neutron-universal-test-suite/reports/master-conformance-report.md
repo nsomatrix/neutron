@@ -1,31 +1,41 @@
 # Neutron Universal Java ME Conformance & Compatibility Master Report
 
-**Generated**: 2026-11-19 10:14:19 UTC  
+**Generated**: 2026-11-19 11:10:17 UTC  
 **Target Platform**: CLDC 1.1 (JSR-139) / MIDP 2.0 (JSR-118)  
 **Host JVM Execution**: Direct Host-JIT Classloader Injection (`MIDletClassLoader`)  
-**Overall Conformance**: 16/16 Suites Passed (100.0%)  
-**Individual Test Assertions**: 69/69 Passed (100.0%)
+**Overall Conformance**: 26/26 Suites Passed (100.0%)  
+**Individual Test Assertions**: 109/109 Passed (100.0%)
 
 ## 1. Executive Summary Table
 
 | Test Suite Identifier | Target Subsystem / API | Result | Assertions Passed | Assertions Failed | Elapsed | Headless Frames | Visual Dump |
 |---|---|---|---|---|---|---|---|
-| `cldc-runtime-conformance` | cldc-runtime-conformance | **PASSED** | 9 | 0 | 8.08s | 5/5 | Captured |
-| `cross-api-integration` | cross-api-integration | **PASSED** | 4 | 0 | 8.06s | 26/26 | Captured |
-| `endurance-soak` | endurance-soak | **PASSED** | 0 | 0 | 8.07s | 308/308 | Captured |
-| `game2d-engine-stress` | game2d-engine-stress | **PASSED** | 5 | 0 | 8.08s | 13/13 | Captured |
-| `gcf-networking` | gcf-networking | **PASSED** | 3 | 0 | 8.05s | 9/9 | Captured |
-| `lcdui-graphics-canvas` | lcdui-graphics-canvas | **PASSED** | 6 | 0 | 8.06s | 14/14 | Captured |
-| `lcdui-ui-components` | lcdui-ui-components | **PASSED** | 6 | 0 | 8.09s | 7/7 | Captured |
-| `m3g-3d-graphics` | m3g-3d-graphics | **PASSED** | 6 | 0 | 8.07s | 12/12 | Captured |
-| `micro3d-graphics` | micro3d-graphics | **PASSED** | 5 | 0 | 8.09s | 11/11 | Captured |
-| `midp-standard-apis` | midp-standard-apis | **PASSED** | 5 | 0 | 8.06s | 11/11 | Captured |
-| `mmapi-audio-media` | mmapi-audio-media | **PASSED** | 5 | 0 | 8.06s | 9/9 | Captured |
-| `oem-extensions` | oem-extensions | **PASSED** | 5 | 0 | 8.09s | 9/9 | Captured |
-| `optional-jsrs` | optional-jsrs | **PASSED** | 4 | 0 | 8.07s | 3/3 | Captured |
-| `performance-benchmark` | performance-benchmark | **PASSED** | 0 | 0 | 8.12s | 8/8 | Captured |
-| `rms-storage-stress` | rms-storage-stress | **PASSED** | 3 | 0 | 8.07s | 3/3 | Captured |
-| `security-sandbox` | security-sandbox | **PASSED** | 3 | 0 | 8.17s | 7/7 | Captured |
+| `api-boundary-exceptions` | api-boundary-exceptions | **PASSED** | 5 | 0 | 12.05s | 7/7 | Captured |
+| `cldc-runtime-conformance` | cldc-runtime-conformance | **PASSED** | 9 | 0 | 12.07s | 15/15 | Captured |
+| `cross-api-integration` | cross-api-integration | **PASSED** | 4 | 0 | 12.07s | 26/26 | Captured |
+| `endurance-soak` | endurance-soak | **PASSED** | 0 | 0 | 12.06s | 309/309 | Captured |
+| `game-regression-suite` | game-regression-suite | **PASSED** | 5 | 0 | 12.07s | 8/8 | Captured |
+| `game2d-engine-stress` | game2d-engine-stress | **PASSED** | 5 | 0 | 12.06s | 13/13 | Captured |
+| `gcf-networking` | gcf-networking | **PASSED** | 3 | 0 | 12.08s | 8/8 | Captured |
+| `jsr120-messaging` | jsr120-messaging | **PASSED** | 3 | 0 | 12.06s | 5/5 | Captured |
+| `jsr211-content-handler` | jsr211-content-handler | **PASSED** | 3 | 0 | 12.06s | 5/5 | Captured |
+| `jsr256-sensors` | jsr256-sensors | **PASSED** | 3 | 0 | 12.06s | 5/5 | Captured |
+| `jsr82-bluetooth` | jsr82-bluetooth | **PASSED** | 4 | 0 | 12.06s | 4/4 | Captured |
+| `lcdui-graphics-canvas` | lcdui-graphics-canvas | **PASSED** | 6 | 0 | 12.05s | 13/13 | Captured |
+| `lcdui-ui-components` | lcdui-ui-components | **PASSED** | 6 | 0 | 12.07s | 7/7 | Captured |
+| `m3g-3d-graphics` | m3g-3d-graphics | **PASSED** | 6 | 0 | 12.09s | 10/10 | Captured |
+| `memory-resource-stress` | memory-resource-stress | **PASSED** | 3 | 0 | 12.06s | 6/6 | Captured |
+| `micro3d-graphics` | micro3d-graphics | **PASSED** | 5 | 0 | 12.07s | 11/11 | Captured |
+| `midp-standard-apis` | midp-standard-apis | **PASSED** | 5 | 0 | 12.06s | 11/11 | Captured |
+| `mmapi-audio-media` | mmapi-audio-media | **PASSED** | 5 | 0 | 12.07s | 11/11 | Captured |
+| `nokia-oem-apis` | nokia-oem-apis | **PASSED** | 5 | 0 | 12.06s | 5/5 | Captured |
+| `oem-extensions` | oem-extensions | **PASSED** | 5 | 0 | 12.06s | 8/8 | Captured |
+| `optional-jsrs` | optional-jsrs | **PASSED** | 4 | 0 | 12.04s | 9/9 | Captured |
+| `performance-benchmark` | performance-benchmark | **PASSED** | 0 | 0 | 12.05s | 8/8 | Captured |
+| `rms-storage-stress` | rms-storage-stress | **PASSED** | 3 | 0 | 12.06s | 9/9 | Captured |
+| `security-sandbox` | security-sandbox | **PASSED** | 3 | 0 | 12.05s | 6/6 | Captured |
+| `siemens-oem-apis` | siemens-oem-apis | **PASSED** | 5 | 0 | 12.06s | 4/4 | Captured |
+| `threading-concurrency` | threading-concurrency | **PASSED** | 4 | 0 | 12.07s | 7/7 | Captured |
 
 ## 2. Subsystem Coverage Verification
 

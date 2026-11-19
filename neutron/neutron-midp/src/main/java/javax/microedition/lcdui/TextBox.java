@@ -144,7 +144,7 @@ public class TextBox extends Screen {
 	}
 
 	public void setTicker(Ticker ticker) {
-		// TODO implement
+		super.setTicker(ticker);
 	}
 
 	public void setTitle(String s) {

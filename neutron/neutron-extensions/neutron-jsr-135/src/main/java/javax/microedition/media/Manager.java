@@ -67,9 +67,25 @@ public final class Manager
     }
     
     
+    private static final String[] SUPPORTED_PROTOCOLS = new String[] {
+        "device",
+        "capture",
+        "http",
+        "https",
+        "file",
+        "jar"
+    };
+
     public static String[] getSupportedProtocols(String content_type)
     {
-        // TODO
+        if (content_type == null) {
+            return (String[]) SUPPORTED_PROTOCOLS.clone();
+        }
+        for (int i = 0; i < SUPPORTED_CONTENT_TYPES.length; i++) {
+            if (SUPPORTED_CONTENT_TYPES[i].equalsIgnoreCase(content_type)) {
+                return (String[]) SUPPORTED_PROTOCOLS.clone();
+            }
+        }
         return new String[0];
     }
     
