@@ -42,6 +42,9 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dev libegl1-mesa-dev
+
       - name: Download Linux Native Artifact
         uses: actions/download-artifact@v4
         with:
@@ -55,7 +58,7 @@ jobs:
         run: ./gradlew assemble
 
       - name: Run Test Suite
-        run: ./gradlew test
+        run: xvfb-run --auto-servernum ./gradlew test
 
       - name: Upload Standalone Fat JAR
         uses: actions/upload-artifact@v4

@@ -31,6 +31,7 @@ public class MainMenuBarTest {
 
     @Before
     public void setUp() {
+        org.junit.Assume.assumeFalse("Skipping UI test in headless environment without display", java.awt.GraphicsEnvironment.isHeadless());
         main = new Main();
         menuBar = main.getJMenuBar();
     }
