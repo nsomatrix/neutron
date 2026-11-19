@@ -502,7 +502,7 @@ public class SwingLoadingUI {
         if (progress < 0.40f) {
             statusMsg = "Loading Game";
         } else if (progress < 0.75f) {
-            statusMsg = "Preparing Assets";
+            statusMsg = "Preparing Resources";
         } else if (progress < 0.95f) {
             statusMsg = "Starting Game";
         } else {
