@@ -47,7 +47,13 @@ class Platform {
 			String prefix = "lib";
 
 			if (os.contains("win")) {
-				platformDir = (arch.contains("64")) ? "windows-x86_64" : "windows-x86";
+				if (arch.contains("aarch64") || arch.contains("arm")) {
+					platformDir = "windows-arm64";
+				} else if (arch.contains("64")) {
+					platformDir = "windows-x86_64";
+				} else {
+					platformDir = "windows-x86";
+				}
 				prefix = "";
 				ext = ".dll";
 			} else if (os.contains("mac") || os.contains("darwin")) {
@@ -68,18 +74,53 @@ class Platform {
 			}
 
 			if (is != null) {
-				File tempLib = File.createTempFile("libjavam3g_", ext);
-				tempLib.deleteOnExit();
-				try (InputStream in = is; FileOutputStream fos = new FileOutputStream(tempLib)) {
+				File targetLib = null;
+				try {
+					targetLib = File.createTempFile("libjavam3g_", ext);
+					targetLib.deleteOnExit();
+				} catch (Throwable ignored) {}
+
+				if (targetLib == null) {
+					File userDir = new File(System.getProperty("user.home", "."), ".neutron/natives");
+					userDir.mkdirs();
+					targetLib = new File(userDir, libFilename);
+				}
+
+				try (InputStream in = is; FileOutputStream fos = new FileOutputStream(targetLib)) {
 					byte[] buf = new byte[8192];
 					int read;
 					while ((read = in.read(buf)) != -1) {
 						fos.write(buf, 0, read);
 					}
 				}
-				System.load(tempLib.getAbsolutePath());
-				libraryLoaded = true;
-				return;
+
+				try {
+					System.load(targetLib.getAbsolutePath());
+					libraryLoaded = true;
+					return;
+				} catch (UnsatisfiedLinkError ule) {
+					// If loading from %TEMP% was blocked (e.g. Windows Attack Surface Reduction / noexec),
+					// retry by extracting to the user home .neutron/natives directory.
+					File userDir = new File(System.getProperty("user.home", "."), ".neutron/natives");
+					File fallbackLib = new File(userDir, libFilename);
+					if (!fallbackLib.getAbsolutePath().equals(targetLib.getAbsolutePath())) {
+						userDir.mkdirs();
+						InputStream isFallback = Platform.class.getResourceAsStream(resPath);
+						if (isFallback != null) {
+							try (InputStream in = isFallback; FileOutputStream fos = new FileOutputStream(fallbackLib)) {
+								byte[] buf = new byte[8192];
+								int read;
+								while ((read = in.read(buf)) != -1) {
+									fos.write(buf, 0, read);
+								}
+							}
+							System.load(fallbackLib.getAbsolutePath());
+							libraryLoaded = true;
+							return;
+						}
+					}
+					throw ule;
+				}
 			} else {
 				System.err.println("[Neutron M3G] Native engine (" + libFilename + ") not bundled for " + os + " (" + arch + "). JSR-184 M3G requires native binaries.");
 			}

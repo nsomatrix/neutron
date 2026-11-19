@@ -57,11 +57,18 @@ public class GLFramebuffer {
         GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GL30.glFramebufferTexture2D(GL30.GL_FRAMEBUFFER, GL30.GL_COLOR_ATTACHMENT0, GL11.GL_TEXTURE_2D, colorTexId, 0);
 
-        // Depth attachment renderbuffer (24-bit depth for jitter-free Z-buffering)
+        // Depth attachment renderbuffer (24-bit depth for jitter-free Z-buffering, fallback to 16-bit)
         depthRboId = GL30.glGenRenderbuffers();
         GL30.glBindRenderbuffer(GL30.GL_RENDERBUFFER, depthRboId);
         GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL30.GL_DEPTH_COMPONENT24, renderWidth, renderHeight);
         GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, depthRboId);
+
+        int fboStatus = GL30.glCheckFramebufferStatus(GL30.GL_FRAMEBUFFER);
+        if (fboStatus != GL30.GL_FRAMEBUFFER_COMPLETE) {
+            // Fallback to 16-bit depth buffer if 24-bit attachment is rejected by GPU driver
+            GL30.glRenderbufferStorage(GL30.GL_RENDERBUFFER, GL30.GL_DEPTH_COMPONENT16, renderWidth, renderHeight);
+            GL30.glFramebufferRenderbuffer(GL30.GL_FRAMEBUFFER, GL30.GL_DEPTH_ATTACHMENT, GL30.GL_RENDERBUFFER, depthRboId);
+        }
 
         GL30.glBindFramebuffer(GL30.GL_FRAMEBUFFER, 0);
         pixelBuffer = BufferUtils.createIntBuffer(renderWidth * renderHeight);
@@ -126,6 +133,9 @@ public class GLFramebuffer {
             IntBuffer intBuf = mapped.asIntBuffer();
             copyAndDownsample(intBuf, dest);
             GL15.glUnmapBuffer(GL21.GL_PIXEL_PACK_BUFFER);
+        } else {
+            // Mapping failed or unsupported on this driver; fall back to synchronous readPixels
+            readPixelsSync(dest);
         }
         GL15.glBindBuffer(GL21.GL_PIXEL_PACK_BUFFER, 0);
 

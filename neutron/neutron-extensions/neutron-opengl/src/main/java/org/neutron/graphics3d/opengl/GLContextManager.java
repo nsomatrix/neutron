@@ -29,11 +29,14 @@ public class GLContextManager {
                 return;
             }
 
+            boolean isMac = System.getProperty("os.name", "").toLowerCase().contains("mac");
             GLFW.glfwDefaultWindowHints();
             GLFW.glfwWindowHint(GLFW.GLFW_VISIBLE, GLFW.GLFW_FALSE);
-            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
-            GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
-            GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_COMPAT_PROFILE);
+            if (!isMac) {
+                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MAJOR, 3);
+                GLFW.glfwWindowHint(GLFW.GLFW_CONTEXT_VERSION_MINOR, 2);
+                GLFW.glfwWindowHint(GLFW.GLFW_OPENGL_PROFILE, GLFW.GLFW_OPENGL_COMPAT_PROFILE);
+            }
 
             window = GLFW.glfwCreateWindow(1, 1, "Neutron-Offscreen", 0, 0);
             if (window == 0) {

@@ -45,18 +45,52 @@ public class Util3D {
 	}
 
 	public static java.io.InputStream getResourceAsStream(String name) {
-		if (name == null) {
+		if (name == null || name.isEmpty()) {
 			return null;
 		}
+
+		// Handle file: scheme
+		if (name.startsWith("file:")) {
+			try {
+				String filePath = name.substring(5);
+				while (filePath.startsWith("//")) {
+					filePath = filePath.substring(1);
+				}
+				if (filePath.length() >= 3 && filePath.charAt(0) == '/' && ((filePath.charAt(1) >= 'a' && filePath.charAt(1) <= 'z') || (filePath.charAt(1) >= 'A' && filePath.charAt(1) <= 'Z')) && filePath.charAt(2) == ':') {
+					filePath = filePath.substring(1);
+				}
+				java.io.File f = new java.io.File(filePath);
+				if (f.exists() && f.isFile()) {
+					return new java.io.FileInputStream(f);
+				}
+			} catch (Throwable ignored) {}
+		}
+
+		java.io.InputStream is = null;
+		try {
+			java.io.File f = new java.io.File(name);
+			if (f.exists() && f.isFile()) {
+				return new java.io.FileInputStream(f);
+			}
+		} catch (Throwable ignored) {}
+
+		try {
+			is = org.neutron.MIDletBridge.getResourceAsStream(Util3D.class, name.startsWith("/") ? name : "/" + name);
+			if (is == null) {
+				is = org.neutron.MIDletBridge.getResourceAsStream(Util3D.class, name.startsWith("/") ? name.substring(1) : name);
+			}
+		} catch (Throwable ignored) {}
+
 		String rootPath = name.startsWith("/") ? name : "/" + name;
 		String relPath = name.startsWith("/") ? name.substring(1) : name;
 
-		java.io.InputStream is = null;
-		ClassLoader cl = Thread.currentThread().getContextClassLoader();
-		if (cl != null) {
-			is = cl.getResourceAsStream(relPath);
-			if (is == null) {
-				is = cl.getResourceAsStream(rootPath);
+		if (is == null) {
+			ClassLoader cl = Thread.currentThread().getContextClassLoader();
+			if (cl != null) {
+				is = cl.getResourceAsStream(relPath);
+				if (is == null) {
+					is = cl.getResourceAsStream(rootPath);
+				}
 			}
 		}
 		if (is == null) {

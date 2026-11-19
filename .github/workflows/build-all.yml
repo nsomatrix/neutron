@@ -39,3 +39,32 @@ jobs:
         with:
           name: neutron-standalone-jar
           path: neutron/neutron-javase-swing/build/libs/neutron-javase-swing-*.jar
+
+  test-cross-platform:
+    name: Test Cross-Platform Compatibility (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Grant Execute Permission (macOS)
+        if: runner.os != 'Windows'
+        run: chmod +x gradlew
+
+      - name: Run 3D Graphics Test Suite (Windows)
+        if: runner.os == 'Windows'
+        run: ./gradlew.bat :neutron:neutron-extensions:neutron-jsr-184:test :neutron:neutron-extensions:neutron-opengl:test --continue
+
+      - name: Run 3D Graphics Test Suite (macOS)
+        if: runner.os == 'macOS'
+        run: ./gradlew :neutron:neutron-extensions:neutron-jsr-184:test :neutron:neutron-extensions:neutron-opengl:test --continue

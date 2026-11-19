@@ -38,13 +38,16 @@
 typedef void* CGLContextObj;
 typedef void* CGLPixelFormatObj;
 typedef uint32_t CGLPixelFormatAttribute;
+typedef int CGLError;
+#define kCGLNoError 0
 #define kCGLPFAAccelerated 73
 #define kCGLPFAColorSize 8
 #define kCGLPFADepthSize 12
-extern int CGLChoosePixelFormat(const CGLPixelFormatAttribute *attribs, CGLPixelFormatObj *pix, int *npix);
-extern int CGLCreateContext(CGLPixelFormatObj pix, CGLContextObj share, CGLContextObj *ctx);
-extern int CGLDestroyContext(CGLContextObj ctx);
-extern int CGLSetCurrentContext(CGLContextObj ctx);
+extern CGLError CGLChoosePixelFormat(const CGLPixelFormatAttribute *attribs, CGLPixelFormatObj *pix, int *npix);
+extern CGLError CGLCreateContext(CGLPixelFormatObj pix, CGLContextObj share, CGLContextObj *ctx);
+extern CGLError CGLDestroyContext(CGLContextObj ctx);
+extern CGLError CGLSetCurrentContext(CGLContextObj ctx);
+extern CGLContextObj CGLGetCurrentContext(void);
 extern void glClearDepth(double depth);
 extern void glFogi(GLenum pname, GLint param);
 extern void glOrtho(double left, double right, double bottom, double top, double zNear, double zFar);
@@ -97,9 +100,18 @@ static void* get_proc(const char *name) {
 }
 
 static void init_gl_procs(void) {
+#ifdef _WIN32
+    if (!wglGetCurrentContext()) {
+        return;
+    }
+#elif defined(__APPLE__)
+    if (!CGLGetCurrentContext()) {
+        return;
+    }
+#endif
     static int inited = 0;
     if (inited) return;
-    inited = 1;
+
     pfn_glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)get_proc("glGenFramebuffers");
     pfn_glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)get_proc("glDeleteFramebuffers");
     pfn_glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)get_proc("glBindFramebuffer");
@@ -112,6 +124,23 @@ static void init_gl_procs(void) {
     pfn_glActiveTexture = (PFNGLACTIVETEXTUREPROC)get_proc("glActiveTexture");
     pfn_glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREPROC)get_proc("glClientActiveTexture");
     pfn_glCompressedTexImage2D = (PFNGLCOMPRESSEDTEXIMAGE2DPROC)get_proc("glCompressedTexImage2D");
+
+    // Fallback to EXT/ARB extension variants if core 2.0+ names are not present
+    if (!pfn_glGenFramebuffers) pfn_glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)get_proc("glGenFramebuffersEXT");
+    if (!pfn_glDeleteFramebuffers) pfn_glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)get_proc("glDeleteFramebuffersEXT");
+    if (!pfn_glBindFramebuffer) pfn_glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)get_proc("glBindFramebufferEXT");
+    if (!pfn_glFramebufferTexture2D) pfn_glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)get_proc("glFramebufferTexture2DEXT");
+    if (!pfn_glGenRenderbuffers) pfn_glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)get_proc("glGenRenderbuffersEXT");
+    if (!pfn_glDeleteRenderbuffers) pfn_glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)get_proc("glDeleteRenderbuffersEXT");
+    if (!pfn_glBindRenderbuffer) pfn_glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)get_proc("glBindRenderbufferEXT");
+    if (!pfn_glRenderbufferStorage) pfn_glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)get_proc("glRenderbufferStorageEXT");
+    if (!pfn_glFramebufferRenderbuffer) pfn_glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)get_proc("glFramebufferRenderbufferEXT");
+    if (!pfn_glActiveTexture) pfn_glActiveTexture = (PFNGLACTIVETEXTUREPROC)get_proc("glActiveTextureARB");
+    if (!pfn_glClientActiveTexture) pfn_glClientActiveTexture = (PFNGLCLIENTACTIVETEXTUREPROC)get_proc("glClientActiveTextureARB");
+
+    if (pfn_glGenFramebuffers) {
+        inited = 1;
+    }
 }
 
 #ifdef _WIN32
@@ -138,7 +167,13 @@ static void ensure_hidden_window(void) {
     pfd.cDepthBits = 24;
     pfd.cStencilBits = 8;
     int pf = ChoosePixelFormat(s_hiddenHdc, &pfd);
-    SetPixelFormat(s_hiddenHdc, pf, &pfd);
+    if (!pf) {
+        pfd.cDepthBits = 16;
+        pf = ChoosePixelFormat(s_hiddenHdc, &pfd);
+    }
+    if (pf) {
+        SetPixelFormat(s_hiddenHdc, pf, &pfd);
+    }
 }
 #elif defined(__APPLE__)
 static CGLContextObj s_cglContext = NULL;
@@ -153,8 +188,17 @@ static void ensure_cgl_context(void) {
         (CGLPixelFormatAttribute)0
     };
     int numPixelFormats = 0;
-    CGLChoosePixelFormat(attribs, &s_cglPixelFormat, &numPixelFormats);
-    CGLCreateContext(s_cglPixelFormat, NULL, &s_cglContext);
+    CGLError err = CGLChoosePixelFormat(attribs, &s_cglPixelFormat, &numPixelFormats);
+    if (err != kCGLNoError || !s_cglPixelFormat) {
+        CGLPixelFormatAttribute fallbackAttribs[] = {
+            (CGLPixelFormatAttribute)kCGLPFAColorSize, (CGLPixelFormatAttribute)24,
+            (CGLPixelFormatAttribute)0
+        };
+        CGLChoosePixelFormat(fallbackAttribs, &s_cglPixelFormat, &numPixelFormats);
+    }
+    if (s_cglPixelFormat) {
+        CGLCreateContext(s_cglPixelFormat, NULL, &s_cglContext);
+    }
 }
 #endif
 
@@ -264,6 +308,33 @@ EGLAPI EGLBoolean EGLAPIENTRY eglDestroyContext(EGLDisplay dpy, EGLContext ctx) 
     return EGL_TRUE;
 }
 
+static void ensure_surface_fbo(DesktopSurface *s) {
+    if (!s || s->fbo != 0 || s->width <= 0 || s->height <= 0) return;
+    init_gl_procs();
+    if (!pfn_glGenFramebuffers) return;
+
+    pfn_glGenFramebuffers(1, &s->fbo);
+    pfn_glBindFramebuffer(0x8D40 /* GL_FRAMEBUFFER */, s->fbo);
+
+    glGenTextures(1, &s->colorTex);
+    glBindTexture(GL_TEXTURE_2D, s->colorTex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, s->width, s->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 0x812F /* GL_CLAMP_TO_EDGE */);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 0x812F /* GL_CLAMP_TO_EDGE */);
+    pfn_glFramebufferTexture2D(0x8D40, 0x8CE0 /* GL_COLOR_ATTACHMENT0 */, GL_TEXTURE_2D, s->colorTex, 0);
+
+    if (pfn_glGenRenderbuffers && pfn_glBindRenderbuffer && pfn_glRenderbufferStorage && pfn_glFramebufferRenderbuffer) {
+        pfn_glGenRenderbuffers(1, &s->depthRbo);
+        pfn_glBindRenderbuffer(0x8D41 /* GL_RENDERBUFFER */, s->depthRbo);
+        pfn_glRenderbufferStorage(0x8D41, 0x81A6 /* GL_DEPTH_COMPONENT16 */, s->width, s->height);
+        pfn_glFramebufferRenderbuffer(0x8D40, 0x8D00 /* GL_DEPTH_ATTACHMENT */, 0x8D41, s->depthRbo);
+    }
+
+    pfn_glBindFramebuffer(0x8D40, 0);
+}
+
 EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig config, const EGLint *attrib_list) {
     DesktopSurface *s = (DesktopSurface*)calloc(1, sizeof(DesktopSurface));
     s->width = 240;
@@ -274,25 +345,15 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePbufferSurface(EGLDisplay dpy, EGLConfig 
             else if (attrib_list[i] == EGL_HEIGHT) s->height = attrib_list[i+1];
         }
     }
-    init_gl_procs();
-    if (pfn_glGenFramebuffers && s->width > 0 && s->height > 0) {
-        pfn_glGenFramebuffers(1, &s->fbo);
-        pfn_glBindFramebuffer(0x8D40 /* GL_FRAMEBUFFER */, s->fbo);
-        
-        glGenTextures(1, &s->colorTex);
-        glBindTexture(GL_TEXTURE_2D, s->colorTex);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, s->width, s->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        pfn_glFramebufferTexture2D(0x8D40, 0x8CE0 /* GL_COLOR_ATTACHMENT0 */, GL_TEXTURE_2D, s->colorTex, 0);
-
-        pfn_glGenRenderbuffers(1, &s->depthRbo);
-        pfn_glBindRenderbuffer(0x8D41 /* GL_RENDERBUFFER */, s->depthRbo);
-        pfn_glRenderbufferStorage(0x8D41, 0x81A6 /* GL_DEPTH_COMPONENT16 */, s->width, s->height);
-        pfn_glFramebufferRenderbuffer(0x8D40, 0x8D00 /* GL_DEPTH_ATTACHMENT */, 0x8D41, s->depthRbo);
-
-        pfn_glBindFramebuffer(0x8D40, 0);
+#ifdef _WIN32
+    if (wglGetCurrentContext()) {
+        ensure_surface_fbo(s);
     }
+#elif defined(__APPLE__)
+    if (CGLGetCurrentContext()) {
+        ensure_surface_fbo(s);
+    }
+#endif
     return (EGLSurface)s;
 }
 
@@ -307,10 +368,18 @@ EGLAPI EGLSurface EGLAPIENTRY eglCreatePixmapSurface(EGLDisplay dpy, EGLConfig c
 EGLAPI EGLBoolean EGLAPIENTRY eglDestroySurface(EGLDisplay dpy, EGLSurface surface) {
     if (surface) {
         DesktopSurface *s = (DesktopSurface*)surface;
-        if (s->fbo && pfn_glDeleteFramebuffers) pfn_glDeleteFramebuffers(1, &s->fbo);
-        if (s->colorTex) glDeleteTextures(1, &s->colorTex);
-        if (s->depthRbo && pfn_glDeleteRenderbuffers) pfn_glDeleteRenderbuffers(1, &s->depthRbo);
-        if (s_currentSurface == s) s_currentSurface = NULL;
+        if (s->fbo && pfn_glDeleteFramebuffers) {
+            pfn_glDeleteFramebuffers(1, &s->fbo);
+        }
+        if (s->colorTex) {
+            glDeleteTextures(1, &s->colorTex);
+        }
+        if (s->depthRbo && pfn_glDeleteRenderbuffers) {
+            pfn_glDeleteRenderbuffers(1, &s->depthRbo);
+        }
+        if (s_currentSurface == s) {
+            s_currentSurface = NULL;
+        }
         free(s);
     }
     return EGL_TRUE;
@@ -324,7 +393,9 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EG
         return EGL_TRUE;
     }
     DesktopContext *c = (DesktopContext*)ctx;
-    wglMakeCurrent(c->hdc, c->hglrc);
+    if (!wglMakeCurrent(c->hdc, c->hglrc)) {
+        return EGL_FALSE;
+    }
 #elif defined(__APPLE__)
     if (!ctx) {
         CGLSetCurrentContext(NULL);
@@ -332,12 +403,17 @@ EGLAPI EGLBoolean EGLAPIENTRY eglMakeCurrent(EGLDisplay dpy, EGLSurface draw, EG
         return EGL_TRUE;
     }
     DesktopContext *c = (DesktopContext*)ctx;
-    CGLSetCurrentContext(c->cgl);
+    if (CGLSetCurrentContext(c->cgl) != kCGLNoError) {
+        return EGL_FALSE;
+    }
 #endif
+
     init_gl_procs();
+
     if (draw) {
         DesktopSurface *s = (DesktopSurface*)draw;
         s_currentSurface = s;
+        ensure_surface_fbo(s);
         if (s->fbo && pfn_glBindFramebuffer) {
             pfn_glBindFramebuffer(0x8D40 /* GL_FRAMEBUFFER */, s->fbo);
         }

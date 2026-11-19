@@ -19,6 +19,8 @@ package javax.microedition.m3g;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Hashtable;
@@ -850,26 +852,70 @@ public class Loader {
 				is = Loader.class.getClassLoader().getResourceAsStream(root);
 			}
 		}
+		if (is == null) {
+			try {
+				File file = new File(path);
+				if (file.exists() && file.isFile()) {
+					is = new FileInputStream(file);
+				}
+			} catch (Throwable ignored) {}
+		}
 		return is;
+	}
+
+	private static boolean isWindowsDrivePath(String path) {
+		if (path == null || path.length() < 2) {
+			return false;
+		}
+		char c0 = path.charAt(0);
+		return ((c0 >= 'a' && c0 <= 'z') || (c0 >= 'A' && c0 <= 'Z')) && path.charAt(1) == ':';
 	}
 
 	// returns a stream built from the specified file or URI
 	private InputStream getInputStream(String name) throws IOException {
-		if (name.indexOf(':') != -1)   // absolute URI reference
-		{
+		if (name == null || name.isEmpty()) {
+			throw new IOException("Resource name cannot be null or empty");
+		}
+
+		// Handle file: scheme
+		if (name.startsWith("file:")) {
+			try {
+				String filePath = name.substring(5);
+				while (filePath.startsWith("//")) {
+					filePath = filePath.substring(1);
+				}
+				if (filePath.length() >= 3 && filePath.charAt(0) == '/' && isWindowsDrivePath(filePath.substring(1))) {
+					filePath = filePath.substring(1);
+				}
+				File f = new File(filePath);
+				if (f.exists() && f.isFile()) {
+					return new FileInputStream(f);
+				}
+			} catch (Throwable ignored) {}
+		}
+
+		// Check for actual network URI reference (e.g. http://, https://)
+		// Must NOT misclassify Windows drive letters (e.g. C:\... or C:/...) as network URIs!
+		int colonIdx = name.indexOf(':');
+		boolean isDrivePath = isWindowsDrivePath(name);
+		if (colonIdx != -1 && !isDrivePath) {
 			return getHttpInputStream(name);
 		}
 
 		InputStream is;
-		if (name.charAt(0) == '/' || iParentResourceName == null)   // absolute file reference
-		{
+		boolean isAbsolute = name.charAt(0) == '/' || name.charAt(0) == '\\' || isDrivePath;
+		if (isAbsolute || iParentResourceName == null) {
 			is = openResource(name);
 		} else {
-			String uri = iParentResourceName.substring(0, iParentResourceName.lastIndexOf('/') + 1) + name;
-			if (uri.charAt(0) == '/') {
+			int lastSlash = Math.max(iParentResourceName.lastIndexOf('/'), iParentResourceName.lastIndexOf('\\'));
+			String parentDir = lastSlash >= 0 ? iParentResourceName.substring(0, lastSlash + 1) : "";
+			String uri = parentDir + name;
+			if (uri.charAt(0) == '/' || uri.charAt(0) == '\\' || isWindowsDrivePath(uri)) {
 				is = openResource(uri);
-			} else {
+			} else if (uri.indexOf(':') != -1) {
 				return getHttpInputStream(uri);
+			} else {
+				is = openResource(uri);
 			}
 		}
 
