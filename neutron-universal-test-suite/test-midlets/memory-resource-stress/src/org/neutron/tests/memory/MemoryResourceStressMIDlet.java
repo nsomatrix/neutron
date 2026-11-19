@@ -167,3 +167,4 @@ public class MemoryResourceStressMIDlet extends MIDlet {
         void execute() throws Exception;
     }
 }
+

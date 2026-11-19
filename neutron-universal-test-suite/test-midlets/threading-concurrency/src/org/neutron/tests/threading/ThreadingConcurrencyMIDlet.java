@@ -222,3 +222,4 @@ public class ThreadingConcurrencyMIDlet extends MIDlet {
         void execute() throws Exception;
     }
 }
+

@@ -133,3 +133,4 @@ public class Jsr120MessagingMIDlet extends MIDlet {
         void execute() throws Exception;
     }
 }
+

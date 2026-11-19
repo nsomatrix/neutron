@@ -133,3 +133,4 @@ public class Jsr211ContentHandlerMIDlet extends MIDlet {
         void execute() throws Exception;
     }
 }
+

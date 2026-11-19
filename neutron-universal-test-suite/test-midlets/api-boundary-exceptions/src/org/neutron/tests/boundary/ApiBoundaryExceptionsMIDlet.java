@@ -181,3 +181,4 @@ public class ApiBoundaryExceptionsMIDlet extends MIDlet {
         void execute() throws Exception;
     }
 }
+
