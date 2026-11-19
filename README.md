@@ -93,10 +93,10 @@ Rather than relying on slow, interpreted CPU emulation, Neutron executes mobile 
 
 Neutron is distributed in two release packages to fit any use case:
 
-| Distribution | JAR File | Typical Size | Description |
-|--------------|----------|--------------|-------------|
-| **Neutron Express** | `neutron-1.5.0.jar` | **~2.2 MB** | Full-featured desktop edition featuring FlatLaf themes (macOS Dark/Light, Dracula, IntelliJ), Library Explorer, and graphical controls. |
-| **Neutron Core** | `neutron-core-1.5.0.jar` | **~840 KB** | Ultra-compact distribution with a high-ratio LZMA2/XZ payload decompressor (`CoreLauncher`). Boots in milliseconds with minimal RAM overhead. |
+| Distribution | JAR File | Typical Size | SHA-256 Checksum | Description |
+|--------------|----------|--------------|------------------|-------------|
+| **Neutron Express** | `neutron-1.5.0.jar` | **~2.2 MB** | `8c912df78682c05e8ac212b2be7f994971ac89c23580ef82a7610e2af537872a` | Full-featured desktop edition featuring FlatLaf themes (macOS Dark/Light, Dracula, IntelliJ), Library Explorer, and graphical controls. |
+| **Neutron Core** | `neutron-core-1.5.0.jar` | **~840 KB** | `0192a820e026eacf1fcedd5365acf20c84e20ff43959d814aa805aa672f62c29` | Ultra-compact distribution with a high-ratio LZMA2/XZ payload decompressor (`CoreLauncher`). Boots in milliseconds with minimal RAM overhead. |
 
 Both editions include identical J2ME subsystem support, 3D engines, scalers, and audio playback.
 
