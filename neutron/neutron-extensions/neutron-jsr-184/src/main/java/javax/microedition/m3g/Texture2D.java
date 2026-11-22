@@ -1,26 +1,23 @@
 /*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
+	This file is part of FreeJ2ME.
 
+	FreeJ2ME is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	FreeJ2ME is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
+*/
 package javax.microedition.m3g;
 
-public class Texture2D extends Transformable {
-	//------------------------------------------------------------------
-	// Static data
-	//------------------------------------------------------------------
+public class Texture2D extends Transformable
+{
 
 	public static final int FILTER_BASE_LEVEL = 208;
 	public static final int FILTER_LINEAR = 209;
@@ -33,108 +30,238 @@ public class Texture2D extends Transformable {
 	public static final int WRAP_CLAMP = 240;
 	public static final int WRAP_REPEAT = 241;
 
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+	private int blending;
+	private int blendColor;
+	private int imageFilter;
+	private int levelFilter;
+	private int wraps;
+	private int wrapt;
 
-	private Image2D image;
+	private boolean isNPOT;
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+	private Image2D texImage;
+	private Image2D[] mipmaps;
 
-	public Texture2D(final Image2D image) {
-		super(_ctor(Interface.getHandle(), image != null ? image.handle : 0));
-		this.image = image;
+	public Texture2D(Image2D image)
+	{
+		this.wraps = WRAP_REPEAT;
+		this.wrapt = WRAP_REPEAT;
+		this.levelFilter = FILTER_BASE_LEVEL;
+		this.imageFilter = FILTER_NEAREST;
+		this.blending = FUNC_MODULATE;
+		this.blendColor = 0x00000000;
+		this.isNPOT = false;
+		this.setImage(image);
 	}
 
-	/**
-	 */
-	Texture2D(long handle) {
-		super(handle);
-		image = (Image2D) getInstance(_getImage(handle));
+	protected Object3D duplicateImpl()
+	{
+		Texture2D copy = (Texture2D) super.duplicateImpl();
+		copy.blending = this.blending;
+		copy.blendColor = this.blendColor;
+		copy.imageFilter = this.imageFilter;
+		copy.levelFilter = this.levelFilter;
+		copy.wraps = this.wraps;
+		copy.wrapt = this.wrapt;
+		copy.setImage(this.texImage); // Already adds the reference
+
+		return copy;
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setImage(final Image2D image) {
-		_setImage(handle, image != null ? image.handle : 0);
-		this.image = image;
+	public int getBlendColor()
+	{
+		return this.blendColor;
 	}
 
-	public Image2D getImage() {
-		return image;
+	public int getBlending()
+	{
+		return this.blending;
 	}
 
-	public void setFiltering(int levelFilter, int imageFilter) {
-		_setFiltering(handle, levelFilter, imageFilter);
+	public Image2D getImage()
+	{
+		return this.texImage;
 	}
 
-	public void setWrapping(int wrapS, int wrapT) {
-		_setWrapping(handle, wrapS, wrapT);
+	public int getImageFilter()
+	{
+		return this.imageFilter;
 	}
 
-	public int getWrappingS() {
-		return _getWrappingS(handle);
+	public int getLevelFilter()
+	{
+		return this.levelFilter;
 	}
 
-	public int getWrappingT() {
-		return _getWrappingT(handle);
+	public int getWrappingS()
+	{
+		return this.wraps;
 	}
 
-	public void setBlending(int func) {
-		_setBlending(handle, func);
+	public int getWrappingT()
+	{
+		return this.wrapt;
 	}
 
-	public int getBlending() {
-		return _getBlending(handle);
+	public void setBlendColor(int RGB)
+	{
+		this.blendColor = RGB & 0x00FFFFFF; // Make sure alpha is discarded
 	}
 
-	public void setBlendColor(int RGB) {
-		_setBlendColor(handle, RGB);
+	public void setBlending(int func)
+	{
+		if (func != FUNC_REPLACE &&
+			func != FUNC_MODULATE &&
+			func != FUNC_DECAL &&
+			func != FUNC_BLEND &&
+			func != FUNC_ADD)
+			{ throw new java.lang.IllegalArgumentException("Invalid texture blending mode"); }
+
+		this.blending = func;
 	}
 
-	public int getBlendColor() {
-		return _getBlendColor(handle);
+	public void setFiltering(int levelFilter, int imageFilter)
+	{
+		if ((levelFilter != FILTER_BASE_LEVEL &&
+			 levelFilter != FILTER_NEAREST &&
+			 levelFilter != FILTER_LINEAR) ||
+			(imageFilter != FILTER_NEAREST &&
+			 imageFilter != FILTER_LINEAR))
+			{ throw new java.lang.IllegalArgumentException("Invalid texture filter mode"); }
+
+		this.levelFilter = levelFilter;
+		this.imageFilter = imageFilter;
 	}
 
-	// M3G 1.1 Maintenance release getters
+	public void setImage(Image2D image)
+	{
+		if (image == null)
+			{ throw new java.lang.NullPointerException("Cannot set texture as null image."); }
+		if (image.getWidth() > Graphics3D.MAX_TEXTURE_DIMENSION ||
+			image.getHeight() > Graphics3D.MAX_TEXTURE_DIMENSION)
+			{ throw new java.lang.IllegalArgumentException("Invalid texture size"); }
 
-	public int getImageFilter() {
-		return _getImageFilter(handle);
+		if(!isPowerOfTwo(image.getWidth()) || !isPowerOfTwo(image.getHeight()))
+		{
+			M3GLog.log(M3GLog.LOG_WARNING, Graphics3D.class.getPackage().getName() + "." + Graphics3D.class.getSimpleName() + ": " + "Texture (" + image.getWidth() + "," + image.getHeight() + ") is NPOT! Might cause render issues.");
+			this.isNPOT = true;
+		}
+
+		removeReference(this.texImage);
+		this.texImage = image;
+		addReference(this.texImage);
+
+		// Generate mipmaps for textures
+		generateMipmaps();
 	}
 
-	public int getLevelFilter() {
-		return _getLevelFilter(handle);
+	public void setWrapping(int wrapS, int wrapT)
+	{
+		if ((wrapS != WRAP_CLAMP && wrapS != WRAP_REPEAT) ||
+			(wrapT != WRAP_CLAMP && wrapT != WRAP_REPEAT))
+			{ throw new java.lang.IllegalArgumentException("Invalid texture wrap mode"); }
+
+		this.wraps = wrapS;
+		this.wrapt = wrapT;
 	}
 
-	// Native methods
-	private native static long _ctor(long hInterface, long imageHandle);
+	private static final boolean isPowerOfTwo(int value) { return value > 0 && ((value & (value-1)) == 0); }
 
-	private native static void _setImage(long handle, long imageHandle);
+	@Override
+	void updateProperty(int property, float[] value)
+	{
+		M3GLog.log(M3GLog.LOG_DEBUG, Graphics3D.class.getPackage().getName() + "." + Graphics3D.class.getSimpleName() + ": " + "AnimTrack updating Texture2D property");
+		switch (property)
+		{
+			case AnimationTrack.COLOR:
+				int r = Math.max(0, Math.min(255, (int)(value[0] * 255.0f)));
+				int g = Math.max(0, Math.min(255, (int)(value[1] * 255.0f)));
+				int b = Math.max(0, Math.min(255, (int)(value[2] * 255.0f)));
+				this.blendColor = (r << 16) | (g << 8) | b;
+				break;
+			default:
+				super.updateProperty(property, value);
+		}
+	}
 
-	private native static long _getImage(long handle);
+	boolean animTrackCompatible(AnimationTrack track)
+	{
+		switch (track.getTargetProperty())
+		{
+			case AnimationTrack.COLOR:
+				return true;
+			default:
+				return super.animTrackCompatible(track);
+		}
+	}
 
-	private native static void _setFiltering(long handle, int levelFilter, int imageFilter);
+	// We make some texture coord optimizations in Graphics3D, NPOT
+	// breaks them so we must check whether this texture is NPOT.
+	final boolean isNPOT() { return this.isNPOT; }
 
-	private native static void _setWrapping(long handle, int wrapS, int wrapT);
+	// Generates all mipmaps from the image set to this Texture2D.
+	private final void generateMipmaps()
+	{
+		if (texImage == null) return;
 
-	private native static int _getWrappingS(long handle);
+		int w = texImage.getWidth();
+		int h = texImage.getHeight();
 
-	private native static int _getWrappingT(long handle);
+		// Mipmaps will go all the way down to 1x1
+		int numLevels = 1 + (int)(Math.log(Math.max(w, h)) / Math.log(2));
+		mipmaps = new Image2D[numLevels];
+		mipmaps[0] = texImage;
 
-	private native static void _setBlending(long handle, int func);
+		Image2D current = texImage;
+		for (int i = 1; i < numLevels; i++)
+		{
+			current = createDownsampledLevel(current);
+			mipmaps[i] = current;
+		}
+	}
 
-	private native static int _getBlending(long handle);
+	// Creates a lower mipmap level of an image using 2x2 box filtering.
+	private final Image2D createDownsampledLevel(Image2D src)
+	{
+		int srcW = src.getWidth();
+		int srcH = src.getHeight();
+		int dstW = Math.max(1, srcW >> 1);
+		int dstH = Math.max(1, srcH >> 1);
 
-	private native static void _setBlendColor(long handle, int RGB);
+		// Create target Image2D matching source format
+		Image2D dst = new Image2D(src.getFormat(), dstW, dstH);
 
-	private native static int _getBlendColor(long handle);
+		for (int y = 0; y < dstH; y++)
+		{
+			int sy = y * 2;
+			int sy2 = Math.min(sy + 1, srcH - 1);
 
-	// M3G 1.1 Maintenance release getters
-	private native static int _getImageFilter(long handle);
+			for (int x = 0; x < dstW; x++)
+			{
+				int sx = x * 2;
+				int sx2 = Math.min(sx + 1, srcW - 1);
 
-	private native static int _getLevelFilter(long handle);
+				// Fetch 2x2 neighborhood from source Image2D
+				int c00 = src.getPixel(sx,  sy);
+				int c10 = src.getPixel(sx2, sy);
+				int c08 = src.getPixel(sx,  sy2);
+				int c11 = src.getPixel(sx2, sy2);
+
+				// Average RGBA channels (2x2 Box Filter)
+				int a = (((c00 >>> 24) + (c10 >>> 24) + (c08 >>> 24) + (c11 >>> 24)) + 2) >> 2;
+				int r = ((((c00 >> 16) & 0xFF) + ((c10 >> 16) & 0xFF) + ((c08 >> 16) & 0xFF) + ((c11 >> 16) & 0xFF)) + 2) >> 2;
+				int g = ((((c00 >> 8)  & 0xFF) + ((c10 >> 8)  & 0xFF) + ((c08 >> 8)  & 0xFF) + ((c11 >> 8)  & 0xFF)) + 2) >> 2;
+				int b = ((((c00)       & 0xFF) + ((c10)       & 0xFF) + ((c08)       & 0xFF) + ((c11)       & 0xFF)) + 2) >> 2;
+
+				dst.setPixel(x, y, (a << 24) | (r << 16) | (g << 8) | b);
+			}
+		}
+		return dst;
+	}
+
+	// Returns the image that matches a given LOD level.
+	public final Image2D getImageForLOD(int lod)
+	{
+		return mipmaps[lod >= mipmaps.length ? mipmaps.length - 1 : lod];
+	}
 }

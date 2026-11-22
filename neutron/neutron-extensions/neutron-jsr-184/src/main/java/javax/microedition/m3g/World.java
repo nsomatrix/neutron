@@ -1,76 +1,62 @@
 /*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
+	This file is part of FreeJ2ME.
 
+	FreeJ2ME is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	FreeJ2ME is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
+*/
 package javax.microedition.m3g;
 
-public class World extends Group {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+public class World extends Group
+{
 
-	private Camera activeCamera;
+	private Camera camera;
 	private Background background;
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+	public World() { }
 
-	public World() {
-		super(_ctor(Interface.getHandle()));
+	protected Object3D duplicateImpl()
+	{
+		World copy = (World) super.duplicateImpl();
+
+		/*
+		 * The camera and background fields were shallow-copied by clone().
+		 * Per JSR-184, if the active camera is part of the duplicated set of
+		 * nodes, the duplicate must reference the corresponding duplicated
+		 * camera instead; any other references are left as they are.
+		 */
+		Node copyCamera = (this.camera != null) ? Node.matchingNode(this, this.camera, copy) : null;
+		copy.setActiveCamera((copyCamera instanceof Camera) ? (Camera) copyCamera : this.camera);
+		copy.setBackground(this.background);
+
+		return copy;
 	}
 
-	/**
-	 */
-	World(long handle) {
-		super(handle);
-		background = (Background) getInstance(_getBackground(handle));
-		activeCamera = (Camera) getInstance(_getActiveCamera(handle));
+	public Camera getActiveCamera() { return camera; }
+
+	public void setActiveCamera(Camera camera)
+	{
+		removeReference(this.camera);
+		this.camera = camera;
+		addReference(this.camera);
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
+	public Background getBackground() { return background; }
 
-	public void setBackground(Background background) {
-		_setBackground(handle, background != null ? background.handle : 0);
+	public void setBackground(Background background)
+	{
+		removeReference(this.background);
 		this.background = background;
+		addReference(this.background);
 	}
 
-	public Background getBackground() {
-		return background;
-	}
-
-	public void setActiveCamera(Camera camera) {
-		_setActiveCamera(handle, camera != null ? camera.handle : 0);
-		this.activeCamera = camera;
-	}
-
-	public Camera getActiveCamera() {
-		return activeCamera;
-	}
-
-	// Native methods
-	private static native long _ctor(long hInterface);
-
-	private static native void _setActiveCamera(long handle, long hCamera);
-
-	private static native void _setBackground(long handle, long hBackground);
-
-	private static native long _getActiveCamera(long handle);
-
-	private static native long _getBackground(long handle);
 }

@@ -1,121 +1,94 @@
 /*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
+	This file is part of FreeJ2ME.
 
+	FreeJ2ME is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	FreeJ2ME is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
+*/
 package javax.microedition.m3g;
 
-public class RayIntersection {
+public class RayIntersection
+{
 	private Node intersected = null;
 	private float distance = 0.f;
 	private int submeshIndex = 0;
-	private float[] textureS = new float[Defs.NUM_TEXTURE_UNITS];
-	private float[] textureT = new float[Defs.NUM_TEXTURE_UNITS];
+	private float[] textureS = new float[Graphics3D.getTextureUnitCount()];
+	private float[] textureT = new float[Graphics3D.getTextureUnitCount()];
 	private float[] normal = new float[3];
 	private float[] ray = new float[6];
 
-	public RayIntersection() {
-		normal[0] = 0.f;
-		normal[1] = 0.f;
+	public RayIntersection()
+	{
 		normal[2] = 1.f;
-
-		ray[0] = 0.f;
-		ray[1] = 0.f;
-		ray[2] = 0.f;
-		ray[3] = 0.f;
-		ray[4] = 0.f;
 		ray[5] = 1.f;
 	}
 
-	public Node getIntersected() {
-		return intersected;
+	public Node getIntersected() { return this.intersected; }
+
+	public float getDistance() { return this.distance; }
+
+	public int getSubmeshIndex() { return this.submeshIndex; }
+
+	public float getTextureS(int index)
+	{
+		if (index < 0 || index >= textureS.length)
+			{ throw new IndexOutOfBoundsException("Invalid texture unit"); }
+
+		return this.textureS[index];
 	}
 
-	public float getDistance() {
-		return distance;
+	public float getTextureT(int index)
+	{
+		if (index < 0 || index >= textureS.length)
+			{ throw new IndexOutOfBoundsException("Invalid texture unit"); }
+
+		return this.textureT[index];
 	}
 
-	public int getSubmeshIndex() {
-		return submeshIndex;
+	public float getNormalX() { return this.normal[0]; }
+
+	public float getNormalY() { return this.normal[1]; }
+
+	public float getNormalZ() { return this.normal[2]; }
+
+	public void getRay(float[] ray)
+	{
+		if (ray == null) { throw new NullPointerException("Ray cannot be null"); }
+
+		if (ray.length < 6) { throw new IllegalArgumentException("Invalid Ray size"); }
+
+		System.arraycopy(this.ray, 0, ray, 0, 6);
 	}
 
-	public float getTextureS(int index) {
-		if (index < 0 || index >= textureS.length) {
-			throw new IndexOutOfBoundsException();
+	void set(Node node, float distance, int submeshIndex, float[] ray, float[] normal, float[] texS, float[] texT)
+	{
+		this.intersected = node;
+		this.distance = distance;
+		this.submeshIndex = submeshIndex;
+
+		if (ray != null) { System.arraycopy(ray, 0, this.ray, 0, 6); }
+
+		if (normal != null) { System.arraycopy(normal, 0, this.normal, 0, 3); }
+
+		if (texS != null)
+		{
+			int len = Math.min(texS.length, this.textureS.length);
+			System.arraycopy(texS, 0, this.textureS, 0, len);
 		}
 
-		return textureS[index];
-	}
-
-	public float getTextureT(int index) {
-		if (index < 0 || index >= textureT.length) {
-			throw new IndexOutOfBoundsException();
+		if (texT != null)
+		{
+			int len = Math.min(texT.length, this.textureT.length);
+			System.arraycopy(texT, 0, this.textureT, 0, len);
 		}
-
-		return textureT[index];
-	}
-
-	public float getNormalX() {
-		return normal[0];
-	}
-
-	public float getNormalY() {
-		return normal[1];
-	}
-
-	public float getNormalZ() {
-		return normal[2];
-	}
-
-	public void getRay(float[] ray) {
-		if (ray.length < 6) {
-			throw new IllegalArgumentException();
-		}
-
-		ray[0] = this.ray[0];
-		ray[1] = this.ray[1];
-		ray[2] = this.ray[2];
-		ray[3] = this.ray[3];
-		ray[4] = this.ray[4];
-		ray[5] = this.ray[5];
-	}
-
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	static float[] createResult() {
-		return new float[1 + 1 + 2 * Defs.NUM_TEXTURE_UNITS + 3 + 6];
-	}
-
-	void fill(long hIntersected, float[] result) {
-		intersected = (Node) Object3D.getInstance(hIntersected);
-		distance = result[0];
-		submeshIndex = (int) result[1];
-		textureS[0] = result[2];
-		textureS[1] = result[3];
-		textureT[0] = result[4];
-		textureT[1] = result[5];
-		normal[0] = result[6];
-		normal[1] = result[7];
-		normal[2] = result[8];
-		ray[0] = result[9];
-		ray[1] = result[10];
-		ray[2] = result[11];
-		ray[3] = result[12];
-		ray[4] = result[13];
-		ray[5] = result[14];
 	}
 }

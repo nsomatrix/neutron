@@ -1,151 +1,127 @@
 /*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
+	This file is part of FreeJ2ME.
 
+	FreeJ2ME is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	FreeJ2ME is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
+*/
 package javax.microedition.m3g;
 
-public class Appearance extends Object3D {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
+public class Appearance extends Object3D
+{
 
+	private int layer;
 	private CompositingMode compositingMode;
 	private Fog fog;
-	private Material material;
 	private PolygonMode polygonMode;
+	private Material material;
 	private Texture2D[] textures;
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
-
-	public Appearance() {
-		super(_ctor(Interface.getHandle()));
+	public Appearance()
+	{
+		this.layer = 0;
+		this.polygonMode = null;
+		this.compositingMode = null;
+		this.textures = new Texture2D[Graphics3D.NUM_TEXTURE_UNITS];
+		this.material = null;
+		this.fog = null;
 	}
 
-	/**
-	 */
-	Appearance(long handle) {
-		super(handle);
+	protected Object3D duplicateImpl()
+	{
+		Appearance copy = (Appearance) super.duplicateImpl();
 
-		compositingMode = (CompositingMode) getInstance(_getCompositingMode(handle));
-		fog = (Fog) getInstance(_getFog(handle));
-		material = (Material) getInstance(_getMaterial(handle));
-		polygonMode = (PolygonMode) getInstance(_getPolygonMode(handle));
+		copy.layer = this.layer;
 
-		textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
+		copy.setCompositingMode(this.compositingMode);
+		copy.setFog(this.fog);
+		copy.setMaterial(this.material);
+		copy.setPolygonMode(this.polygonMode);
 
-		for (int i = 0; i < Defs.NUM_TEXTURE_UNITS; ++i) {
-			textures[i] = (Texture2D) getInstance(_getTexture(handle, i));
+		copy.textures = new Texture2D[this.textures.length];
+		for (int i = 0; i < this.textures.length; i++)
+		{
+			copy.setTexture(i, this.textures[i]);
 		}
+
+		return copy;
 	}
 
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setCompositingMode(CompositingMode compositingMode) {
-		_setCompositingMode(handle,
-				compositingMode != null
-						? compositingMode.handle
-						: 0);
-		this.compositingMode = compositingMode;
+	public void setLayer(int layer)
+	{
+		if (layer < -63 || layer > 63)
+		{
+			throw new IllegalArgumentException("Layer must be in range of [-63, 63]");
+		}
+		this.layer = layer;
 	}
 
-	public CompositingMode getCompositingMode() {
-		return compositingMode;
-	}
+	public int getLayer() { return layer; }
 
-	public void setFog(Fog fog) {
-		_setFog(handle, fog != null ? fog.handle : 0);
+	public void setFog(Fog fog)
+	{
+		this.removeReference(this.fog);
 		this.fog = fog;
+		this.addReference(this.fog);
 	}
 
-	public Fog getFog() {
-		return fog;
-	}
+	public Fog getFog() { return fog; }
 
-	public void setPolygonMode(PolygonMode polygonMode) {
-		_setPolygonMode(handle, polygonMode != null ? polygonMode.handle : 0);
+	public void setPolygonMode(PolygonMode polygonMode)
+	{
+		this.removeReference(this.polygonMode);
 		this.polygonMode = polygonMode;
+		this.addReference(this.polygonMode);
 	}
 
-	public PolygonMode getPolygonMode() {
-		return polygonMode;
-	}
+	public PolygonMode getPolygonMode() { return polygonMode; }
 
-	public void setLayer(int index) {
-		_setLayer(handle, index);
-	}
-
-	public int getLayer() {
-		return _getLayer(handle);
-	}
-
-	public void setMaterial(Material material) {
-		_setMaterial(handle, material != null ? material.handle : 0);
+	public void setMaterial(Material material)
+	{
+		this.removeReference(this.material);
 		this.material = material;
+		this.addReference(this.material);
 	}
 
-	public Material getMaterial() {
-		return material;
+	public Material getMaterial() { return material; }
+
+	public void setCompositingMode(CompositingMode comp)
+	{
+		this.removeReference(this.compositingMode);
+		this.compositingMode = comp;
+		this.addReference(this.compositingMode);
 	}
 
-	public void setTexture(int unit, Texture2D texture) {
-		_setTexture(handle, unit, texture != null ? texture.handle : 0);
+	public CompositingMode getCompositingMode() { return this.compositingMode; }
 
-		if (textures == null) {
-			textures = new Texture2D[Defs.NUM_TEXTURE_UNITS];
+	public void setTexture(int index, Texture2D texture)
+	{
+		if (index < 0 || index >= textures.length)
+		{
+			throw new IndexOutOfBoundsException("index must be in [0," + textures.length + "]");
 		}
-		textures[unit] = texture;
+
+		this.removeReference(textures[index]);
+		textures[index] = texture;
+		this.addReference(textures[index]);
 	}
 
-	public Texture2D getTexture(int unit) {
-		return (Texture2D) getInstance(_getTexture(handle, unit));
+	public Texture2D getTexture(int index)
+	{
+		if (index < 0 || index >= textures.length)
+		{
+			throw new IndexOutOfBoundsException("index must be in [0," + textures.length + "]");
+		}
+
+		return textures[index];
 	}
-
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	private static native long _ctor(long hInterface);
-
-	private static native long _getCompositingMode(long hApp);
-
-	private static native long _getFog(long hApp);
-
-	private static native int _getLayer(long hApp);
-
-	private static native long _getMaterial(long hApp);
-
-	private static native long _getPolygonMode(long hApp);
-
-	private static native long _getTexture(long hApp, int unit);
-
-	private static native void _setCompositingMode(long hApp, long hMode);
-
-	private static native void _setFog(long hApp, long hFog);
-
-	private static native void _setLayer(long hApp, int layer);
-
-	private static native void _setMaterial(long hApp, long hMaterial);
-
-	private static native void _setPolygonMode(long hApp, long hMode);
-
-	private static native void _setTexture(long hApp,
-										   int unit,
-										   long hTexture);
 }

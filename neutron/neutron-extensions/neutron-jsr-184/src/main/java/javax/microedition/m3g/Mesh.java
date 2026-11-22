@@ -1,211 +1,141 @@
 /*
- * Copyright (c) 2003 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
+	This file is part of FreeJ2ME.
 
+	FreeJ2ME is free software: you can redistribute it and/or modify
+	it under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+
+	FreeJ2ME is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	You should have received a copy of the GNU General Public License
+	along with FreeJ2ME.  If not, see http://www.gnu.org/licenses/
+*/
 package javax.microedition.m3g;
 
-public class Mesh extends Node {
-	//------------------------------------------------------------------
-	// Instance data
-	//------------------------------------------------------------------
-
+public class Mesh extends Node
+{
 	private VertexBuffer vertices;
+	private IndexBuffer[] submeshes;
 	private Appearance[] appearances;
-	private IndexBuffer[] triangles;
 
-	static private IndexBuffer[] tempTrianglesArray;
-	static private Appearance[] tempAppearanceArray;
+	protected Mesh() { }
 
-	static private IndexBuffer tempTriangles;
-	static private Appearance tempAppearance;
+	public Mesh(VertexBuffer vertices, IndexBuffer submesh, Appearance appearance)
+	{
+		if ((vertices == null) || (submesh == null)) { throw new NullPointerException("Cannot create mesh due to a null element"); }
 
-	//------------------------------------------------------------------
-	// Constructor(s)
-	//------------------------------------------------------------------
+		this.vertices = vertices;
+		this.submeshes = new IndexBuffer[]{submesh};
+		this.appearances = new Appearance[]{appearance};
 
-	Mesh(long handle) {
-		super(handle);
-		updateReferences();
-	}
-
-	public Mesh(VertexBuffer vertices,
-				IndexBuffer[] triangles,
-				Appearance[] appearances) {
-		super(createHandle(vertices, triangles, appearances));
-		updateReferences();
-	}
-
-	public Mesh(VertexBuffer vertices,
-				IndexBuffer triangles,
-				Appearance appearance) {
-		super(createHandle(vertices, triangles, appearance));
-		updateReferences();
-	}
-
-	//------------------------------------------------------------------
-	// Public methods
-	//------------------------------------------------------------------
-
-	public void setAppearance(int index, Appearance appearance) {
-		_setAppearance(handle, index, appearance != null ? appearance.handle : 0);
-		appearances[index] = appearance;
-	}
-
-	public Appearance getAppearance(int index) {
-		return appearances[index];
-	}
-
-	public IndexBuffer getIndexBuffer(int index) {
-		return triangles[index];
-	}
-
-	public VertexBuffer getVertexBuffer() {
-		return vertices;
-	}
-
-	public int getSubmeshCount() {
-		return _getSubmeshCount(handle);
-	}
-
-	//------------------------------------------------------------------
-	// Private methods
-	//------------------------------------------------------------------
-
-	static void verifyParams(VertexBuffer vertices,
-							 IndexBuffer[] triangles,
-							 Appearance[] appearances) {
-		if (vertices == null || triangles == null) {
-			throw new NullPointerException();
+		// Appearance can be null here, so only add the reference if it isn't
+		if (this.appearances[0] != null) { addReference(this.appearances[0]); }
+		addReference(this.vertices);
+		addReference(this.submeshes[0]);
 		}
-		if (triangles.length == 0
-				|| appearances != null && appearances.length < triangles.length) {
-			throw new IllegalArgumentException();
+
+	public Mesh(VertexBuffer vertices, IndexBuffer[] submeshes, Appearance[] appearances)
+	{
+		if ((vertices == null) || (submeshes == null))
+		{
+			throw new NullPointerException("Cannot create mesh due to a null element");
 		}
-		for (IndexBuffer triangle : triangles) {
-			if (triangle == null) {
-				throw new NullPointerException();
+
+		if (submeshes.length == 0)
+		{
+			throw new IllegalArgumentException("Submesh array cannot be empty");
+		}
+
+		if (appearances != null && appearances.length < submeshes.length)
+		{
+			throw new IllegalArgumentException("Appearances array has invalid length.");
+		}
+
+		this.vertices = vertices;
+		this.submeshes = new IndexBuffer[submeshes.length];
+		this.appearances = new Appearance[submeshes.length];
+
+		addReference(this.vertices);
+
+		for (int i = 0; i < submeshes.length; i++)
+		{
+			if (submeshes[i] == null) { throw new NullPointerException("Submesh " + i + " is null."); }
+
+			this.submeshes[i] = submeshes[i];
+			addReference(this.submeshes[i]);
+
+			if (appearances != null && appearances[i] != null)
+			{
+				this.appearances[i] = appearances[i];
+				addReference(this.appearances[i]);
 			}
 		}
-	}
-
-	static void verifyParams(VertexBuffer vertices,
-							 IndexBuffer triangles) {
-		if (vertices == null || triangles == null) {
-			throw new NullPointerException();
-		}
-	}
-
-	void updateReferences() {
-		triangles = new IndexBuffer[_getSubmeshCount(handle)];
-		appearances = new Appearance[triangles.length];
-
-		vertices = (VertexBuffer) getInstance(_getVertexBuffer(handle));
-
-		for (int i = 0; i < triangles.length; i++) {
-			triangles[i] = (IndexBuffer) getInstance(_getIndexBuffer(handle, i));
-			appearances[i] = (Appearance) getInstance(_getAppearance(handle, i));
-		}
-	}
-
-	static long createHandle(VertexBuffer vertices,
-							IndexBuffer[] triangles,
-							Appearance[] appearances) {
-
-		tempTrianglesArray = triangles;
-		tempAppearanceArray = appearances;
-
-		// Verify parameters
-		verifyParams(vertices, triangles, appearances);
-
-		// Init the native side
-		long[] hTriangles = new long[triangles.length];
-		long[] hAppearances = null;
-
-		if (appearances != null) {
-			hAppearances = new long[appearances.length];
 		}
 
-		for (int i = 0; i < triangles.length; i++) {
-			hTriangles[i] = triangles[i].handle;
+	protected Object3D duplicateImpl()
+	{
+		Mesh copy = (Mesh) super.duplicateImpl();
 
-			if (appearances != null) {
-				hAppearances[i] = appearances[i] != null ? appearances[i].handle : 0;
-			}
+		copy.vertices = this.vertices;
+		if (copy.vertices != null) { copy.addReference(copy.vertices); }
+
+		copy.submeshes = new IndexBuffer[this.submeshes.length];
+		for (int i = 0; i < this.submeshes.length; i++)
+		{
+			copy.submeshes[i] = this.submeshes[i];
+			if (copy.submeshes[i] != null) { copy.addReference(copy.submeshes[i]); }
 		}
 
-		long ret = _ctor(Interface.getHandle(),
-				vertices.handle,
-				hTriangles,
-				hAppearances);
-
-
-		tempTrianglesArray = null;
-		tempAppearanceArray = null;
-
-		return ret;
-
-	}
-
-	static long createHandle(VertexBuffer vertices,
-							IndexBuffer triangles,
-							Appearance appearance) {
-
-		tempTriangles = triangles;
-		tempAppearance = appearance;
-
-		verifyParams(vertices, triangles);
-
-		// Init the native side
-		long[] hTriangles = new long[1];
-		long[] hAppearances = null;
-
-		hTriangles[0] = triangles.handle;
-
-		if (appearance != null) {
-			hAppearances = new long[1];
-			hAppearances[0] = appearance.handle;
+		copy.appearances = new Appearance[this.appearances.length];
+		for (int i = 0; i < this.appearances.length; i++)
+		{
+			copy.appearances[i] = this.appearances[i];
+			if (copy.appearances[i] != null) { copy.addReference(copy.appearances[i]); }
 		}
 
-		long ret = _ctor(Interface.getHandle(),
-				vertices.handle,
-				hTriangles,
-				hAppearances);
-
-
-		tempTriangles = null;
-		tempAppearance = null;
-
-
-		return ret;
-
+		return copy;
 	}
 
-	// Native methods
-	private static native long _ctor(long hInstance,
-									long hVertices,
-									long[] hTriangles,
-									long[] hAppearances);
+	public Appearance getAppearance(int index)
+	{
+		if (index < 0 || index >= submeshes.length) { throw new IndexOutOfBoundsException("Cannot get invalid appearance index"); }
 
-	private static native void _setAppearance(long handle, int index, long hAppearance);
+		return this.appearances[index];
+	}
 
-	private static native long _getAppearance(long handle, int index);
+	public IndexBuffer getIndexBuffer(int index)
+	{
+		if (index < 0 || index >= submeshes.length) { throw new IndexOutOfBoundsException("Cannot get invalid index buffer index"); }
 
-	private static native long _getIndexBuffer(long handle, int index);
+		return this.submeshes[index];
+	}
 
-	private static native long _getVertexBuffer(long handle);
+	public int getSubmeshCount() { return this.submeshes.length; }
 
-	private static native int _getSubmeshCount(long handle);
+	public VertexBuffer getVertexBuffer() { return this.vertices; }
+
+	/*
+	 * Internal counterpart of getVertexBuffer(), used by the renderer and the
+	 * picker, which need the deformed geometry.
+	 *
+	 * Per JSR-184, getVertexBuffer() must always return the original VertexBuffer
+	 * supplied at construction: "The VertexBuffer is never written to by the
+	 * implementation. Specifically, the results of morphing (MorphingMesh) and
+	 * skinning (SkinnedMesh) are not written to the VertexBuffer, nor are they
+	 * exposed to the application by any other means." Those subclasses therefore
+	 * keep their posed buffer private and hand it over through this method.
+	 */
+	VertexBuffer getPosedVertexBuffer() { return getVertexBuffer(); }
+
+	public void setAppearance(int index, Appearance appearance)
+	{
+		if (index < 0 || index >= submeshes.length) { throw new IndexOutOfBoundsException("Cannot set to invalid appearance index"); }
+		removeReference(this.appearances[index]);
+		this.appearances[index] = appearance;
+		addReference(this.appearances[index]);
+	}
 }
