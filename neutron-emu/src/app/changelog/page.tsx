@@ -11,7 +11,7 @@ interface Release {
   date: string;
   tag: "latest" | "stable" | "beta" | null;
   changes: {
-    type: "added" | "changed" | "fixed" | "removed";
+    type: "added" | "changed" | "updated" | "fixed" | "removed";
     description: string;
   }[];
 }
@@ -25,15 +25,15 @@ const releases: Release[] = [
       { type: "changed", description: "Released updated standalone application binaries (neutron-1.5.0.jar & neutron-core-1.5.0.jar) with verified SHA-256 checksums" },
       { type: "added", description: "Virtual Keypad: Integrated on-screen virtual phone keypad with quick toggle shortcut (Ctrl+B)" },
       { type: "added", description: "Cross-Platform 3D: Bundled pre-compiled C99 JSR-184 M3G native binaries for Linux (x86_64), Windows (x86_64), and macOS (Intel & Apple Silicon arm64)" },
-      { type: "fixed", description: "JSR-184 M3G Stability: Synchronized object finalization and added atomic handle verification, eliminating native SIGSEGV crashes on scene changes" },
+      { type: "updated", description: "JSR-184 M3G Stability: Synchronized object finalization and added atomic handle verification, eliminating native SIGSEGV crashes on scene changes" },
       { type: "changed", description: "Graphics Engine: Pixel-exact integer alpha blending with zero-arithmetic fast-path rasterization (+38% throughput boost)" },
-      { type: "fixed", description: "Nokia UI DirectGraphics: Implemented full transform manipulation matrix (FLIP_VERTICAL combinations) and polygon/triangle rendering" },
-      { type: "fixed", description: "MMAPI Audio: Corrected MidiAudioPlayer lifecycle state transitions and coupled VolumeControl to hardware master gain" },
-      { type: "fixed", description: "RMS Persistence: Implemented atomic temporary-file file persistence (saveToDiskSecure) and path traversal sanitization" },
-      { type: "fixed", description: "JVM 21+ Compatibility: Cooperative thread interruption and cleanup replacing deprecated Thread.stop()" },
-      { type: "fixed", description: "JSR-75 FileConnection: Wrapped output streams to safely close underlying RandomAccessFile descriptors on Windows" },
+      { type: "updated", description: "Nokia UI DirectGraphics: Implemented full transform manipulation matrix (FLIP_VERTICAL combinations) and polygon/triangle rendering" },
+      { type: "updated", description: "MMAPI Audio: Corrected MidiAudioPlayer lifecycle state transitions and coupled VolumeControl to hardware master gain" },
+      { type: "updated", description: "RMS Persistence: Implemented atomic temporary-file file persistence (saveToDiskSecure) and path traversal sanitization" },
+      { type: "updated", description: "JVM 21+ Compatibility: Cooperative thread interruption and cleanup replacing deprecated Thread.stop()" },
+      { type: "updated", description: "JSR-75 FileConnection: Wrapped output streams to safely close underlying RandomAccessFile descriptors on Windows" },
       { type: "added", description: "Universal Drag & Drop: Full window-wide drop target supporting multi-file drops, .jad/.jar pair preference, and RFC 2483 URI list parsing on Linux" },
-      { type: "fixed", description: "MIDP 2.0 GameCanvas: Protected off-screen buffer lifecycle against premature invalidation during midlet startup and hot-swap" },
+      { type: "updated", description: "MIDP 2.0 GameCanvas: Protected off-screen buffer lifecycle against premature invalidation during midlet startup and hot-swap" },
       { type: "added", description: "Display Engine: Dynamic aspect-ratio letterboxing with active black margin blanking to prevent canvas ghosting across games" }
     ],
   },
@@ -43,12 +43,12 @@ const releases: Release[] = [
     tag: "stable",
     changes: [
       { type: "changed", description: "Released updated application binaries (neutron-1.4.0.jar & neutron-core-1.4.0.jar)" },
-      { type: "fixed", description: "J2ME Core & Math Integrity: Corrected Sprite reference pixel coordinates and transform matrix calculations across all 8 orientations" },
+      { type: "updated", description: "J2ME Core & Math Integrity: Corrected Sprite reference pixel coordinates and transform matrix calculations across all 8 orientations" },
       { type: "added", description: "JSR-184 M3G: Implemented full binary .m3g chunk stream parser with Zlib deflation and Adler-32 integrity validation" },
-      { type: "fixed", description: "MMAPI Audio: Non-destructive end-of-media player lifecycle restoration with seamless repeat playback and tone generator binding" },
+      { type: "updated", description: "MMAPI Audio: Non-destructive end-of-media player lifecycle restoration with seamless repeat playback and tone generator binding" },
       { type: "added", description: "Nokia UI DirectGraphics: Implemented 32-bit ARGB drawPixels with rotational and mirror manipulation support" },
-      { type: "fixed", description: "JSR-75 FileConnection: Enforced strict read-only mode validation (IllegalModeException) and blocked path-traversal escapes" },
-      { type: "fixed", description: "GCF Networking: Preserved default HTTP GET method semantics until explicit output stream creation" },
+      { type: "updated", description: "JSR-75 FileConnection: Enforced strict read-only mode validation (IllegalModeException) and blocked path-traversal escapes" },
+      { type: "updated", description: "GCF Networking: Preserved default HTTP GET method semantics until explicit output stream creation" },
       { type: "changed", description: "Project metadata: Updated developer role attribution to CoreDev" }
     ],
   },
@@ -99,7 +99,8 @@ const releases: Release[] = [
 const typeConfig = {
   added: { label: "Added", color: "text-emerald-500" },
   changed: { label: "Changed", color: "text-blue-accent" },
-  fixed: { label: "Fixed", color: "text-amber-500" },
+  updated: { label: "Updated", color: "text-amber-500" },
+  fixed: { label: "Updated", color: "text-amber-500" },
   removed: { label: "Removed", color: "text-red-500" },
 } as const;
 

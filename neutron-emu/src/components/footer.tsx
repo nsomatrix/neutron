@@ -1,8 +1,9 @@
 import Link from "next/link";
+import Image from "next/image";
 import { siteConfig } from "@/config/site";
 import { Logo } from "@/components/logo";
 import { GitHubIcon } from "@/components/icons";
-import { Heart } from "lucide-react";
+import matrixImg from "@/assets/matrix.png";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -104,9 +105,23 @@ export function Footer() {
           <p className="text-xs text-muted-foreground">
             © {currentYear} {siteConfig.name}.
           </p>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            Made with <Heart className="h-3.5 w-3.5 fill-red-500 text-red-500 inline-block align-middle" /> by NSOMatrix™
-          </p>
+          <a
+            href="https://github.com/nsomatrix"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 transition-opacity hover:opacity-90"
+          >
+            <Image
+              src={matrixImg}
+              alt="NSOMatrix Logo"
+              width={28}
+              height={28}
+              className="h-6 w-auto object-contain"
+            />
+            <span className="text-xs text-muted-foreground">
+              Powered by <span className="font-semibold text-foreground">NSOMatrix™</span>
+            </span>
+          </a>
         </div>
       </div>
     </footer>
