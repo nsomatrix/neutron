@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: midp-standard-apis.jar
-MIDlet-Jar-Size: 10686
-MIDlet-Name: midp-standard-apis
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: midp-standard-apis,,org.neutron.tests.midp.MidpStandardApisMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

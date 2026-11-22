@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: jsr256-sensors.jar
-MIDlet-Jar-Size: 7391
-MIDlet-Name: jsr256-sensors
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: jsr256-sensors,,org.neutron.tests.sensors.Jsr256SensorsMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

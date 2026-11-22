@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: nokia-oem-apis.jar
-MIDlet-Jar-Size: 9546
-MIDlet-Name: nokia-oem-apis
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: nokia-oem-apis,,org.neutron.tests.nokia.NokiaOemMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

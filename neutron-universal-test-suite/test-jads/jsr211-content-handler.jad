@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: jsr211-content-handler.jar
-MIDlet-Jar-Size: 7402
-MIDlet-Name: jsr211-content-handler
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: jsr211-content-handler,,org.neutron.tests.content.Jsr211ContentHandlerMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

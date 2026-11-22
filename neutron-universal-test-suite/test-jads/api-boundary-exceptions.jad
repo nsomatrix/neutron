@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: api-boundary-exceptions.jar
-MIDlet-Jar-Size: 9567
-MIDlet-Name: api-boundary-exceptions
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: api-boundary-exceptions,,org.neutron.tests.boundary.ApiBoundaryExceptionsMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

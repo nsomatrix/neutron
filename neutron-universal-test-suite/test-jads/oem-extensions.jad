@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: oem-extensions.jar
-MIDlet-Jar-Size: 9929
-MIDlet-Name: oem-extensions
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: oem-extensions,,org.neutron.tests.oem.OemExtensionsMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

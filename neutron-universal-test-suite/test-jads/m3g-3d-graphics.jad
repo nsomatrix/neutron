@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: m3g-3d-graphics.jar
-MIDlet-Jar-Size: 11494
-MIDlet-Name: m3g-3d-graphics
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: m3g-3d-graphics,,org.neutron.tests.m3g.M3g3dGraphicsMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

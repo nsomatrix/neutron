@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: memory-resource-stress.jar
-MIDlet-Jar-Size: 7710
-MIDlet-Name: memory-resource-stress
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: memory-resource-stress,,org.neutron.tests.memory.MemoryResourceStressMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: endurance-soak.jar
-MIDlet-Jar-Size: 4377
-MIDlet-Name: endurance-soak
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: endurance-soak,,org.neutron.tests.endurance.EnduranceSoakMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: mmapi-audio-media.jar
-MIDlet-Jar-Size: 11444
-MIDlet-Name: mmapi-audio-media
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: mmapi-audio-media,,org.neutron.tests.media.MmapiAudioMediaMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

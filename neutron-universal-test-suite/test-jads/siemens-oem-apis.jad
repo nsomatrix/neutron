@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: siemens-oem-apis.jar
-MIDlet-Jar-Size: 9026
-MIDlet-Name: siemens-oem-apis
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: siemens-oem-apis,,org.neutron.tests.siemens.SiemensOemMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

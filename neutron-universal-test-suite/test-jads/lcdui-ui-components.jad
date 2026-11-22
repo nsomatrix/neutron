@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: lcdui-ui-components.jar
-MIDlet-Jar-Size: 10433
-MIDlet-Name: lcdui-ui-components
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: lcdui-ui-components,,org.neutron.tests.lcdui.LcduiUiComponentsMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0

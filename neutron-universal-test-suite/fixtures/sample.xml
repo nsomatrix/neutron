@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<midlet-test-suite version="1.0">
-    <subsystem name="cldc">
-        <test id="T001" status="PASS">Arithmetic</test>
-    </subsystem>
-    <subsystem name="midp">
-        <test id="T002" status="PASS">LCDUI</test>
-    </subsystem>
-</midlet-test-suite>

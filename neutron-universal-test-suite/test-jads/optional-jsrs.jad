@@ -1,8 +1,0 @@
-MIDlet-Jar-URL: optional-jsrs.jar
-MIDlet-Jar-Size: 8492
-MIDlet-Name: optional-jsrs
-MIDlet-Vendor: Neutron Universal Testing Framework
-MIDlet-Version: 1.0.0
-MIDlet-1: optional-jsrs,,org.neutron.tests.optional.OptionalJsrsMIDlet
-MicroEdition-Configuration: CLDC-1.1
-MicroEdition-Profile: MIDP-2.0
