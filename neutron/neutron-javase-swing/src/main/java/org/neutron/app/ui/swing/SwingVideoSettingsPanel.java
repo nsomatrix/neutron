@@ -25,7 +25,6 @@ import javax.swing.event.ChangeListener;
 
 import org.neutron.app.Config;
 import org.neutron.graphics3d.Graphics3DConfig;
-import org.neutron.graphics3d.RenderBackendType;
 
 public class SwingVideoSettingsPanel extends SwingDialogPanel {
 
@@ -41,7 +40,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 	private JCheckBox forcePerspectiveCheckBox;
 	private JCheckBox subpixelCheckBox;
 	private JCheckBox bilinear3dCheckBox;
-	private JCheckBox hardwareGlCheckBox;
 
 	private JLabel brightnessValueLabel;
 	private JLabel contrastValueLabel;
@@ -57,7 +55,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 	private int originalSharpness;
 	private int originalGhosting;
 	private boolean originalInvert;
-	private RenderBackendType originalBackend;
 	private boolean originalForcePerspective;
 	private boolean originalSubpixel;
 	private boolean originalBilinear3d;
@@ -75,7 +72,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 		originalSharpness = Config.getSharpness();
 		originalGhosting = Config.getGhosting();
 		originalInvert = Config.isInvert();
-		originalBackend = Graphics3DConfig.getBackendType();
 		originalForcePerspective = Graphics3DConfig.isForcePerspective();
 		originalSubpixel = Graphics3DConfig.isSubpixelPrecision();
 		originalBilinear3d = Graphics3DConfig.isBilinearFiltering();
@@ -144,29 +140,22 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 		add(invertCheckBox, c);
 
 		// 3D Options
-		hardwareGlCheckBox = new JCheckBox("3D Hardware Acceleration (OpenGL GPU)", originalBackend == RenderBackendType.OPENGL);
-		c.gridy = 8;
-		c.gridx = 0;
-		c.gridwidth = 3;
-		c.weightx = 1.0;
-		add(hardwareGlCheckBox, c);
-
 		forcePerspectiveCheckBox = new JCheckBox("3D Force Perspective Correction", originalForcePerspective);
-		c.gridy = 9;
+		c.gridy = 8;
 		c.gridx = 0;
 		c.gridwidth = 3;
 		c.weightx = 1.0;
 		add(forcePerspectiveCheckBox, c);
 
 		subpixelCheckBox = new JCheckBox("3D Subpixel Precision (Reduce vertex jitter)", originalSubpixel);
-		c.gridy = 10;
+		c.gridy = 9;
 		c.gridx = 0;
 		c.gridwidth = 3;
 		c.weightx = 1.0;
 		add(subpixelCheckBox, c);
 
 		bilinear3dCheckBox = new JCheckBox("3D Bilinear Texture Filtering", originalBilinear3d);
-		c.gridy = 11;
+		c.gridy = 10;
 		c.gridx = 0;
 		c.gridwidth = 3;
 		c.weightx = 1.0;
@@ -174,7 +163,7 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 
 		// Reset Button
 		JButton resetButton = new JButton("Reset to Defaults");
-		c.gridy = 12;
+		c.gridy = 11;
 		c.gridx = 0;
 		c.gridwidth = 3;
 		c.fill = GridBagConstraints.NONE;
@@ -239,13 +228,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 			}
 		});
 
-		hardwareGlCheckBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Graphics3DConfig.setBackendType(hardwareGlCheckBox.isSelected() ? RenderBackendType.OPENGL : RenderBackendType.SOFTWARE);
-				repaintEmulator();
-			}
-		});
-
 		forcePerspectiveCheckBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Graphics3DConfig.setForcePerspective(forcePerspectiveCheckBox.isSelected());
@@ -276,7 +258,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 				sharpnessSlider.setValue(0);
 				ghostingSlider.setValue(0);
 				invertCheckBox.setSelected(false);
-				hardwareGlCheckBox.setSelected(true);
 				forcePerspectiveCheckBox.setSelected(true);
 				subpixelCheckBox.setSelected(true);
 				bilinear3dCheckBox.setSelected(true);
@@ -288,7 +269,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 				Config.setSharpness(0);
 				Config.setGhosting(0);
 				Config.setInvert(false);
-				Graphics3DConfig.setBackendType(RenderBackendType.SOFTWARE);
 				Graphics3DConfig.setForcePerspective(true);
 				Graphics3DConfig.setSubpixelPrecision(true);
 				Graphics3DConfig.setBilinearFiltering(false);
@@ -344,7 +324,6 @@ public class SwingVideoSettingsPanel extends SwingDialogPanel {
 		Config.setSharpness(originalSharpness);
 		Config.setGhosting(originalGhosting);
 		Config.setInvert(originalInvert);
-		Graphics3DConfig.setBackendType(originalBackend);
 		Graphics3DConfig.setForcePerspective(originalForcePerspective);
 		Graphics3DConfig.setSubpixelPrecision(originalSubpixel);
 		Graphics3DConfig.setBilinearFiltering(originalBilinear3d);

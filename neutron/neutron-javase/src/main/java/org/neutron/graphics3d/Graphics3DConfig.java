@@ -23,12 +23,12 @@ public final class Graphics3DConfig {
 
     static {
         // Initialize from system properties with modern defaults
-        // Default to hardware-accelerated OpenGL backend; fallback to software on headless/CPU-only
-        String backendProp = System.getProperty("neutron.3d.backend", "opengl").trim().toLowerCase();
-        if ("software".equals(backendProp) || "sw".equals(backendProp) || "cpu".equals(backendProp)) {
-            backendType = RenderBackendType.SOFTWARE;
-        } else {
+        // Default to pure-Java software 3D rasterizer
+        String backendProp = System.getProperty("neutron.3d.backend", "software").trim().toLowerCase();
+        if ("opengl".equals(backendProp) || "gpu".equals(backendProp) || "gl".equals(backendProp)) {
             backendType = RenderBackendType.OPENGL;
+        } else {
+            backendType = RenderBackendType.SOFTWARE;
         }
 
         // Standard perspective division enabled by default

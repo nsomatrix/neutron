@@ -1292,10 +1292,10 @@ public class Common implements Neutron, CommonInterface {
                     System.setProperty("neutron.m3g.bilinear", "2");
                 } else if (arg.equals("--noSubpixel")) {
                     Graphics3DConfig.setSubpixelPrecision(false);
-                } else if (arg.equals("--opengl3d") || arg.equals("--gpu")) {
-                    Graphics3DConfig.setBackendType(RenderBackendType.OPENGL);
                 } else if (arg.equals("--software3d") || arg.equals("--cpu3d")) {
                     Graphics3DConfig.setBackendType(RenderBackendType.SOFTWARE);
+                } else if (arg.equals("--opengl3d") || arg.equals("--gpu")) {
+                    Logger.info("OpenGL 3D is disabled in pure-Java distribution; running software 3D.");
                 } else if (arg.startsWith("--")) {
                     // Allow to add new arguments in future that are not supported by older version
                     Logger.warn("Unknown argument " + arg);
@@ -1560,7 +1560,7 @@ public class Common implements Neutron, CommonInterface {
                 + "[--resizableDevice {width} {height}]\n"
                 + "[--forcePerspective|--appPerspective|--disablePerspective]\n"
                 + "[--bilinear3d]\n"
-                + "[--opengl3d|--software3d]\n"
+                + "[--software3d]\n"
                 + "[--noSubpixel]\n"
                 + "(({MIDlet class name} [--propertiesjad {jad file location}]) | {jad file location} | {jar file location})";
     }
