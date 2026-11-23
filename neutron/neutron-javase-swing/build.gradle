@@ -86,6 +86,8 @@ task rawJar(type: Jar) {
     exclude 'META-INF/native-image/**'
     exclude 'META-INF/INDEX.LIST'
     exclude 'com/formdev/flatlaf/natives/**'
+    exclude 'com/formdev/flatlaf/resources/Bundle_*.properties'
+    exclude '**/LICENSE*'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -99,7 +101,40 @@ task compressPayload {
         def outFile = file("${buildDir}/payload/payload.jar.xz")
         outFile.parentFile.mkdirs()
 
-        inFile.withInputStream { is ->
+        def sortedZipFile = file("${buildDir}/tmp/payload-sorted.jar")
+        sortedZipFile.parentFile.mkdirs()
+
+        def zipIn = new java.util.zip.ZipFile(inFile)
+        def entries = zipIn.entries().collect().findAll { !it.directory }
+        entries.sort { a, b ->
+            boolean aClass = a.name.endsWith('.class')
+            boolean bClass = b.name.endsWith('.class')
+            if (aClass != bClass) return aClass ? 1 : -1
+            return a.name.compareTo(b.name)
+        }
+
+        def fos = new FileOutputStream(sortedZipFile)
+        def zipOut = new java.util.zip.ZipOutputStream(new BufferedOutputStream(fos))
+        zipOut.setMethod(java.util.zip.ZipOutputStream.STORED)
+        byte[] buf = new byte[32768]
+        entries.each { entry ->
+            def newEntry = new java.util.zip.ZipEntry(entry.name)
+            newEntry.setMethod(java.util.zip.ZipEntry.STORED)
+            newEntry.setSize(entry.size)
+            newEntry.setCrc(entry.crc)
+            zipOut.putNextEntry(newEntry)
+            def is = zipIn.getInputStream(entry)
+            int n
+            while ((n = is.read(buf)) != -1) {
+                zipOut.write(buf, 0, n)
+            }
+            is.close()
+            zipOut.closeEntry()
+        }
+        zipOut.close()
+        zipIn.close()
+
+        sortedZipFile.withInputStream { is ->
             outFile.withOutputStream { os ->
                 def lzmaOpts = new org.tukaani.xz.LZMA2Options(9)
                 lzmaOpts.setDictSize(16 * 1024 * 1024)
@@ -107,7 +142,6 @@ task compressPayload {
                 lzmaOpts.setMatchFinder(org.tukaani.xz.LZMA2Options.MF_BT4)
                 lzmaOpts.setMode(org.tukaani.xz.LZMA2Options.MODE_NORMAL)
                 def xzOut = new org.tukaani.xz.XZOutputStream(os, lzmaOpts)
-                byte[] buf = new byte[32768]
                 int n
                 while ((n = is.read(buf)) != -1) {
                     xzOut.write(buf, 0, n)
@@ -115,6 +149,7 @@ task compressPayload {
                 xzOut.finish()
             }
         }
+        sortedZipFile.delete()
     }
 }
 
@@ -134,8 +169,9 @@ jar {
     include 'org/neutron/app/SwingLauncher*.class'
     include 'org/tukaani/xz/**'
     include 'payload.jar.xz'
-    exclude 'org/tukaani/xz/*Encoder*'
-    exclude 'org/tukaani/xz/*OutputStream*'
+    exclude 'org/tukaani/xz/**/*Encoder*'
+    exclude 'org/tukaani/xz/**/*OutputStream*'
+    exclude 'org/tukaani/xz/**/Seekable*'
     exclude 'org/tukaani/xz/lz/BT4*'
     exclude 'org/tukaani/xz/lz/HC4*'
     exclude 'org/tukaani/xz/lz/Hash234*'
@@ -143,8 +179,51 @@ jar {
     exclude 'org/tukaani/xz/lz/Matches*'
     exclude 'org/tukaani/xz/lzma/Optimum*'
     exclude 'org/tukaani/xz/rangecoder/RangeEncoder*'
-    exclude 'org/tukaani/xz/delta/DeltaEncoder*'
+    exclude 'org/tukaani/xz/delta/**'
+    exclude 'org/tukaani/xz/Delta*'
+    exclude 'org/tukaani/xz/IA64*'
+    exclude 'org/tukaani/xz/PowerPC*'
+    exclude 'org/tukaani/xz/SPARC*'
+    exclude 'org/tukaani/xz/ARM*'
+    exclude 'org/tukaani/xz/LZMA2Options*'
+    exclude 'org/tukaani/xz/LZMAInputStream*'
+    exclude 'org/tukaani/xz/SimpleInputStream*'
+    exclude 'org/tukaani/xz/BCJ*'
+    exclude 'org/tukaani/xz/X86Options*'
+    exclude 'org/tukaani/xz/simple/**'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    doLast {
+        def jarFile = archiveFile.get().asFile
+        def repackedFile = new File(jarFile.parentFile, jarFile.name + ".repack")
+        def zIn = new java.util.zip.ZipFile(jarFile)
+        def fos = new FileOutputStream(repackedFile)
+        def zOut = new java.util.zip.ZipOutputStream(new BufferedOutputStream(fos))
+        byte[] b = new byte[32768]
+        zIn.entries().each { e ->
+            def is = zIn.getInputStream(e)
+            if (e.name == 'payload.jar.xz') {
+                def ne = new java.util.zip.ZipEntry(e.name)
+                ne.setMethod(java.util.zip.ZipEntry.STORED)
+                ne.setSize(e.size)
+                ne.setCrc(e.crc)
+                zOut.putNextEntry(ne)
+            } else {
+                def ne = new java.util.zip.ZipEntry(e.name)
+                ne.setMethod(java.util.zip.ZipEntry.DEFLATED)
+                zOut.putNextEntry(ne)
+            }
+            int n
+            while ((n = is.read(b)) != -1) {
+                zOut.write(b, 0, n)
+            }
+            is.close()
+            zOut.closeEntry()
+        }
+        zOut.close()
+        zIn.close()
+        java.nio.file.Files.move(repackedFile.toPath(), jarFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+    }
 }
 
 run.dependsOn compressPayload
