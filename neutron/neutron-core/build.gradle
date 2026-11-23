@@ -102,6 +102,24 @@ task rawJar(type: Jar) {
     exclude '**/COPYING*'
     exclude '**/*.launch'
     exclude 'payload.jar.xz'
+    exclude 'META-INF/**/*.sha1'
+    exclude 'META-INF/**/*.git'
+    exclude 'META-INF/native-image/**'
+    exclude 'META-INF/INDEX.LIST'
+    exclude '**/libglfw_async.dylib'
+    exclude 'org/lwjgl/system/linux/liburing/**'
+    exclude 'org/lwjgl/opengl/ARB*'
+    exclude 'org/lwjgl/opengl/EXT*'
+    exclude 'org/lwjgl/opengl/NV*'
+    exclude 'org/lwjgl/opengl/AMD*'
+    exclude 'org/lwjgl/opengl/ATI*'
+    exclude 'org/lwjgl/opengl/APPLE*'
+    exclude 'org/lwjgl/opengl/KHR*'
+    exclude 'org/lwjgl/opengl/OVR*'
+    exclude 'org/lwjgl/opengl/OES*'
+    exclude 'org/lwjgl/opengl/INTEL*'
+    exclude 'org/lwjgl/opengl/GL33*'
+    exclude 'org/lwjgl/opengl/GL4*'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
@@ -117,7 +135,8 @@ task compressPayload {
 
         inFile.withInputStream { is ->
             outFile.withOutputStream { os ->
-                def lzmaOpts = new org.tukaani.xz.LZMA2Options(6)
+                def lzmaOpts = new org.tukaani.xz.LZMA2Options(9)
+                lzmaOpts.setDictSize(16 * 1024 * 1024)
                 lzmaOpts.setNiceLen(273)
                 lzmaOpts.setMatchFinder(org.tukaani.xz.LZMA2Options.MF_BT4)
                 lzmaOpts.setMode(org.tukaani.xz.LZMA2Options.MODE_NORMAL)
@@ -149,6 +168,16 @@ jar {
     include 'org/neutron/app/CoreLauncher*.class'
     include 'org/tukaani/xz/**'
     include 'payload.jar.xz'
+    exclude 'org/tukaani/xz/*Encoder*'
+    exclude 'org/tukaani/xz/*OutputStream*'
+    exclude 'org/tukaani/xz/lz/BT4*'
+    exclude 'org/tukaani/xz/lz/HC4*'
+    exclude 'org/tukaani/xz/lz/Hash234*'
+    exclude 'org/tukaani/xz/lz/LZEncoder*'
+    exclude 'org/tukaani/xz/lz/Matches*'
+    exclude 'org/tukaani/xz/lzma/Optimum*'
+    exclude 'org/tukaani/xz/rangecoder/RangeEncoder*'
+    exclude 'org/tukaani/xz/delta/DeltaEncoder*'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 

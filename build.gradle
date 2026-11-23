@@ -12,6 +12,11 @@ subprojects {
         mavenCentral()
     }
 
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['-g:lines,source']
+    }
+
     plugins.withId('application') {
         tasks.named('run').configure {
             onlyIf { !gradle.taskGraph.hasTask(":run") }
