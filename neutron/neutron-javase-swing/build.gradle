@@ -24,10 +24,8 @@ dependencies {
     implementation project(':neutron:neutron-extensions:neutron-jsr-82')
     implementation project(':neutron:neutron-extensions:neutron-siemensapi')
     implementation project(':neutron:neutron-extensions:neutron-micro3d')
-    implementation project(':neutron:neutron-extensions:neutron-opengl')
     implementation project(':neutron:neutron-extensions:neutron-oem-apis')
     implementation project(':neutron:neutron-extensions:neutron-jsr-234')
-    implementation project(':neutron:neutron-extensions:neutron-jsr-239')
     implementation project(':neutron:neutron-extensions:neutron-jsr-226')
     implementation project(':neutron:neutron-extensions:neutron-jsr-172')
     implementation project(':neutron:neutron-extensions:neutron-jsr-179')
@@ -57,10 +55,8 @@ task rawJar(type: Jar) {
               ':neutron:neutron-extensions:neutron-jsr-82:jar',
               ':neutron:neutron-extensions:neutron-siemensapi:jar',
               ':neutron:neutron-extensions:neutron-micro3d:jar',
-              ':neutron:neutron-extensions:neutron-opengl:jar',
               ':neutron:neutron-extensions:neutron-oem-apis:jar',
               ':neutron:neutron-extensions:neutron-jsr-234:jar',
-              ':neutron:neutron-extensions:neutron-jsr-239:jar',
               ':neutron:neutron-extensions:neutron-jsr-226:jar',
               ':neutron:neutron-extensions:neutron-jsr-172:jar',
               ':neutron:neutron-extensions:neutron-jsr-179:jar',
@@ -89,20 +85,7 @@ task rawJar(type: Jar) {
     exclude 'META-INF/**/*.git'
     exclude 'META-INF/native-image/**'
     exclude 'META-INF/INDEX.LIST'
-    exclude '**/libglfw_async.dylib'
-    exclude 'org/lwjgl/system/linux/liburing/**'
-    exclude 'org/lwjgl/opengl/ARB*'
-    exclude 'org/lwjgl/opengl/EXT*'
-    exclude 'org/lwjgl/opengl/NV*'
-    exclude 'org/lwjgl/opengl/AMD*'
-    exclude 'org/lwjgl/opengl/ATI*'
-    exclude 'org/lwjgl/opengl/APPLE*'
-    exclude 'org/lwjgl/opengl/KHR*'
-    exclude 'org/lwjgl/opengl/OVR*'
-    exclude 'org/lwjgl/opengl/OES*'
-    exclude 'org/lwjgl/opengl/INTEL*'
-    exclude 'org/lwjgl/opengl/GL33*'
-    exclude 'org/lwjgl/opengl/GL4*'
+    exclude 'com/formdev/flatlaf/natives/**'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
