@@ -208,9 +208,8 @@ task proguardLauncher(type: proguard.gradle.ProGuardTask) {
     }
     optimizationpasses 7
     overloadaggressively
-    repackageclasses ''
+    repackageclasses 'x'
     allowaccessmodification
-    mergeinterfacesaggressively
     dontwarn
     dontnote
     keep 'public class org.neutron.app.CoreLauncher { public static void main(java.lang.String[]); }'
@@ -222,14 +221,11 @@ jar {
     manifest {
         attributes 'Main-Class': 'org.neutron.app.CoreLauncher'
     }
+    mainSpec.sourcePaths.clear()
     from zipTree("${buildDir}/tmp/proguard/launcher-proguard.jar")
     from("${buildDir}/payload") {
         include 'payload.jar.xz'
     }
-    include '*.class'
-    include 'org/neutron/app/CoreLauncher*.class'
-    include 'payload.jar.xz'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     doLast {
         def jarFile = archiveFile.get().asFile

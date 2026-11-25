@@ -3,7 +3,6 @@
 -overloadaggressively
 -repackageclasses ''
 -allowaccessmodification
--mergeinterfacesaggressively
 -dontwarn
 -dontnote
 
