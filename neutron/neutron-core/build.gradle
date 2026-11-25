@@ -4,6 +4,7 @@ buildscript {
     }
     dependencies {
         classpath 'org.tukaani:xz:1.9'
+        classpath 'com.guardsquare:proguard-gradle:7.6.1'
     }
 }
 
@@ -102,16 +103,32 @@ task rawJar(type: Jar) {
     exclude 'META-INF/**/*.git'
     exclude 'META-INF/native-image/**'
     exclude 'META-INF/INDEX.LIST'
+    exclude 'META-INF/versions/**'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-task compressPayload {
+task proguardPayload(type: proguard.gradle.ProGuardTask) {
     dependsOn rawJar
-    inputs.file rawJar.archiveFile
+    configuration 'proguard.pro'
+    injars rawJar.archiveFile
+    outjars "${buildDir}/tmp/proguard/payload-proguard.jar"
+    def javaHome = System.getProperty('java.home')
+    ['java.base', 'java.desktop', 'java.datatransfer', 'java.logging', 'java.xml', 'java.naming', 'java.management', 'java.sql', 'jdk.unsupported'].each { mod ->
+        def jmod = file("${javaHome}/jmods/${mod}.jmod")
+        if (jmod.exists()) {
+            libraryjars jmod, jarfilter: '!**.jar', filter: '!module-info.class'
+        }
+    }
+}
+
+task compressPayload {
+    dependsOn proguardPayload
+    def proguardOut = file("${buildDir}/tmp/proguard/payload-proguard.jar")
+    inputs.file proguardOut
     outputs.file "${buildDir}/payload/payload.jar.xz"
 
     doLast {
-        def inFile = rawJar.archiveFile.get().asFile
+        def inFile = proguardOut
         def outFile = file("${buildDir}/payload/payload.jar.xz")
         outFile.parentFile.mkdirs()
 
@@ -167,44 +184,51 @@ task compressPayload {
     }
 }
 
-jar {
-    dependsOn compressPayload
-    archiveBaseName = 'neutron-core'
-    manifest {
-        attributes 'Main-Class': 'org.neutron.app.CoreLauncher'
-    }
+task rawLauncherJar(type: Jar) {
+    dependsOn compileJava
+    archiveBaseName = 'launcher-raw'
+    destinationDirectory = file("${buildDir}/tmp/launcher")
     from fileTree(dir: "${buildDir}/classes/java/main", include: 'org/neutron/app/CoreLauncher*.class')
     from {
         configurations.runtimeClasspath.findAll { it.name.contains('xz') }.collect { zipTree(it) }
     }
+    include 'org/neutron/app/CoreLauncher*.class'
+    include 'org/tukaani/xz/**'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+task proguardLauncher(type: proguard.gradle.ProGuardTask) {
+    dependsOn rawLauncherJar
+    injars rawLauncherJar.archiveFile
+    outjars "${buildDir}/tmp/proguard/launcher-proguard.jar"
+    def javaHome = System.getProperty('java.home')
+    def jmod = file("${javaHome}/jmods/java.base.jmod")
+    if (jmod.exists()) {
+        libraryjars jmod, jarfilter: '!**.jar', filter: '!module-info.class'
+    }
+    optimizationpasses 7
+    overloadaggressively
+    repackageclasses ''
+    allowaccessmodification
+    mergeinterfacesaggressively
+    dontwarn
+    dontnote
+    keep 'public class org.neutron.app.CoreLauncher { public static void main(java.lang.String[]); }'
+}
+
+jar {
+    dependsOn compressPayload, proguardLauncher
+    archiveBaseName = 'neutron-core'
+    manifest {
+        attributes 'Main-Class': 'org.neutron.app.CoreLauncher'
+    }
+    from zipTree("${buildDir}/tmp/proguard/launcher-proguard.jar")
     from("${buildDir}/payload") {
         include 'payload.jar.xz'
     }
+    include '*.class'
     include 'org/neutron/app/CoreLauncher*.class'
-    include 'org/tukaani/xz/**'
     include 'payload.jar.xz'
-    exclude 'org/tukaani/xz/**/*Encoder*'
-    exclude 'org/tukaani/xz/**/*OutputStream*'
-    exclude 'org/tukaani/xz/**/Seekable*'
-    exclude 'org/tukaani/xz/lz/BT4*'
-    exclude 'org/tukaani/xz/lz/HC4*'
-    exclude 'org/tukaani/xz/lz/Hash234*'
-    exclude 'org/tukaani/xz/lz/LZEncoder*'
-    exclude 'org/tukaani/xz/lz/Matches*'
-    exclude 'org/tukaani/xz/lzma/Optimum*'
-    exclude 'org/tukaani/xz/rangecoder/RangeEncoder*'
-    exclude 'org/tukaani/xz/delta/**'
-    exclude 'org/tukaani/xz/Delta*'
-    exclude 'org/tukaani/xz/IA64*'
-    exclude 'org/tukaani/xz/PowerPC*'
-    exclude 'org/tukaani/xz/SPARC*'
-    exclude 'org/tukaani/xz/ARM*'
-    exclude 'org/tukaani/xz/LZMA2Options*'
-    exclude 'org/tukaani/xz/LZMAInputStream*'
-    exclude 'org/tukaani/xz/SimpleInputStream*'
-    exclude 'org/tukaani/xz/BCJ*'
-    exclude 'org/tukaani/xz/X86Options*'
-    exclude 'org/tukaani/xz/simple/**'
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     doLast {
