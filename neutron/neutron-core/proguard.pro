@@ -126,6 +126,15 @@
 -keep class *Impl {
     <init>();
 }
+-keep interface *Delegate {
+    *;
+}
+-keep class * implements org.neutron.app.util.XMLItem {
+    <init>();
+}
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
 -keepclassmembers class org.neutron.** {
     public static *** instance();
 }
@@ -147,6 +156,12 @@
     public static void debug(java.lang.String, boolean);
     public static void debugClassLoader(java.lang.String, java.lang.Object);
     public static boolean isDebugEnabled();
+}
+
+# Keep enum values()/valueOf() for Enum.valueOf() and reflection
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
 
 # Keep serializable members

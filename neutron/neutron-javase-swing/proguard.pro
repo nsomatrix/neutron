@@ -126,6 +126,15 @@
 -keep class *Impl {
     <init>();
 }
+-keep interface *Delegate {
+    *;
+}
+-keep class * implements org.neutron.app.util.XMLItem {
+    <init>();
+}
+-keepclasseswithmembernames,includedescriptorclasses class * {
+    native <methods>;
+}
 -keepclassmembers class org.neutron.** {
     public static *** instance();
 }
@@ -171,6 +180,22 @@
 }
 -keep class com.formdev.flatlaf.icons.** {
     <init>(...);
+}
+-keep enum com.formdev.flatlaf.** {
+    *;
+}
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keep @interface com.formdev.flatlaf.ui.FlatStylingSupport$Styleable*
+-keepclassmembers class com.formdev.flatlaf.** {
+    @com.formdev.flatlaf.ui.FlatStylingSupport$Styleable *;
+    @com.formdev.flatlaf.ui.FlatStylingSupport$StyleableField *;
+    @com.formdev.flatlaf.ui.FlatStylingSupport$StyleableFields *;
+}
+
+# Keep enum values()/valueOf() for Enum.valueOf() and reflection
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
 }
 
 # Strip out debug log statements to shrink bytecode size
