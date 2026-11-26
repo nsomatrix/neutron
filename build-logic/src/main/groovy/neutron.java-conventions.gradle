@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+def buildType = providers.gradleProperty('buildType').getOrElse('dev').toLowerCase()
+if (!(buildType in ['dev', 'release'])) {
+    throw new GradleException("Invalid buildType '${buildType}'. Supported values: 'dev', 'release'.")
+}
+def isRelease = (buildType == 'release')
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    // Dev builds keep full debug tables (-g) for IDE debugging; release builds keep compact line/source info.
+    options.compilerArgs.add(isRelease ? '-g:lines,source' : '-g')
+}
+
+tasks.withType(Test).configureEach {
+    useJUnit()
+    systemProperty 'neutron.test.mode', 'true'
+}
+

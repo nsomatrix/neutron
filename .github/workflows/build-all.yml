@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-universal-jar:
-    name: Build Universal Standalone JAR
+    name: Build & Test Universal Standalone JAR
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -21,6 +21,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '21'
+          cache: 'gradle'
 
       - name: Install System Dependencies for Testing
         run: sudo apt-get update && sudo apt-get install -y xvfb libgl1-mesa-dev libegl1-mesa-dev
@@ -28,14 +29,14 @@ jobs:
       - name: Grant Execute Permission to Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Build All and Package Standalone JAR
-        run: ./gradlew assemble
-
-      - name: Run Test Suite
+      - name: Run Test Suite (Dev Mode)
         run: xvfb-run --auto-servernum ./gradlew test
 
-      - name: Upload Standalone Fat JAR
+      - name: Build Standalone Release JARs (ProGuard + XZ)
+        run: ./gradlew assemble -PbuildType=release
+
+      - name: Upload Standalone Swing JAR
         uses: actions/upload-artifact@v4
         with:
           name: neutron-standalone-jar
-          path: neutron/neutron-javase-swing/build/libs/neutron-javase-swing-*.jar
+          path: neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-*.jar

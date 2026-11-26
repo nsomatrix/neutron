@@ -1,16 +1,11 @@
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-configurations {
-    inject
+plugins {
+    id 'neutron.java-conventions'
 }
 
-jar {
+def injectConfig = configurations.consumable('inject') {
+    outgoing.artifact(tasks.named('jar'))
+}
+
+tasks.named('jar', Jar).configure {
     archiveClassifier.set('inject')
-}
-
-artifacts {
-    inject(jar)
 }

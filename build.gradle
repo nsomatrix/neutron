@@ -1,45 +1,34 @@
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'maven-publish'
+plugins {
+    id 'base'
+}
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+def isRelease = providers.gradleProperty('buildType').getOrElse('dev').equalsIgnoreCase('release')
+def appJarTask = isRelease ? 'releaseJar' : 'jar'
 
-    group = 'org.neutron'
-    version = '1.5.0'
+tasks.register('run') {
+    group = 'application'
+    description = 'Builds and launches both full-fledged Swing and Core versions simultaneously.'
+    dependsOn ":neutron:neutron-javase-swing:${appJarTask}", ":neutron:neutron-core:${appJarTask}"
+    doLast {
+        def swingProject = project(':neutron:neutron-javase-swing')
+        def coreProject = project(':neutron:neutron-core')
+        def swingTask = swingProject.tasks.named(appJarTask).get()
+        def coreTask = coreProject.tasks.named(appJarTask).get()
+        def swingJar = isRelease ? swingTask.outputJar.get().asFile : swingTask.archiveFile.get().asFile
+        def coreJar = isRelease ? coreTask.outputJar.get().asFile : coreTask.archiveFile.get().asFile
 
-    repositories {
-        mavenCentral()
-    }
+        def swingCmd = ['java'] + swingProject.application.applicationDefaultJvmArgs + ['-jar', swingJar.absolutePath]
+        println "Launching Full-Fledged Version: ${swingJar.name}"
+        new ProcessBuilder(swingCmd).start()
 
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-        options.compilerArgs += ['-g:lines,source']
-    }
-
-    plugins.withId('application') {
-        tasks.named('run').configure {
-            onlyIf { !gradle.taskGraph.hasTask(":run") }
-        }
-    }
-
-    tasks.withType(Test) {
-        systemProperty 'neutron.test.mode', 'true'
+        def coreCmd = ['java'] + coreProject.application.applicationDefaultJvmArgs + ['-jar', coreJar.absolutePath]
+        println "Launching Core Version: ${coreJar.name}"
+        new ProcessBuilder(coreCmd).start()
     }
 }
 
-task run {
-    group = 'application'
-    description = 'Builds and launches both full-fledged version and core version simultaneously.'
-    dependsOn ':neutron:neutron-javase-swing:jar', ':neutron:neutron-core:jar'
-    doLast {
-        def swingJar = project(':neutron:neutron-javase-swing').tasks.named('jar').get().archiveFile.get().asFile
-        def coreJar = project(':neutron:neutron-core').tasks.named('jar').get().archiveFile.get().asFile
-
-        println "Launching Full-Fledged Version: ${swingJar.name}"
-        new ProcessBuilder("java", "-jar", swingJar.absolutePath).start()
-
-        println "Launching Core Version: ${coreJar.name}"
-        new ProcessBuilder("java", "-jar", coreJar.absolutePath).start()
-    }
+tasks.register('release') {
+    group = 'build'
+    description = 'Builds all standalone release JARs (ProGuard + XZ packed).'
+    dependsOn ':neutron:neutron-javase-swing:releaseJar', ':neutron:neutron-core:releaseJar'
 }

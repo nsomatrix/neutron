@@ -1,0 +1,203 @@
+import org.neutron.build.CompressXzPayloadTask
+import org.neutron.build.PackStandaloneJarTask
+import proguard.gradle.ProGuardTask
+
+plugins {
+    id 'neutron.java-conventions'
+    id 'application'
+}
+
+interface NeutronPackedAppExtension {
+    Property<String> getLauncherMainClass()
+    Property<String> getAppBaseName()
+    RegularFileProperty getProguardConfig()
+    ListProperty<String> getPayloadExcludes()
+}
+
+def neutronApp = extensions.create('neutronApp', NeutronPackedAppExtension)
+neutronApp.proguardConfig.convention(layout.projectDirectory.file('proguard.pro'))
+neutronApp.payloadExcludes.convention([])
+
+def buildType = providers.gradleProperty('buildType').getOrElse('dev').toLowerCase()
+def isRelease = (buildType == 'release')
+
+def payloadProguardOut = layout.buildDirectory.file('tmp/proguard/payload-proguard.jar')
+def launcherProguardOut = layout.buildDirectory.file('tmp/proguard/launcher-proguard.jar')
+
+application {
+    mainClass.set(neutronApp.launcherMainClass)
+}
+
+tasks.named('run', JavaExec).configure {
+    onlyIf { !gradle.taskGraph.hasTask(':run') }
+}
+
+def rawPayloadJar = tasks.register('rawPayloadJar', Jar) {
+    group = 'build'
+    description = 'Assembles an unoptimized fat JAR of the application payload for ProGuard.'
+    dependsOn(configurations.runtimeClasspath)
+    archiveBaseName.set(neutronApp.appBaseName.map { "${it}-raw" })
+    destinationDirectory.set(layout.buildDirectory.dir('tmp/rawJar'))
+    entryCompression = ZipEntryCompression.STORED
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from sourceSets.main.output
+    from {
+        configurations.runtimeClasspath.findAll { !it.name.contains('xz') }.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+
+    exclude 'META-INF/maven/**'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude '**/README*'
+    exclude '**/COPYING*'
+    exclude '**/LICENSE*'
+    exclude '**/*.launch'
+    exclude 'payload.jar.xz'
+    exclude 'META-INF/**/*.sha1'
+    exclude 'META-INF/**/*.git'
+    exclude 'META-INF/native-image/**'
+    exclude 'META-INF/INDEX.LIST'
+    exclude 'META-INF/versions/**'
+}
+
+def proguardPayload = tasks.register('proguardPayload', ProGuardTask) {
+    group = 'build'
+    description = 'Shrinks, optimizes, and obfuscates the application payload with ProGuard.'
+    dependsOn(rawPayloadJar)
+    inputs.file(neutronApp.proguardConfig)
+
+    injars(rawPayloadJar.flatMap { it.archiveFile })
+    outjars(payloadProguardOut)
+    printmapping(layout.buildDirectory.file('outputs/mapping/payload-mapping.txt'))
+
+    def javaHome = System.getProperty('java.home')
+    [
+        'java.base', 'java.desktop', 'java.datatransfer', 'java.logging',
+        'java.xml', 'java.naming', 'java.management', 'java.sql', 'jdk.unsupported'
+    ].each { mod ->
+        def jmod = file("${javaHome}/jmods/${mod}.jmod")
+        if (jmod.exists()) {
+            libraryjars(jmod, jarfilter: '!**.jar', filter: '!module-info.class')
+        }
+    }
+}
+
+def compressPayload = tasks.register('compressPayload', CompressXzPayloadTask) {
+    group = 'build'
+    description = 'Deterministically sorts and XZ-compresses the ProGuard-processed payload.'
+    dependsOn(proguardPayload)
+    inputJar.set(payloadProguardOut)
+    outputXz.set(layout.buildDirectory.file('payload/payload.jar.xz'))
+}
+
+def rawLauncherJar = tasks.register('rawLauncherJar', Jar) {
+    group = 'build'
+    description = 'Packages the minimal XZ-unpacking launcher class and XZ decoder.'
+    dependsOn(tasks.named('compileJava'), configurations.runtimeClasspath)
+    archiveBaseName.set('launcher-raw')
+    destinationDirectory.set(layout.buildDirectory.dir('tmp/launcher'))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    from {
+        configurations.runtimeClasspath.findAll { it.name.contains('xz') }.collect { zipTree(it) }
+    }
+    include('org/tukaani/xz/**')
+}
+
+def proguardLauncher = tasks.register('proguardLauncher', ProGuardTask) {
+    group = 'build'
+    description = 'Applies aggressive ProGuard optimization to the minimal launcher.'
+    dependsOn(rawLauncherJar)
+
+    injars(rawLauncherJar.flatMap { it.archiveFile })
+    outjars(launcherProguardOut)
+    printmapping(layout.buildDirectory.file('outputs/mapping/launcher-mapping.txt'))
+
+    def javaHome = System.getProperty('java.home')
+    def jmod = file("${javaHome}/jmods/java.base.jmod")
+    if (jmod.exists()) {
+        libraryjars(jmod, jarfilter: '!**.jar', filter: '!module-info.class')
+    }
+
+    optimizationpasses 7
+    overloadaggressively
+    repackageclasses 'x'
+    allowaccessmodification
+    dontwarn
+    dontnote
+}
+
+def releaseJar = tasks.register('releaseJar', PackStandaloneJarTask) {
+    group = 'build'
+    description = 'Packages the ProGuard-shrunk, XZ-compressed standalone release JAR.'
+    dependsOn(compressPayload, proguardLauncher)
+    launcherJar.set(launcherProguardOut)
+    payloadXz.set(compressPayload.flatMap { it.outputXz })
+    mainClass.set(neutronApp.launcherMainClass)
+    outputJar.set(neutronApp.appBaseName.flatMap { base ->
+        layout.buildDirectory.file("libs/release/${base}-${project.version}.jar")
+    })
+}
+
+// Dev JAR always bundles runtimeClasspath into build/libs/dev/ so it is directly runnable via `java -jar`.
+// In release mode, dev packaging tasks are disabled so release builds never overwrite or corrupt build/libs/dev/.
+tasks.named('jar', Jar).configure {
+    enabled = !isRelease
+    dependsOn(configurations.runtimeClasspath)
+    archiveBaseName.set(neutronApp.appBaseName)
+    destinationDirectory.set(layout.buildDirectory.dir('libs/dev'))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    manifest {
+        attributes('Main-Class': neutronApp.launcherMainClass)
+    }
+    from {
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    exclude 'META-INF/maven/**'
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    exclude 'META-INF/INDEX.LIST'
+    exclude 'META-INF/versions/**'
+}
+
+if (isRelease) {
+    ['startScripts', 'distZip', 'distTar'].each { taskName ->
+        tasks.named(taskName).configure { enabled = false }
+    }
+    tasks.named('assemble').configure {
+        dependsOn(releaseJar)
+    }
+}
+
+afterEvaluate {
+    def extraExcludes = neutronApp.payloadExcludes.get()
+    if (!extraExcludes.isEmpty()) {
+        rawPayloadJar.configure {
+            exclude(extraExcludes)
+        }
+    }
+
+    proguardPayload.configure {
+        configuration(neutronApp.proguardConfig.get().asFile)
+    }
+
+    def launcherClassPattern = neutronApp.launcherMainClass.get().replace('.', '/') + '*.class'
+    rawLauncherJar.configure {
+        from(sourceSets.main.output.classesDirs) {
+            include(launcherClassPattern)
+        }
+        include(launcherClassPattern)
+    }
+
+    proguardLauncher.configure {
+        keep("public class ${neutronApp.launcherMainClass.get()} { public static void main(java.lang.String[]); }")
+    }
+}
+

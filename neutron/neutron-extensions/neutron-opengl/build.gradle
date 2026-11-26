@@ -1,29 +1,5 @@
-apply plugin: 'java-library'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-import org.gradle.internal.os.OperatingSystem
-
-project.ext {
-    lwjglVersion = "3.3.3"
-    switch (OperatingSystem.current()) {
-        case OperatingSystem.LINUX:
-            def osArch = System.getProperty("os.arch")
-            lwjglNatives = (osArch.startsWith("arm") || osArch.startsWith("aarch64")) ? "natives-linux-arm64" : "natives-linux"
-            break
-        case OperatingSystem.WINDOWS:
-            def osArch = System.getProperty("os.arch")
-            lwjglNatives = osArch.contains("64") ? "natives-windows" : "natives-windows-x86"
-            break
-        case OperatingSystem.MAC_OS:
-            def osArch = System.getProperty("os.arch")
-            lwjglNatives = (osArch.startsWith("aarch64") || osArch.startsWith("arm")) ? "natives-macos-arm64" : "natives-macos"
-            break
-        default:
-            lwjglNatives = "natives-linux"
-            break
-    }
+plugins {
+    id 'neutron.java-conventions'
 }
 
 dependencies {
@@ -32,22 +8,22 @@ dependencies {
     api project(':neutron:neutron-extensions:neutron-micro3d')
     api project(':neutron:neutron-extensions:neutron-jsr-184')
 
-    api platform("org.lwjgl:lwjgl-bom:${lwjglVersion}")
-    api "org.lwjgl:lwjgl"
-    api "org.lwjgl:lwjgl-opengl"
-    api "org.lwjgl:lwjgl-glfw"
+    api platform(libs.lwjgl.bom)
+    api libs.lwjgl.core
+    api libs.lwjgl.opengl
+    api libs.lwjgl.glfw
 
     // Mainstream 64-bit desktop LWJGL natives (matches Nokia M3G platform targets)
     [
-        "natives-linux",
-        "natives-windows",
-        "natives-macos", "natives-macos-arm64"
-    ].each { platform ->
-        runtimeOnly "org.lwjgl:lwjgl::$platform"
-        runtimeOnly "org.lwjgl:lwjgl-opengl::$platform"
-        runtimeOnly "org.lwjgl:lwjgl-glfw::$platform"
+        'natives-linux',
+        'natives-windows',
+        'natives-macos',
+        'natives-macos-arm64'
+    ].each { classifier ->
+        runtimeOnly "org.lwjgl:lwjgl::${classifier}"
+        runtimeOnly "org.lwjgl:lwjgl-opengl::${classifier}"
+        runtimeOnly "org.lwjgl:lwjgl-glfw::${classifier}"
     }
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation libs.junit
 }
-

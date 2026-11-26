@@ -1,16 +1,14 @@
-apply plugin: 'java'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+plugins {
+    id 'neutron.java-conventions'
+}
 
 dependencies {
     implementation project(':neutron:neutron-midp')
     implementation project(':neutron:neutron-cldc')
-    testImplementation 'junit:junit:4.12'
+    testImplementation libs.junit
 }
 
 compileTestJava {
     // Exclude obsolete CLDC on-device test runner that depends on legacy cldcunit
     exclude '**/UnitTestsMIDLet.java'
 }
-

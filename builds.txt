@@ -1,0 +1,73 @@
+================================================================================
+Neutron Gradle Build & Run Commands
+================================================================================
+
+Build Modes (configured via -PbuildType=dev|release, default: dev in gradle.properties)
+  - dev     : Fast incremental build, full debug symbols (-g), runnable fat JARs
+  - release : Compact debug symbols (-g:lines,source), ProGuard + XZ packed standalone JARs
+
+--------------------------------------------------------------------------------
+1. DEV BUILDS (Fast, Debuggable)
+--------------------------------------------------------------------------------
+# Build all modules (dev JARs)
+./gradlew assemble
+
+# Build only neutron-javase-swing (dev JAR)
+./gradlew :neutron:neutron-javase-swing:assemble
+# Output: neutron/neutron-javase-swing/build/libs/dev/neutron-javase-swing-1.5.0.jar
+
+# Build only neutron-core (dev JAR)
+./gradlew :neutron:neutron-core:assemble
+# Output: neutron/neutron-core/build/libs/dev/neutron-core-1.5.0.jar
+
+# Run unit tests across all modules (dev mode)
+./gradlew test
+
+# Run full build + tests (dev mode)
+./gradlew build
+
+# Launch Swing app directly in dev mode
+./gradlew :neutron:neutron-javase-swing:run
+
+# Launch Core app directly in dev mode
+./gradlew :neutron:neutron-core:run
+
+# Build and launch both dev JARs simultaneously
+./gradlew run
+
+--------------------------------------------------------------------------------
+2. RELEASE BUILDS (ProGuard Shrunk + XZ Compressed Standalone JARs)
+--------------------------------------------------------------------------------
+# Build all modules + standalone release JARs (Swing & Core)
+./gradlew assemble -PbuildType=release
+
+# Build only the two standalone release JARs (Swing & Core)
+./gradlew release -PbuildType=release
+
+# Build only neutron-javase-swing standalone release JAR
+./gradlew :neutron:neutron-javase-swing:releaseJar -PbuildType=release
+# Output:
+#   JAR     : neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-1.5.0.jar
+#   Mappings: neutron/neutron-javase-swing/build/outputs/mapping/
+
+# Build only neutron-core standalone release JAR
+./gradlew :neutron:neutron-core:releaseJar -PbuildType=release
+# Output:
+#   JAR     : neutron/neutron-core/build/libs/release/neutron-core-1.5.0.jar
+#   Mappings: neutron/neutron-core/build/outputs/mapping/
+
+# Build and launch both standalone release JARs simultaneously
+./gradlew run -PbuildType=release
+
+--------------------------------------------------------------------------------
+3. CLEANING
+--------------------------------------------------------------------------------
+# Clean build outputs in all projects (including root build/reports)
+./gradlew clean
+
+# Also clean compiled build-logic convention plugins (rarely needed)
+./gradlew -p build-logic clean
+
+# Full clean + fresh release build
+./gradlew clean assemble -PbuildType=release
+

@@ -1,18 +1,11 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.tukaani:xz:1.9'
-        classpath 'com.guardsquare:proguard-gradle:7.6.1'
-    }
+plugins {
+    id 'neutron.packed-app'
 }
 
-apply plugin: 'java-library'
-apply plugin: 'application'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+neutronApp {
+    launcherMainClass = 'org.neutron.app.CoreLauncher'
+    appBaseName = 'neutron-core'
+}
 
 sourceSets {
     main {
@@ -26,6 +19,15 @@ sourceSets {
             srcDirs = [project(':neutron:neutron-javase-swing').file('src/main/resources')]
         }
     }
+}
+
+application {
+    applicationDefaultJvmArgs = [
+        '-XX:+UseSerialGC',
+        '-XX:TieredStopAtLevel=1',
+        '-Xms16m',
+        '-Xmx64m'
+    ]
 }
 
 dependencies {
@@ -49,215 +51,5 @@ dependencies {
     implementation project(':neutron:neutron-extensions:neutron-device-large')
     implementation project(':neutron:neutron-extensions:neutron-device-minimum')
     implementation project(':neutron:neutron-extensions:neutron-device-resizable')
-    implementation 'org.tukaani:xz:1.9'
+    implementation libs.xz
 }
-
-mainClassName = 'org.neutron.app.CoreLauncher'
-
-application {
-    applicationDefaultJvmArgs = [
-        '-XX:+UseSerialGC',
-        '-XX:TieredStopAtLevel=1',
-        '-Xms16m',
-        '-Xmx64m'
-    ]
-}
-
-task rawJar(type: Jar) {
-    dependsOn ':neutron:neutron-javase:jar', ':neutron:neutron-midp:jar', ':neutron:api:jar', ':neutron:neutron-cldc:jar', ':neutron:neutron-injected:jar',
-              ':neutron:neutron-extensions:neutron-jsr-135:jar',
-              ':neutron:neutron-extensions:neutron-jsr-184:jar',
-              ':neutron:neutron-extensions:neutron-nokiaui:jar',
-              ':neutron:neutron-extensions:neutron-jsr-75:jar',
-              ':neutron:neutron-extensions:neutron-jsr-120:jar',
-              ':neutron:neutron-extensions:neutron-jsr-82:jar',
-              ':neutron:neutron-extensions:neutron-siemensapi:jar',
-              ':neutron:neutron-extensions:neutron-micro3d:jar',
-              ':neutron:neutron-extensions:neutron-oem-apis:jar',
-              ':neutron:neutron-extensions:neutron-jsr-234:jar',
-              ':neutron:neutron-extensions:neutron-jsr-226:jar',
-              ':neutron:neutron-extensions:neutron-jsr-172:jar',
-              ':neutron:neutron-extensions:neutron-jsr-179:jar',
-              ':neutron:neutron-extensions:neutron-jsr-211:jar',
-              ':neutron:neutron-extensions:neutron-jsr-256:jar',
-              ':neutron:neutron-extensions:neutron-device-large:jar',
-              ':neutron:neutron-extensions:neutron-device-minimum:jar',
-              ':neutron:neutron-extensions:neutron-device-resizable:jar',
-              compileJava, processResources
-    archiveBaseName = 'neutron-core-raw'
-    destinationDirectory = file("${buildDir}/tmp/rawJar")
-    entryCompression = ZipEntryCompression.STORED
-    from sourceSets.main.output
-    from {
-        configurations.runtimeClasspath.findAll { !it.name.contains('xz') }.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-    exclude 'META-INF/maven/**'
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
-    exclude '**/README*'
-    exclude '**/COPYING*'
-    exclude '**/*.launch'
-    exclude 'payload.jar.xz'
-    exclude 'META-INF/**/*.sha1'
-    exclude 'META-INF/**/*.git'
-    exclude 'META-INF/native-image/**'
-    exclude 'META-INF/INDEX.LIST'
-    exclude 'META-INF/versions/**'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-task proguardPayload(type: proguard.gradle.ProGuardTask) {
-    dependsOn rawJar
-    configuration 'proguard.pro'
-    injars rawJar.archiveFile
-    outjars "${buildDir}/tmp/proguard/payload-proguard.jar"
-    def javaHome = System.getProperty('java.home')
-    ['java.base', 'java.desktop', 'java.datatransfer', 'java.logging', 'java.xml', 'java.naming', 'java.management', 'java.sql', 'jdk.unsupported'].each { mod ->
-        def jmod = file("${javaHome}/jmods/${mod}.jmod")
-        if (jmod.exists()) {
-            libraryjars jmod, jarfilter: '!**.jar', filter: '!module-info.class'
-        }
-    }
-}
-
-task compressPayload {
-    dependsOn proguardPayload
-    def proguardOut = file("${buildDir}/tmp/proguard/payload-proguard.jar")
-    inputs.file proguardOut
-    outputs.file "${buildDir}/payload/payload.jar.xz"
-
-    doLast {
-        def inFile = proguardOut
-        def outFile = file("${buildDir}/payload/payload.jar.xz")
-        outFile.parentFile.mkdirs()
-
-        def sortedZipFile = file("${buildDir}/tmp/payload-sorted.jar")
-        sortedZipFile.parentFile.mkdirs()
-
-        def zipIn = new java.util.zip.ZipFile(inFile)
-        def entries = zipIn.entries().collect().findAll { !it.directory }
-        entries.sort { a, b ->
-            boolean aClass = a.name.endsWith('.class')
-            boolean bClass = b.name.endsWith('.class')
-            if (aClass != bClass) return aClass ? 1 : -1
-            return a.name.compareTo(b.name)
-        }
-
-        def fos = new FileOutputStream(sortedZipFile)
-        def zipOut = new java.util.zip.ZipOutputStream(new BufferedOutputStream(fos))
-        zipOut.setMethod(java.util.zip.ZipOutputStream.STORED)
-        byte[] buf = new byte[32768]
-        entries.each { entry ->
-            def newEntry = new java.util.zip.ZipEntry(entry.name)
-            newEntry.setMethod(java.util.zip.ZipEntry.STORED)
-            newEntry.setSize(entry.size)
-            newEntry.setCrc(entry.crc)
-            zipOut.putNextEntry(newEntry)
-            def is = zipIn.getInputStream(entry)
-            int n
-            while ((n = is.read(buf)) != -1) {
-                zipOut.write(buf, 0, n)
-            }
-            is.close()
-            zipOut.closeEntry()
-        }
-        zipOut.close()
-        zipIn.close()
-
-        sortedZipFile.withInputStream { is ->
-            outFile.withOutputStream { os ->
-                def lzmaOpts = new org.tukaani.xz.LZMA2Options(9)
-                lzmaOpts.setDictSize(16 * 1024 * 1024)
-                lzmaOpts.setNiceLen(273)
-                lzmaOpts.setMatchFinder(org.tukaani.xz.LZMA2Options.MF_BT4)
-                lzmaOpts.setMode(org.tukaani.xz.LZMA2Options.MODE_NORMAL)
-                def xzOut = new org.tukaani.xz.XZOutputStream(os, lzmaOpts)
-                int n
-                while ((n = is.read(buf)) != -1) {
-                    xzOut.write(buf, 0, n)
-                }
-                xzOut.finish()
-            }
-        }
-        sortedZipFile.delete()
-    }
-}
-
-task rawLauncherJar(type: Jar) {
-    dependsOn compileJava
-    archiveBaseName = 'launcher-raw'
-    destinationDirectory = file("${buildDir}/tmp/launcher")
-    from fileTree(dir: "${buildDir}/classes/java/main", include: 'org/neutron/app/CoreLauncher*.class')
-    from {
-        configurations.runtimeClasspath.findAll { it.name.contains('xz') }.collect { zipTree(it) }
-    }
-    include 'org/neutron/app/CoreLauncher*.class'
-    include 'org/tukaani/xz/**'
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-task proguardLauncher(type: proguard.gradle.ProGuardTask) {
-    dependsOn rawLauncherJar
-    injars rawLauncherJar.archiveFile
-    outjars "${buildDir}/tmp/proguard/launcher-proguard.jar"
-    def javaHome = System.getProperty('java.home')
-    def jmod = file("${javaHome}/jmods/java.base.jmod")
-    if (jmod.exists()) {
-        libraryjars jmod, jarfilter: '!**.jar', filter: '!module-info.class'
-    }
-    optimizationpasses 7
-    overloadaggressively
-    repackageclasses 'x'
-    allowaccessmodification
-    dontwarn
-    dontnote
-    keep 'public class org.neutron.app.CoreLauncher { public static void main(java.lang.String[]); }'
-}
-
-jar {
-    dependsOn compressPayload, proguardLauncher
-    archiveBaseName = 'neutron-core'
-    manifest {
-        attributes 'Main-Class': 'org.neutron.app.CoreLauncher'
-    }
-    mainSpec.sourcePaths.clear()
-    from zipTree("${buildDir}/tmp/proguard/launcher-proguard.jar")
-    from("${buildDir}/payload") {
-        include 'payload.jar.xz'
-    }
-
-    doLast {
-        def jarFile = archiveFile.get().asFile
-        def repackedFile = new File(jarFile.parentFile, jarFile.name + ".repack")
-        def zIn = new java.util.zip.ZipFile(jarFile)
-        def fos = new FileOutputStream(repackedFile)
-        def zOut = new java.util.zip.ZipOutputStream(new BufferedOutputStream(fos))
-        byte[] b = new byte[32768]
-        zIn.entries().each { e ->
-            def is = zIn.getInputStream(e)
-            if (e.name == 'payload.jar.xz') {
-                def ne = new java.util.zip.ZipEntry(e.name)
-                ne.setMethod(java.util.zip.ZipEntry.STORED)
-                ne.setSize(e.size)
-                ne.setCrc(e.crc)
-                zOut.putNextEntry(ne)
-            } else {
-                def ne = new java.util.zip.ZipEntry(e.name)
-                ne.setMethod(java.util.zip.ZipEntry.DEFLATED)
-                zOut.putNextEntry(ne)
-            }
-            int n
-            while ((n = is.read(b)) != -1) {
-                zOut.write(b, 0, n)
-            }
-            is.close()
-            zOut.closeEntry()
-        }
-        zOut.close()
-        zIn.close()
-        java.nio.file.Files.move(repackedFile.toPath(), jarFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-    }
-}
-
-run.dependsOn compressPayload
