@@ -27,10 +27,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import logoImg from "@/assets/ntn.png";
 
-const EXPRESS_JAR_SHA256 = "d284c32529b3e0c1af0188669b39e7cdcf8d66f40d31783e6db336b60892fc15";
+const EXPRESS_JAR_SHA256 = "3c30d374c68a90a50fe8b4d3215e8166a1f400df3320fff5d58fc230a8f20b30";
 const EXPRESS_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.5.0/neutron-1.5.0.jar";
 
-const CORE_JAR_SHA256 = "ba75558e30a3999982a80871790b3e674d24f0cdfb50af58fa8bb48f8f4cea5d";
+const CORE_JAR_SHA256 = "2a8d3e66accb08e6804c0b8f85d24fc6d99846a6f6a3c8939757ee8fc23cc3f0";
 const CORE_DOWNLOAD_URL = "https://github.com/nsomatrix/neutron/releases/download/1.5.0/neutron-core-1.5.0.jar";
 
 interface DownloadButtonProps {
@@ -339,7 +339,7 @@ export default function DownloadPageClient() {
                 <div className="grid grid-cols-3 gap-4 border-y border-border py-4 text-center lg:text-left">
                   <div>
                     <div className="text-xs text-muted-foreground">File Size</div>
-                    <div className="text-sm font-semibold mt-1">740 KB</div>
+                    <div className="text-sm font-semibold mt-1">759 KB</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Requirement</div>
@@ -440,7 +440,7 @@ export default function DownloadPageClient() {
                 <div className="grid grid-cols-3 gap-4 border-y border-border py-4 text-center lg:text-left">
                   <div>
                     <div className="text-xs text-muted-foreground">File Size</div>
-                    <div className="text-sm font-semibold mt-1">506 KB</div>
+                    <div className="text-sm font-semibold mt-1">507 KB</div>
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Requirement</div>

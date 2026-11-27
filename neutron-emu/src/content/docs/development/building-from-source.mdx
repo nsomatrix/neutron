@@ -53,17 +53,24 @@ cd neutron
 
 Neutron uses a multi-project Gradle layout. All commands should be run from the repository root:
 
-### 1. Compile & Assemble Release Binaries
-To compile all modules and build both the Full Swing edition and the compressed Core edition:
+### 1. Compile & Assemble Binaries
+To build fast, debuggable dev JARs for all modules:
 ```bash
-./gradlew jar
+./gradlew assemble
+```
+
+To build and verify the ProGuard + XZ packed standalone release JARs:
+```bash
+./gradlew verifyRelease -PbuildType=release
 ```
 
 Generated JAR files:
 - **Neutron Express (Full Swing Desktop):**
-  `neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.5.0.jar`
+  - Dev: `neutron/neutron-javase-swing/build/libs/dev/neutron-javase-swing-1.5.0.jar`
+  - Release: `neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-1.5.0.jar`
 - **Neutron Core (Compressed Payload Launcher):**
-  `neutron/neutron-core/build/libs/neutron-core-1.5.0.jar`
+  - Dev: `neutron/neutron-core/build/libs/dev/neutron-core-1.5.0.jar`
+  - Release: `neutron/neutron-core/build/libs/release/neutron-core-1.5.0.jar`
 
 ### 2. Running Full Tests
 Execute unit tests across all CLDC, MIDP, M3G, and extension modules:
@@ -73,7 +80,7 @@ Execute unit tests across all CLDC, MIDP, M3G, and extension modules:
 
 ### 3. Fast Build (Skip Tests)
 ```bash
-./gradlew build -x test
+./gradlew assemble
 ```
 
 ### 4. Cleaning the Build
@@ -98,11 +105,11 @@ Or run the Swing application directly with custom arguments:
 
 ### Run via Java Directly
 ```bash
-# Run Full Desktop Edition
-java -jar neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.5.0.jar
+# Run Full Desktop Edition (Release)
+java -jar neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-1.5.0.jar
 
-# Run Minimal Core Edition
-java -jar neutron/neutron-core/build/libs/neutron-core-1.5.0.jar
+# Run Minimal Core Edition (Release)
+java -jar neutron/neutron-core/build/libs/release/neutron-core-1.5.0.jar
 ```
 
 ---

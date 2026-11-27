@@ -95,8 +95,8 @@ Neutron is distributed in two release packages to fit any use case:
 
 | Distribution | JAR File | Typical Size | SHA-256 Checksum | Description |
 |--------------|----------|--------------|------------------|-------------|
-| **Neutron Express** | `neutron-1.5.0.jar` | **~740 KB** | `d284c32529b3e0c1af0188669b39e7cdcf8d66f40d31783e6db336b60892fc15` | Full-featured desktop edition featuring FlatLaf themes (macOS Dark/Light, Dracula, IntelliJ), Library Explorer, and graphical controls. |
-| **Neutron Core** | `neutron-core-1.5.0.jar` | **~506 KB** | `ba75558e30a3999982a80871790b3e674d24f0cdfb50af58fa8bb48f8f4cea5d` | Ultra-compact distribution with a high-ratio LZMA2/XZ payload decompressor (`CoreLauncher`). Boots in milliseconds with minimal RAM overhead. |
+| **Neutron Express** | `neutron-1.5.0.jar` | **~759 KB** | `3c30d374c68a90a50fe8b4d3215e8166a1f400df3320fff5d58fc230a8f20b30` | Full-featured desktop edition featuring FlatLaf themes (macOS Dark/Light, Dracula, IntelliJ), Library Explorer, and graphical controls. |
+| **Neutron Core** | `neutron-core-1.5.0.jar` | **~507 KB** | `2a8d3e66accb08e6804c0b8f85d24fc6d99846a6f6a3c8939757ee8fc23cc3f0` | Ultra-compact distribution with a high-ratio LZMA2/XZ payload decompressor (`CoreLauncher`). Boots in milliseconds with minimal RAM overhead. |
 
 Both editions include identical J2ME subsystem support, 3D engines, scalers, and audio playback.
 
@@ -166,19 +166,26 @@ Neutron uses a modular Gradle build setup.
 git clone https://github.com/nsomatrix/neutron.git
 cd neutron
 
-# 2. Build release JARs for all modules
-./gradlew jar
+# 2. Build fast dev JARs for all modules
+./gradlew assemble
 
-# 3. Launch both the Full and Core versions simultaneously
+# 3. Or build & verify ProGuard + XZ packed standalone release JARs
+./gradlew verifyRelease -PbuildType=release
+
+# 4. Launch both the Full and Core versions simultaneously
 ./gradlew run
 
-# 4. Or execute unit tests
+# 5. Or execute unit tests
 ./gradlew test
 ```
 
 Compiled JARs will be generated under:
-- `neutron/neutron-javase-swing/build/libs/neutron-javase-swing-1.5.0.jar`
-- `neutron/neutron-core/build/libs/neutron-core-1.5.0.jar`
+- Dev JARs:
+  - `neutron/neutron-javase-swing/build/libs/dev/neutron-javase-swing-1.5.0.jar`
+  - `neutron/neutron-core/build/libs/dev/neutron-core-1.5.0.jar`
+- Release JARs (`-PbuildType=release`):
+  - `neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-1.5.0.jar`
+  - `neutron/neutron-core/build/libs/release/neutron-core-1.5.0.jar`
 
 ---
 
