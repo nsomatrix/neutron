@@ -337,7 +337,7 @@ export default function HomePage() {
               variants={fadeUp}
               transition={{ duration: 0.5 }}
             >
-              Get started in minutes with our detailed guides, docs , and
+              Get started in minutes with our detailed guides, docs, and
               examples.
             </motion.p>
           </motion.div>

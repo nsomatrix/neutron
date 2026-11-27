@@ -79,7 +79,7 @@ export const siteConfig = {
     {
       title: "Ultra-Lightweight Core",
       description:
-        "Neutron Core binary is under 850 KB with fast startup and low RAM usage, packaged with LZMA2/XZ compression.",
+        "Neutron Core binary is only ~507 KB with fast startup and low RAM usage, packaged with LZMA2/XZ compression.",
       icon: "Feather",
     },
     {
