@@ -1,9 +1,18 @@
 # Gradle cache and build outputs
 .gradle/
-build/
-**/build/
-bin/
-**/bin/
+**/.gradle/
+/build/
+/build-logic/build/
+/neutron/build/
+/neutron/*/build/
+/neutron/*/*/build/
+/neutron/*/*/*/build/
+/bin/
+/build-logic/bin/
+/neutron/bin/
+/neutron/*/bin/
+/neutron/*/*/bin/
+/neutron/*/*/*/bin/
 
 # IDE configurations
 .idea/
