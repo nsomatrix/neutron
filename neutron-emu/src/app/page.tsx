@@ -58,17 +58,6 @@ export default function HomePage() {
         <div className="absolute left-[10%] top-[15%] w-72 h-72 rounded-full bg-blue-accent/15 blur-3xl animate-glow-pulse-alt" />
         <div className="absolute right-[5%] top-[55%] w-80 h-80 rounded-full bg-purple-accent/12 blur-3xl animate-glow-pulse" />
 
-        {/* Performant GPU-Accelerated Animated scrolling grid */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-16 -left-16 w-[calc(100%+128px)] h-[calc(100%+128px)] opacity-[0.035] animate-scroll-grid-gpu"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)`,
-              backgroundSize: "64px 64px",
-            }}
-          />
-        </div>
-
         {/* Twinkling Star/Sparkle Particles (animates transform/scale/opacity, GPU accelerated) */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute left-[15%] top-[10%] w-1.5 h-1.5 rounded-full bg-cyan-accent/80 shadow-[0_0_8px_#06b6d4] animate-particle-1" />
@@ -88,17 +77,6 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Grid pattern (secondary overlay for texture depth) */}
-        <div className="absolute inset-0 -z-10">
-          <div
-            className="absolute inset-0 opacity-[0.01]"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)`,
-              backgroundSize: "64px 64px",
-            }}
-          />
-        </div>
-
         <div className="mx-auto max-w-screen-xl px-4 pt-10 pb-20 sm:pt-16 sm:pb-28 lg:pt-20 lg:pb-36">
           <motion.div
             className="mx-auto max-w-3xl text-center"

@@ -27,11 +27,12 @@ Here is an authentic `config2.xml` representation showing the supported configur
 <config>
   <options>
     <!-- Swing Look & Feel Theme -->
-    <theme>FlatLaf Dark</theme>
+    <theme>FlatLaf macOS Light</theme>
     <devicePlatform>Neutron</devicePlatform>
 
     <!-- Canvas Scaling and Shader Filters -->
-    <graphicsFilter>xBRZ 2x</graphicsFilter>
+    <graphicsFilter>Nearest Neighbor</graphicsFilter>
+    <dualZoom>false</dualZoom>
     <scaledDisplayZoom>-1</scaledDisplayZoom>
     <showMouseCoordinates>false</showMouseCoordinates>
 
@@ -41,15 +42,15 @@ Here is an authentic `config2.xml` representation showing the supported configur
     <speedMultiplier>1.0</speedMultiplier>
 
     <!-- Diagnostics and Controls -->
-    <memoryLimit>64</memoryLimit>
+    <memoryLimit>0</memoryLimit>
     <perfHudEnabled>false</perfHudEnabled>
     <networkOverlayEnabled>false</networkOverlayEnabled>
+    <virtualButtons>false</virtualButtons>
     <virtualButtonsMode>gamepad</virtualButtonsMode>
 
     <!-- Network Connectivity -->
-    <networkAccess>true</networkAccess>
     <airplaneMode>false</airplaneMode>
-    <networkCaptureEnabled>false</networkCaptureEnabled>
+    <networkSnifferEnabled>true</networkSnifferEnabled>
 
     <!-- Network Proxy (X-Proxy) -->
     <proxyEnabled>false</proxyEnabled>
@@ -60,7 +61,7 @@ Here is an authentic `config2.xml` representation showing the supported configur
     <proxyUsername></proxyUsername>
     <proxyPassword></proxyPassword>
 
-    <!-- Hardware Video Post-Processing -->
+    <!-- Video Post-Processing -->
     <brightness>0</brightness>
     <contrast>100</contrast>
     <gamma>1.0</gamma>
@@ -76,28 +77,30 @@ Here is an authentic `config2.xml` representation showing the supported configur
 
 ## Settings Reference
 
-All configuration options can be modified directly within the emulator GUI via the **Config** and **Controls** menus, or edited in `config2.xml` while the emulator is closed.
+All configuration options can be modified directly within the emulator GUI via the **Config**, **Controls**, and **Misc** menus, or edited in `config2.xml` while the emulator is closed.
 
 ### 1. Interface & Themes
 
 | Element | Supported Values | Default | Description |
 |---------|------------------|---------|-------------|
-| `<theme>` | `FlatLaf Dark`, `FlatLaf Light`, `FlatLaf IntelliJ`, `FlatLaf Dracula`, `FlatLaf macOS Dark`, `FlatLaf macOS Light`, `System Look and Feel` | `FlatLaf Dark` | Desktop GUI look-and-feel stylesheet. |
+| `<theme>` | `FlatLaf Dark`, `FlatLaf Light`, `FlatLaf IntelliJ`, `FlatLaf Dracula`, `FlatLaf macOS Dark`, `FlatLaf macOS Light`, `System Look and Feel` | `FlatLaf macOS Light` | Desktop GUI look-and-feel stylesheet. |
 | `<devicePlatform>` | `Neutron`, `Nokia`, `SonyEricsson`, custom string | `Neutron` | Value returned by `System.getProperty("microedition.platform")`. |
-| `<virtualButtonsMode>` | `gamepad`, `full` | `gamepad` | Layout style for the on-screen touch/mouse keypad. |
+| `<virtualButtons>` | `true`, `false` | `false` | Persists visibility of the on-screen Virtual Buttons panel. |
+| `<virtualButtonsMode>` | `gamepad` | `gamepad` | Stored layout mode key for the virtual keypad. |
 
 ### 2. Graphics & Video Post-Processing
 
 | Element | Supported Values | Default | Description |
 |---------|------------------|---------|-------------|
 | `<graphicsFilter>` | `Nearest Neighbor`, `Bilinear`, `Bicubic`, `xBRZ 2x`, `xBRZ 3x`, `xBRZ 4x`, `xBRZ 5x`, `xBRZ 6x`, `Scale2x`, `CRT Scanlines`, `LCD Grid` | `Nearest Neighbor` | High-definition scaler or CRT/LCD raster simulation effect. |
-| `<scaledDisplayZoom>` | `2`, `3`, `4`, `-1` | `-1` | Display integer magnification factor (`-1` = auto/window fit). |
+| `<dualZoom>` | `true`, `false` | `false` | Enables the secondary 2x DualZoom display window. |
+| `<scaledDisplayZoom>` | `2`, `-1` | `-1` | Secondary zoomed display scale factor (`2` when DualZoom is enabled, `-1` when off). |
 | `<showMouseCoordinates>` | `true`, `false` | `false` | Real-time X/Y pointer coordinates HUD overlay. |
 | `<brightness>` | `-100` to `100` | `0` | Canvas brightness offset. |
-| `<contrast>` | `0` to `200` | `100` | Canvas contrast percentage. |
-| `<gamma>` | `0.1` to `3.0` | `1.0` | Gamma curve correction factor. |
-| `<saturation>` | `0` to `200` | `100` | Color saturation level (0 = grayscale). |
-| `<sharpness>` | `0` to `10` | `0` | Unsharp edge contrast mask strength. |
+| `<contrast>` | `50` to `150` | `100` | Canvas contrast percentage. |
+| `<gamma>` | `0.5` to `2.5` | `1.0` | Gamma curve correction factor. |
+| `<saturation>` | `0` to `200` | `100` | Color saturation level (`0` = grayscale). |
+| `<sharpness>` | `-100` to `100` | `0` | Edge sharpness adjustment. |
 | `<ghosting>` | `0` to `90` | `0` | Recreates retro passive-matrix LCD response lag. |
 | `<invert>` | `true`, `false` | `false` | Inverts RGB color values. |
 
@@ -105,25 +108,24 @@ All configuration options can be modified directly within the emulator GUI via t
 
 | Element | Supported Values | Default | Description |
 |---------|------------------|---------|-------------|
-| `<memoryLimit>` | `0`, `32`, `64`, `128`, `256`, `512` | `64` | Emulated J2ME heap limit in MB (`0` = unlimited). |
+| `<memoryLimit>` | `0`, `32`, `64`, `128`, `256`, `512` | `0` | Emulated J2ME heap limit in MB (`0` = Unlimited). |
 | `<maxFps>` | `-1`, `60`, `30`, `15` (or custom) | `-1` | Live frame rate limiter (`-1` = unthrottled host speed). |
-| `<speedMultiplier>` | `0.5`, `1.0`, `1.5`, `2.0`, `3.0` | `1.0` | Emulation loop clock multiplier. |
+| `<speedMultiplier>` | `0.25` to `3.00` (menu presets: `0.50`–`3.00`) | `1.0` | Emulation loop clock multiplier. |
 | `<sleepMode>` | `true`, `false` | `false` | Thread sleeping when idle (`Ctrl+L`), reducing host CPU usage. |
-| `<perfHudEnabled>` | `true`, `false` | `false` | Diagnostic stats badge displaying real-time FPS and frame timings. |
+| `<perfHudEnabled>` | `true`, `false` | `false` | Diagnostic stats badge displaying real-time FPS and heap usage. |
 
 ### 4. Networking & Proxy
 
 | Element | Supported Values | Default | Description |
 |---------|------------------|---------|-------------|
-| `<networkAccess>` | `true`, `false` | `true` | Master toggle allowing MIDlet outbound GCF network connections. |
-| `<airplaneMode>` | `true`, `false` | `false` | Instantly isolates network requests without closing active connections. |
-| `<networkOverlayEnabled>` | `true`, `false` | `false` | Live ping and network transmission activity overlay. |
-| `<networkCaptureEnabled>` | `true`, `false` | `false` | Records HTTP/TCP socket packet exchanges for inspection. |
+| `<airplaneMode>` | `true`, `false` | `false` | Isolates outbound GCF network connections. *(Supersedes legacy `<networkAccess>`.)* |
+| `<networkOverlayEnabled>` | `true`, `false` | `false` | Live network status and ping activity overlay. |
+| `<networkSnifferEnabled>` | `true`, `false` | `true` | Enables live request logging for the Network Capture dialog. |
 | `<proxyEnabled>` | `true`, `false` | `false` | Routes GCF traffic through an HTTP or SOCKS proxy. |
 | `<proxyType>` | `HTTP`, `SOCKS` | `HTTP` | Proxy protocol type. |
 | `<proxyHost>` | Hostname or IP | (empty) | Proxy host address. |
 | `<proxyPort>` | Port number | `8080` | Proxy port. |
-| `<proxyAuthEnabled>` | `true`, `false` | `false` | Enables Basic HTTP or SOCKS5 credential authentication. |
+| `<proxyAuthEnabled>` | `true`, `false` | `false` | Enables HTTP or SOCKS5 credential authentication. |
 
 <Callout type="warning">
 Always edit `config2.xml` while Neutron is completely shut down. If the emulator is running, your manual edits will be overwritten when the application saves its state on exit.

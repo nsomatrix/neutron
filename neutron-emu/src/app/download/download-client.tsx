@@ -18,7 +18,6 @@ import {
   Info,
   ArrowRight,
   BookOpen,
-  Cloud,
   Server,
   Loader2
 } from "lucide-react";
@@ -129,12 +128,12 @@ const platforms = [
     commands: [
       {
         label: "Launch GUI directly",
-        code: "java -jar neutron.jar"
+        code: "java -jar neutron-1.5.0.jar"
       }
     ],
     instructions: [
       "Ensure you have Java 8 or later installed on your system.",
-      "Double-click neutron.jar to start the graphical emulator immediately.",
+      "Double-click neutron-1.5.0.jar to start the graphical emulator immediately.",
       "Alternatively, open Command Prompt or PowerShell, navigate to the folder, and run the command below to launch it via terminal."
     ]
   },
@@ -145,17 +144,17 @@ const platforms = [
     commands: [
       {
         label: "Launch emulator",
-        code: "java -jar neutron.jar"
+        code: "java -jar neutron-1.5.0.jar"
       },
       {
         label: "Run a MIDlet from terminal",
-        code: "java -jar neutron.jar path/to/game.jar"
+        code: "java -jar neutron-1.5.0.jar path/to/game.jar"
       }
     ],
     instructions: [
       "Ensure Java 8 or later is installed (Temurin OpenJDK is recommended).",
       "Open Terminal, navigate to the download folder, and launch using the command below.",
-      "If macOS Gatekeeper blocks execution, right-click neutron.jar, select Open, and approve the security prompt, or go to System Settings > Privacy & Security."
+      "If macOS Gatekeeper blocks execution, right-click neutron-1.5.0.jar, select Open, and approve the security prompt, or go to System Settings > Privacy & Security."
     ]
   },
   {
@@ -165,16 +164,16 @@ const platforms = [
     commands: [
       {
         label: "Make executable (optional)",
-        code: "chmod +x neutron.jar"
+        code: "chmod +x neutron-1.5.0.jar"
       },
       {
         label: "Launch via terminal",
-        code: "java -jar neutron.jar"
+        code: "java -jar neutron-1.5.0.jar"
       }
     ],
     instructions: [
-      "Ensure your package manager has default-jre or openjdk-8-jre installed.",
-      "Open Terminal and run the chmod command to ensure the file is executable.",
+      "Ensure your package manager has default-jre or openjdk-17-jre installed.",
+      "Open Terminal and run the chmod command if you want to mark the file executable.",
       "Run the jar file directly using the command-line to start the emulator."
     ]
   }
@@ -191,7 +190,7 @@ const faqs = [
   },
   {
     question: "Double-clicking the JAR file doesn't open the app. What should I do?",
-    answer: "On Windows, this is often caused by incorrect file associations (e.g., zip extractors taking over .jar files). You can run a tool like 'Jarfix' to repair the file association, or launch it directly from the command line: open your terminal/command prompt and run 'java -jar neutron.jar'."
+    answer: "On Windows, this is often caused by incorrect file associations (e.g., zip extractors taking over .jar files). You can run a tool like 'Jarfix' to repair the file association, or launch it directly from the command line: open your terminal/command prompt and run 'java -jar neutron-1.5.0.jar'."
   },
   {
     question: "Are MIDlet sound and internet connectivity supported?",
@@ -419,7 +418,7 @@ export default function DownloadPageClient() {
           </div>
         </motion.div>
 
-        {/* Cloud Edition Download Card */}
+        {/* Core Edition Download Card */}
         <motion.div variants={itemVariants}>
           <div className="relative rounded-2xl border border-border bg-card/65 backdrop-blur-md overflow-hidden shadow-2xl">
             {/* Header background accents */}
@@ -431,9 +430,9 @@ export default function DownloadPageClient() {
               <div className="space-y-6 text-center lg:text-left max-w-xl">
                 <div className="space-y-2">
                   <span className="text-xs font-bold tracking-widest text-cyan-accent uppercase">Core Release File</span>
-                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Cloud Edition</h2>
+                  <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Neutron Core</h2>
                   <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                    Ultra-compact distribution with a high-ratio LZMA2/XZ payload loader and minimal memory footprint. Built completely with Java, it includes the core emulation engine without third-party UI dependencies.
+                    Ultra-compact distribution with a ProGuard-shrunk, LZMA2/XZ-compressed payload and minimal disk footprint. Includes the full emulator and standard Swing GUI without bundled third-party FlatLaf theme dependencies, plus headless (`--headless`) execution support.
                   </p>
                 </div>
 
@@ -455,13 +454,13 @@ export default function DownloadPageClient() {
                 <div className="flex flex-wrap justify-center lg:justify-start items-center gap-3">
                   <span className="text-xs text-muted-foreground font-medium">Optimized for:</span>
                   <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground flex items-center gap-1">
-                    <Cloud className="h-3 w-3" /> Cloud Servers
+                    <Monitor className="h-3 w-3" /> Compact Desktop
                   </Badge>
                   <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground flex items-center gap-1">
-                    <Server className="h-3 w-3" /> VPS Instances
+                    <Server className="h-3 w-3" /> Low Footprint
                   </Badge>
                   <Badge variant="secondary" className="text-xs bg-muted/60 text-foreground flex items-center gap-1">
-                    <Terminal className="h-3 w-3" /> Headless Linux
+                    <Terminal className="h-3 w-3" /> Headless CLI
                   </Badge>
                 </div>
               </div>
@@ -637,7 +636,7 @@ export default function DownloadPageClient() {
               </div>
               <div className="grid grid-cols-2 gap-2 border-b border-border/50 pb-3">
                 <span className="text-muted-foreground">Graphics</span>
-                <span className="font-semibold text-right">OpenGL / Java Swing supported driver</span>
+                <span className="font-semibold text-right">Java Swing / Java2D (software 3D)</span>
               </div>
               <div className="grid grid-cols-2 gap-2 pb-1">
                 <span className="text-muted-foreground">Memory footprint</span>

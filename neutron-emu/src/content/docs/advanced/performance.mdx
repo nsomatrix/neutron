@@ -49,7 +49,7 @@ You can pass JVM flags to Java when executing the Neutron JAR:
 
 ### Maximum Throughput (Modern JDK 17 / 21)
 ```bash
-java -server -XX:+UseG1GC -Xmx512m -jar neutron-1.5.0.jar game.jar
+java -XX:+UseG1GC -Xmx512m -jar neutron-1.5.0.jar game.jar
 ```
 
 ### Low-Memory Footprint (Neutron Core)
@@ -58,7 +58,7 @@ java -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xms16m -Xmx64m -jar neutron-core-
 ```
 
 ### Marlin 2D Vector Rendering
-Neutron automatically leverages the high-speed Marlin Java2D renderer:
+Gradle's `./gradlew run` passes the Marlin JVM property by default, and JDK 9+ already uses Marlin out of the box. On Java 8, you can explicitly enable it when running the standalone JAR:
 ```bash
 java -Dsun.java2d.renderer=sun.java2d.marlin.MarlinRenderingEngine -jar neutron-1.5.0.jar
 ```

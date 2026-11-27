@@ -40,8 +40,8 @@ const gameNames: Record<string, string> = {
 
 const gameDurations: Record<string, number> = {
   ninja_offline: 4310, // 4910ms total - 600ms transition
-  bounce_tales: 18600, // 19200ms total - 600ms transition
-  gokart: 6000, // 6600ms total - 600ms transition
+  bounce_tales: 15600, // 16200ms total - 600ms transition
+  gokart: 4000, // 4600ms total - 600ms transition
   rollercoaster: 6600, // 7200ms total - 600ms transition
 };
 
@@ -144,9 +144,9 @@ function VirtualKeypadPanel({
   onClose,
 }: VirtualKeypadPanelProps) {
   const keyClass = (keyId: string) =>
-    `flex items-center justify-center rounded-[5px] border text-[9px] font-bold font-sans leading-none select-none cursor-pointer transition-all duration-100 ${
+    `flex items-center justify-center rounded-[5px] border text-[9px] font-bold font-sans leading-none select-none cursor-pointer transition-[transform,background-color,border-color,color,box-shadow] duration-200 ease-out ${
       activeKey === keyId
-        ? `${theme.keypadBtnPressed} translate-y-[1px] shadow-inner`
+        ? `${theme.keypadBtnPressed} translate-y-[1px] scale-[0.96] shadow-inner`
         : `${theme.keypadBtnBg} ${theme.keypadBorder} ${theme.keypadBtnHover} shadow-[0_1px_0_rgba(0,0,0,0.18)]`
     }`;
 
@@ -453,48 +453,47 @@ export function CinematicTerminal() {
     };
 
     const runCycle = () => {
-      // 1. Open Virtual Buttons via simulated Ctrl+B / Config toggle
+      // 1. Open Virtual Buttons via simulated Ctrl+B toggle
       schedule(() => {
         setShowVirtualKeypad(true);
-        flashStatusNotice("Virtual Buttons: Enabled (Ctrl+B)", 1800);
-        flashOsd("Virtual Buttons · Ctrl+B", 1500);
+        flashStatusNotice("Virtual Buttons: Enabled (Ctrl+B)", 2000);
+        flashOsd("Virtual Buttons · Ctrl+B", 1800);
       }, 0);
 
-      // 2. Simulate realistic button presses (D-Pad, OK, Numeric, Softkey)
-      const pressSequence: Array<{ offset: number; key: string; label: string }> = [
-        { offset: 750, key: "RIGHT", label: "Right" },
-        { offset: 1350, key: "RIGHT", label: "Right" },
-        { offset: 1950, key: "UP_RIGHT", label: "Up-Right" },
-        { offset: 2600, key: "OK", label: "SELECT / FIRE" },
-        { offset: 3300, key: "KEY_5", label: "5" },
-        { offset: 4000, key: "LEFT", label: "Left" },
-        { offset: 4650, key: "SOFT1", label: "Menu (SOFT1)" },
+      // 2. Deliberate, one-at-a-time button presses after drawer opens
+      const pressSequence: Array<{ offset: number; key: string; holdMs: number }> = [
+        { offset: 1100, key: "RIGHT", holdMs: 520 },
+        { offset: 2350, key: "UP", holdMs: 520 },
+        { offset: 3600, key: "OK", holdMs: 560 },
+        { offset: 4900, key: "KEY_5", holdMs: 520 },
+        { offset: 6150, key: "SOFT1", holdMs: 520 },
       ];
 
-      pressSequence.forEach(({ offset, key, label }) => {
+      pressSequence.forEach(({ offset, key, holdMs }) => {
         schedule(() => {
           setActiveVirtualKey(key);
-          flashStatusNotice(`Virtual Key: ${label}`, 500);
         }, offset);
         schedule(() => {
           setActiveVirtualKey((prev) => (prev === key ? null : prev));
-        }, offset + 260);
+        }, offset + holdMs);
       });
 
-      // 3. Highlight Close button briefly and smoothly retract
+      // 3. Press Close button clearly, release, and smoothly retract
       schedule(() => {
         setActiveVirtualKey("CLOSE");
-        flashOsd("Closing Virtual Buttons", 900);
-      }, 5400);
+      }, 7500);
 
       schedule(() => {
         setActiveVirtualKey(null);
-        setShowVirtualKeypad(false);
-        flashStatusNotice("Virtual Buttons: Disabled", 1400);
-      }, 5720);
+      }, 7980);
 
-      // 4. Wait before repeating the showcase popup
-      schedule(runCycle, 22000);
+      schedule(() => {
+        setShowVirtualKeypad(false);
+        flashStatusNotice("Virtual Buttons: Disabled", 1600);
+      }, 8200);
+
+      // 4. Pause before repeating the showcase cycle
+      schedule(runCycle, 26000);
     };
 
     schedule(runCycle, 1600);
@@ -523,7 +522,7 @@ export function CinematicTerminal() {
               onClick={() => toggleVirtualKeypad(!showVirtualKeypad, true)}
               className={`flex items-center gap-1 px-1.5 py-0.5 rounded border text-[9px] font-mono transition-all ${
                 showVirtualKeypad
-                  ? "border-cyan-accent/50 bg-cyan-accent/15 text-cyan-400"
+                  ? "border-cyan-accent/50 bg-cyan-accent/15 text-cyan-700 dark:text-cyan-400"
                   : "border-border bg-muted/30 text-muted-foreground hover:text-foreground hover:bg-muted/60"
               }`}
               title="Toggle Virtual Buttons (Ctrl+B)"
@@ -1240,7 +1239,7 @@ export function CinematicTerminal() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 136, opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.52, ease: [0.22, 1, 0.36, 1] }}
                     className="overflow-hidden shrink-0"
                   >
                     <VirtualKeypadPanel

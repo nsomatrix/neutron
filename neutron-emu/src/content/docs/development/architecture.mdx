@@ -57,9 +57,9 @@ neutron-javase          neutron-midp                neutron-cldc
 ```
 
 1. **Neutron Express (`neutron-javase-swing`):**
-   Full desktop application containing FlatLaf themes, Swing dialogs, Library Explorer, and runtime diagnostic overlays.
+   Full desktop application booted via `SwingLauncher`, which extracts its ProGuard-shrunk, LZMA2/XZ payload to `<tmpdir>/.neutron_swing_cache/` and launches FlatLaf themes, Swing dialogs, Library Explorer, and diagnostic overlays.
 2. **Neutron Core (`neutron-core`):**
-   Ultra-compact launcher that packages the entire emulator inside a high-ratio LZMA2/XZ compressed payload (`payload.jar.xz`). At runtime, `CoreLauncher` decompresses the payload into a temporary cache and boots seamlessly via reflection.
+   Compact build booted via `CoreLauncher`, extracting its ProGuard-shrunk, XZ payload (same core emulator and standard Swing UI minus FlatLaf dependencies) to `<tmpdir>/.neutron_core_cache/`.
 
 ---
 
@@ -77,10 +77,10 @@ MIDlets cannot invoke standard Java SE desktop APIs directly. Neutron employs a 
 ## Subsystem Details
 
 ### 1. LCDUI & Game Rendering
-Canvas rendering dispatches through `SwingDisplayComponent`. The render loop buffers frame operations in volatile raster surfaces before applying selected shader filters (such as `xBRZ`, `Scale2x`, or CRT Scanlines) and presenting them onto the Swing Event Dispatch Thread (EDT).
+Canvas rendering dispatches through `SwingDisplayComponent`. The render loop buffers frame operations in raster surfaces before applying selected shader filters (`xBRZ`, `Scale2x`, `CRT Scanlines`, `LCD Grid`) and presenting them onto the Swing Event Dispatch Thread (EDT).
 
 ### 2. Audio Processing (MMAPI)
-Audio streams are routed to `SampledAudioPlayer` (WAV/AU), `AmrAudioPlayer` (AMR voice), or Java Sound's MIDI Sequencer. Playback controls support volume attenuation, thread-safe pause/resume, and seamless looping.
+Audio streams are routed to `SampledAudioPlayer` (WAV/AU), Java Sound's `MidiAudioPlayer` Sequencer, `PCTonePlayer` / `PCTone`, or `AmrAudioPlayer` / `Mp3AudioPlayer` (Java Sound SPI when present, otherwise timing simulation). Playback controls support volume attenuation, thread-safe pause/resume, and seamless looping.
 
 ### 3. Record Management System (RMS)
 Save files are persisted to disk using `FileRecordStoreManager`. Each MIDlet suite is assigned an isolated subfolder under `~/.neutron/suite-[MIDletName]/` containing discrete `.rms` record stores.

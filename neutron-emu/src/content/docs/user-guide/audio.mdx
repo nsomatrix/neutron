@@ -14,11 +14,11 @@ Neutron emulates the Java ME Mobile Media API (MMAPI / JSR-135) through native J
 
 | Audio Format | MIME Type / File Extension | Implementation Engine | Typical Usage |
 |--------------|----------------------------|-----------------------|---------------|
-| **WAV (PCM)** | `audio/x-wav`, `.wav` | `SampledAudioPlayer` / Java Sound PCM | Sound effects, dialogue, ambient audio. |
+| **WAV (PCM)** | `audio/x-wav`, `audio/wav`, `.wav` | `SampledAudioPlayer` / Java Sound `Clip` | Sound effects, dialogue, ambient audio. |
 | **AU (Sun Audio)** | `audio/basic`, `.au` | `SampledAudioPlayer` | Vintage sampled audio clips. |
-| **AMR (Adaptive Multi-Rate)** | `audio/amr`, `.amr` | `AmrAudioPlayer` | Mobile narrowband voice clips and ringtones. |
-| **MIDI** | `audio/midi`, `.mid`, `.midi` | Java Sound `MidiSystem` Sequencer | Polyphonic background music tracks. |
-| **Tone Sequences** | `audio/x-tone-seq`, programmatic | `TonePlayer` / Audio Synthesizer | Retro chiptune beeps, alerts, and ringtones. |
+| **MIDI** | `audio/midi`, `audio/x-midi`, `audio/mid`, `.mid`, `.midi` | `MidiAudioPlayer` / Java Sound `MidiSystem` | Polyphonic background music tracks. |
+| **Tone Sequences** | `device://tone`, programmatic (`Manager.playTone`) | `PCTonePlayer` / `PCTone` | Retro chiptune beeps, alerts, and tones. |
+| **AMR / MP3 / SMAF** | `audio/amr`, `audio/mpeg`, `audio/x-smaf`, `.amr`, `.mp3`, `.mmf` | `AmrAudioPlayer` / `Mp3AudioPlayer` | Uses a registered Java Sound SPI if present; otherwise falls back silently to virtual playback timing. |
 
 ---
 
@@ -73,12 +73,9 @@ Manager.playTone(60, 250, 100);
 
 ---
 
-## Audio Extensions (JSR-234 AMMS)
+## Audio Extensions (JSR-234 AMMS Compatibility)
 
-Neutron includes support for the **Advanced Multimedia Supplements (JSR-234 AMMS)** standard under `javax.microedition.amms.*`:
-
-- **3D Positional Audio:** Spectator orientation and sound source coordinates via `LocationControl` and `OrientationControl`.
-- **Audio Effects:** Dynamic equalization and environmental reverberation via `EqualizerControl` and `ReverbControl`.
+Neutron includes the **Advanced Multimedia Supplements (JSR-234 AMMS)** API package (`javax.microedition.amms.*`) as compatibility interfaces and stub modules (`GlobalManager`, `EffectModule`, `SoundSource3D`, `SpectatorModelling`, `MediaProcessor`, plus `LocationControl`, `OrientationControl`, `EqualizerControl`, and `ReverbControl` interfaces). `GlobalManager` returns stub objects and `null` controls so MIDlets linked against AMMS APIs load without `NoClassDefFoundError`.
 
 ---
 

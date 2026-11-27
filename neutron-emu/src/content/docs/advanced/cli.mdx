@@ -46,22 +46,29 @@ You can pass a compiled MIDlet `.jar` archive, a `.jad` descriptor file, or a sp
 
 | Flag | Parameter | Description |
 |------|-----------|-------------|
-| `-cp`, `--classpath` | `[classpath]` | Appends custom JARs or directories to the JSR extension classloader path. |
-| `--appcp`, `--appclasspath` | `[classpath]` | Adds user-defined paths to search for MIDlet bytecode classes. |
+| `-cp`, `-classpath`, `--classpath` | `[classpath]` | Appends custom JARs or directories to the JSR extension classloader path. |
+| `-appcp`, `-appclasspath`, `--appclasspath` | `[classpath]` | Adds user-defined paths to search for MIDlet bytecode classes. |
 | `--appclass` | `[class-name]` | Adds a specific library class into the application classloader scope. |
 | `--appclassloader` | `strict`, `relaxed`, `delegating`, `system` | Configures the bytecode delegation model for the MIDlet classloader. |
 | `--usesystemclassloader` | None | Forces execution through the host Java system classloader. |
 | `--impl` | `[class-name]` | Dynamically registers an implementation class for an optional JSR extension. |
 
-### Debugging & Verification
+### 3D Rendering & Debugging
 
 | Flag | Parameter | Description |
 |------|-----------|-------------|
-| `-Xautotest:[url]` | `[jad-url]` | Initiates automated headless test suite execution for the designated JAD URL. |
+| `-Xautotest` / `-Xautotest:[url]` | `[jad-url]` (optional) | Initiates automated headless test execution (optionally targeting a JAD URL). |
 | `--logCallLocation` | `true` or `false` | Prepends source class and line numbers to logging console messages. |
 | `--traceClassLoading` | None | Prints detailed console logs whenever a MIDlet class is loaded. |
 | `--traceSystemClassLoading` | None | Traces system classloader operations in the console. |
 | `--enhanceCatchBlock` | None | Enables diagnostic bytecode verification processing on exception handlers. |
+| `--forcePerspective` | None | Forces perspective-correct texture projection in JSR-184 M3G rendering. |
+| `--appPerspective` | None | Respects per-mesh perspective correction hints set by the MIDlet. |
+| `--disablePerspective` | None | Disables 3D perspective correction hints for maximum software speed. |
+| `--bilinear3d` | None | Enables bilinear 3D texture filtering override. |
+| `--noSubpixel` | None | Disables subpixel rasterization precision in software 3D rendering. |
+| `--software3d`, `--cpu3d` | None | Explicitly selects the pure-Java software 3D backend. |
+| `--opengl3d`, `--gpu` | None | Logs fallback notice and runs software 3D (OpenGL 3D is disabled in pure-Java distributions). |
 
 ---
 

@@ -28,10 +28,9 @@ Below is a complete breakdown of features in Neutron.
     - **MascotCapsule Micro3D v3** — Complete pure-Java software rasterizer implementation of the popular Japanese mobile 3D engine (`com.mascotcapsule.micro3d.v3.*`). Run games utilizing 3D figures, action tables, bone skeletal animation, affine transforms, and spherical environment mapping.
     - **JSR-184 (M3G Mobile 3D Graphics)** — Full binary `.m3g` chunk stream parser with Zlib deflation and Adler-32 integrity validation. Supports immediate and retained-mode 3D worlds, meshes, skinned meshes, morph targets, keyframe animations, cameras, lights, textures, and compositing modes.
     - **Nokia UI DirectGraphics** — Comprehensive support for `com.nokia.mid.ui.DirectGraphics` and `DirectUtils`, featuring 32-bit ARGB `drawPixels` manipulation, transparency masking, and rotations.
-    - **JSR-226 (SVG Mobile / Scalable 2D Vector)** — Support for vector graphics through `javax.microedition.m2g.*` ScalableImage and ScalableGraphics.
-    - **JSR-234 (Advanced Multimedia Supplements - AMMS)** — 3D audio spectator positioning, sound source locations, reverb, and equalizer effect modules.
-    - **OEM Device APIs** — Built-in stubs and implementations for Sony Ericsson (`com.sonyericsson.ui.Backlight`, `Vibration`, `Sound`), Motorola (`com.motorola.multimedia.Vibrator`, `Lighting`, `FunLight`), and Samsung (`com.samsung.util.LCDLight`, `AudioClip`, `Vibration`).
-    - **Siemens API & JSR-82** — Support for Siemens platform classes and JSR-82 Bluetooth connection structures.
+    - **JSR-226 & JSR-234 (Compatibility Stubs)** — Provides `javax.microedition.m2g.*` (SVG) and `javax.microedition.amms.*` (AMMS) compatibility API stubs (`GlobalManager` returns stub modules and `null` controls; `ScalableGraphics.render` is a stub) so MIDlets linked against those packages load cleanly.
+    - **OEM Device APIs** — Implementations and compatibility classes for Sony Ericsson (`com.sonyericsson.media.Sound`, `com.sonyericsson.ui.Backlight`, `com.sonyericsson.util.Vibration`), Motorola (`com.motorola.multimedia.Vibrator`, `Lighting`, `com.motorola.funlight.FunLight`), and Samsung (`com.samsung.util.AudioClip`, `LCDLight`, `Vibration`).
+    - **Siemens API & JSR-82 / JSR-120** — Support for Siemens game/color extensions (`com.siemens.mp.*`) alongside API compatibility stubs for JSR-82 Bluetooth (`LocalDevice` throws unsupported unless an external JSR-82 stack is provided) and JSR-120 SMS.
   </AccordionPanel>
 
   <AccordionPanel title="3. Display Filtering & Video Post-Processing" value="display">
@@ -41,7 +40,7 @@ Below is a complete breakdown of features in Neutron.
     - **Scale2x & Bicubic / Bilinear Filters** — Traditional pixel doubling and smooth interpolation algorithms.
     - **CRT Scanlines & LCD Subpixel Grid** — Authentically simulate retro handheld LCD dot matrix screens and vintage scanlines.
     - **Hardware Video Adjustments** — Fine-tune display output in real-time with dedicated controls for Brightness, Contrast, Gamma curve, Saturation (monochrome mode), Sharpness, Phosphor Ghosting, and Color Inversion.
-    - **Borderless Fullscreen Mode (`F11`)** — Fullscreen display mode with auto-hiding top controls and overlay HUDs.
+    - **Borderless Fullscreen Mode** — Fullscreen display toggle under **Controls → Fullscreen** with auto-hiding top controls and overlay HUDs.
     - **Themeable FlatLaf Interface** — Seamlessly adapts to your host operating system with modern themes: FlatLaf Dark, FlatLaf Light, IntelliJ, Dracula, macOS Light, macOS Dark, and System Look-and-Feel.
   </AccordionPanel>
 
@@ -54,9 +53,9 @@ Below is a complete breakdown of features in Neutron.
 
   <AccordionPanel title="5. Audio Subsystem (MMAPI & MIDI)" value="audio">
     - **PCM & Sampled Audio** — High-fidelity playback of `.wav` and `.au` audio samples.
-    - **AMR Audio Playback** — Support for mobile AMR narrowband voice and ringtone audio streams.
+    - **AMR / MP3 / SMAF Audio Players** — Header parsing and Java Sound SPI decoding with silent virtual timing fallback when a host JVM SPI codec is absent.
     - **Java Sound MIDI Engine** — Full synthesis of polyphonic `.mid` and `.midi` soundtrack files.
-    - **Tone Generator** — Real-time synthesis of J2ME frequency tone sequences and buzzer sounds with non-destructive repeat playback lifecycle.
+    - **Tone Generator** — Real-time synthesis of J2ME frequency tone sequences (`PCTone` / `PCTonePlayer`) with non-destructive repeat playback lifecycle.
   </AccordionPanel>
 
   <AccordionPanel title="6. Networking, Proxy & Diagnostics" value="networking">
@@ -66,7 +65,7 @@ Below is a complete breakdown of features in Neutron.
     - **Network Traffic & Latency Overlay** — Real-time display showing network throughput, latency, and packet transfer activity.
     - **Network Packet Capture** — Built-in packet inspector logging requests and socket payloads.
     - **Performance HUD** — Dynamic autoscaling badge displaying real-time FPS counter, frame timings, and render load.
-    - **RMS Record Store Manager** — Graphical inspector to view, edit, backup, and modify persistent game save files and high score tables.
+    - **RMS Record Store Manager** — Live event monitor logging Record Store operations (open, close, add, read, change, delete) with backend switching between File and Memory storage.
     - **Snapshot Manager** — Backup your emulator's complete state, RMS databases, and configurations into a portable `.zip` archive or restore it on another machine.
     - **Screenshot & Animated GIF Recording** — Capture pixel-perfect screenshots (`Ctrl+S`) or record gameplay clips directly to `.gif`.
   </AccordionPanel>

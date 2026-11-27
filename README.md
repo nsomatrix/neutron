@@ -50,16 +50,16 @@ Instead of interpreting mobile instructions step-by-step, Neutron adapts MIDlet 
 ### Display, Scaling & Themes
 - **Image Scaling:** Nearest Neighbor, Scale2x, Bilinear, Bicubic, and xBRZ (`2x` to `6x`) filters.
 - **Retro Filters & Color Controls:** Optional CRT scanlines and LCD grid overlays, plus live sliders for brightness, contrast, gamma, saturation, sharpness, ghosting, and color inversion.
-- **Window Modes:** Borderless fullscreen (`F11`) and preset or custom screen resolutions (`--resizableDevice`).
-- **Desktop Themes (Express):** Light, Dark, IntelliJ, Dracula, macOS Light, and macOS Dark UI themes.
+- **Window Modes:** Borderless fullscreen (**Controls → Fullscreen**) and preset or custom screen resolutions (`--resizableDevice`).
+- **Desktop Themes (Express):** Light, Dark, IntelliJ, Dracula, macOS Light, macOS Dark, and System UI themes.
 
 ### 3D, Audio & Mobile Extensions
-- **3D & Vector Graphics:** Software implementations for JSR-184 (M3G), MascotCapsule Micro3D v3, and JSR-226 (SVG).
-- **Vendor APIs:** Support for Nokia UI, Siemens, Sony Ericsson, Motorola, and Samsung mobile extensions.
-- **Audio & Media:** Polyphonic MIDI playback, WAV/AU sampled audio, AMR voice clips, tone synthesis, and JSR-234 audio controls.
+- **3D Mobile Graphics:** Pure-Java software rasterizers for JSR-184 (M3G) and MascotCapsule Micro3D v3.
+- **Vendor & JSR Extensions:** Nokia UI `DirectGraphics`, Siemens API, Sony Ericsson / Motorola / Samsung helpers, and compatibility API stubs (`JSR-226`, `JSR-234`, `JSR-82`, `JSR-120`).
+- **Audio & Media:** Polyphonic MIDI playback, WAV/AU sampled audio, tone synthesis (`PCTone`), and Java Sound SPI-backed AMR/MP3/SMAF players (with timing simulation fallback).
 
 ### Storage, Networking & Diagnostics
-- **Game Saves & Backups:** Persistent `RecordStore` saves per game suite (`~/.neutron/`), an in-app RMS Inspector for viewing or editing saved data, an optional in-memory mode (`--rms memory`), and `.zip` snapshot backup/restore.
+- **Game Saves & Backups:** Persistent `RecordStore` saves per game suite (`~/.neutron/suite-<name>/`), a live RMS Log & storage mode switcher (`Config → Record Store Manager`), an optional in-memory mode (`--rms memory`), and `.zip` snapshot backup/restore.
 - **File Access:** Sandboxed virtual filesystem support for JSR-75 (`FileConnection`).
 - **Networking & Privacy:** HTTP, HTTPS, TCP socket, and UDP datagram support with one-click offline Airplane Mode and HTTP/SOCKS5 proxy configuration.
 - **Diagnostics:** Live FPS/timing HUD, Log Console, and Network Activity monitor.

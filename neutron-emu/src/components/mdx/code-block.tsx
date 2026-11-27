@@ -32,7 +32,7 @@ export function CodeBlock({ children, className, filename, ...props }: CodeBlock
         <pre
           ref={preRef}
           className={cn(
-            "overflow-x-auto rounded-lg border border-border bg-[#fafafa] dark:bg-[#0a0a0c] p-4 text-sm",
+            "overflow-x-auto rounded-lg border border-border bg-[var(--code-bg)] p-4 text-sm",
             filename && "rounded-tl-none",
             className
           )}

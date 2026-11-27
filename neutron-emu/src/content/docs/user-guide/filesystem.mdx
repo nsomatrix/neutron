@@ -48,21 +48,20 @@ If launched with a custom profile ID (`--id [ProfileID]`), the path becomes `~/.
 You can also run Neutron with pure in-memory RMS storage using the CLI flag: `--rms memory`. In memory mode, no files are written to disk, and state resets when the application closes.
 </Callout>
 
-### RMS Inspector Dialog
+### RMS Manager Dialog
 
-Neutron includes a built-in GUI inspector to manage saved data:
+Neutron includes a built-in dialog to monitor RMS activity and switch persistence modes:
 1. Open **Config → Record Store Manager**.
-2. Select any active or previous MIDlet suite.
-3. Inspect record IDs, byte lengths, and raw hex/string contents.
-4. Modify, import, or delete corrupted records with a single click.
+2. Inspect live timestamped `Log view` events (`record added/read/changed/deleted` and `store opened/closed/deleted`) along with record store names and IDs.
+3. Click **Change...** to switch between `File record store` (`.rms` files on disk) and `Memory record store` (volatile RAM).
 
 ---
 
 ## FileConnection (JSR-75)
 
-Neutron fully implements the **JSR-75 FileConnection** specification (`javax.microedition.io.file.*`):
+Neutron implements the **JSR-75 FileConnection** specification (`javax.microedition.io.file.*`):
 
-- **Virtual Root Drives:** Emulates root file structures like `root/`, `memory_card/`, and `c:/`.
+- **Virtual Root Drives:** Maps `~/.neutron/filesystem/` (overridable via `-Dneutron.fsRoot=...`) and initializes default drives **`c/`** and **`e/`** (falling back to **`root/`** if the root directory has no subfolders).
 - **Security & Integrity:** In v1.5.0, strict read-only mode checks (`Connector.READ`) are enforced throwing `IllegalModeException` on illegal write attempts.
 - **Path Traversal Protection:** Relative path escapes (`../`) outside the isolated virtual root boundaries are blocked to prevent accidental host system modification.
 
