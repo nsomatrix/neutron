@@ -1,5 +1,6 @@
 import org.neutron.build.CompressXzPayloadTask
 import org.neutron.build.PackStandaloneJarTask
+import org.neutron.build.VerifyReleaseJarTask
 import proguard.gradle.ProGuardTask
 
 plugins {
@@ -12,11 +13,13 @@ interface NeutronPackedAppExtension {
     Property<String> getAppBaseName()
     RegularFileProperty getProguardConfig()
     ListProperty<String> getPayloadExcludes()
+    Property<Boolean> getVerifyFlatLaf()
 }
 
 def neutronApp = extensions.create('neutronApp', NeutronPackedAppExtension)
 neutronApp.proguardConfig.convention(layout.projectDirectory.file('proguard.pro'))
 neutronApp.payloadExcludes.convention([])
+neutronApp.verifyFlatLaf.convention(false)
 
 def buildType = providers.gradleProperty('buildType').getOrElse('dev').toLowerCase()
 def isRelease = (buildType == 'release')
@@ -73,6 +76,8 @@ def proguardPayload = tasks.register('proguardPayload', ProGuardTask) {
     injars(rawPayloadJar.flatMap { it.archiveFile })
     outjars(payloadProguardOut)
     printmapping(layout.buildDirectory.file('outputs/mapping/payload-mapping.txt'))
+    printseeds(layout.buildDirectory.file('outputs/mapping/payload-seeds.txt'))
+    printusage(layout.buildDirectory.file('outputs/mapping/payload-usage.txt'))
 
     def javaHome = System.getProperty('java.home')
     [
@@ -131,7 +136,7 @@ def proguardLauncher = tasks.register('proguardLauncher', ProGuardTask) {
     dontnote
 }
 
-def releaseJar = tasks.register('releaseJar', PackStandaloneJarTask) {
+def releaseJarTask = tasks.register('releaseJar', PackStandaloneJarTask) {
     group = 'build'
     description = 'Packages the ProGuard-shrunk, XZ-compressed standalone release JAR.'
     dependsOn(compressPayload, proguardLauncher)
@@ -141,6 +146,24 @@ def releaseJar = tasks.register('releaseJar', PackStandaloneJarTask) {
     outputJar.set(neutronApp.appBaseName.flatMap { base ->
         layout.buildDirectory.file("libs/release/${base}-${project.version}.jar")
     })
+}
+
+def smokeMidletDeps = configurations.dependencyScope('smokeMidlet')
+def smokeMidletClasspath = configurations.resolvable('smokeMidletClasspath') {
+    extendsFrom(smokeMidletDeps.get())
+}
+dependencies {
+    smokeMidlet project(':neutron:neutron-tests:release-smoke-midlet')
+}
+
+def verifyReleaseTask = tasks.register('verifyRelease', VerifyReleaseJarTask) {
+    group = 'verification'
+    description = 'Verifies the packed standalone release JAR structure, launcher, obfuscated subsystems, and E2E smoke MIDlet.'
+    dependsOn(releaseJarTask)
+    releaseJar.set(releaseJarTask.flatMap { it.outputJar })
+    smokeMidletFiles.from(smokeMidletClasspath)
+    expectedMainClass.set(neutronApp.launcherMainClass)
+    verifyFlatLaf.set(neutronApp.verifyFlatLaf)
 }
 
 // Dev JAR always bundles runtimeClasspath into build/libs/dev/ so it is directly runnable via `java -jar`.
@@ -172,7 +195,10 @@ if (isRelease) {
         tasks.named(taskName).configure { enabled = false }
     }
     tasks.named('assemble').configure {
-        dependsOn(releaseJar)
+        dependsOn(releaseJarTask)
+    }
+    tasks.named('check').configure {
+        dependsOn(verifyReleaseTask)
     }
 }
 

@@ -5,6 +5,7 @@ plugins {
 neutronApp {
     launcherMainClass = 'org.neutron.app.SwingLauncher'
     appBaseName = 'neutron-javase-swing'
+    verifyFlatLaf = true
     payloadExcludes = [
         'com/formdev/flatlaf/natives/**',
         'com/formdev/flatlaf/resources/Bundle_*.properties'

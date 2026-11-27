@@ -1,0 +1,26 @@
+plugins {
+    id 'neutron.java-conventions'
+}
+
+dependencies {
+    compileOnly project(':neutron:neutron-midp')
+    compileOnly project(':neutron:neutron-cldc')
+    compileOnly project(':neutron:neutron-extensions:neutron-jsr-135')
+    compileOnly project(':neutron:neutron-extensions:neutron-jsr-184')
+    compileOnly project(':neutron:neutron-extensions:neutron-micro3d')
+    compileOnly project(':neutron:neutron-extensions:neutron-nokiaui')
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes(
+            'MIDlet-Name': 'NeutronReleaseSmoke',
+            'MIDlet-Vendor': 'Neutron QA',
+            'MIDlet-Version': '1.0.0',
+            'MIDlet-1': 'SmokeMIDlet, , org.neutron.smoke.SmokeMIDlet',
+            'MicroEdition-Configuration': 'CLDC-1.1',
+            'MicroEdition-Profile': 'MIDP-2.0'
+        )
+    }
+}
+

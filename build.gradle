@@ -32,3 +32,9 @@ tasks.register('release') {
     description = 'Builds all standalone release JARs (ProGuard + XZ packed).'
     dependsOn ':neutron:neutron-javase-swing:releaseJar', ':neutron:neutron-core:releaseJar'
 }
+
+tasks.register('verifyRelease') {
+    group = 'verification'
+    description = 'Builds and runs end-to-end verification on all packed standalone release JARs.'
+    dependsOn ':neutron:neutron-javase-swing:verifyRelease', ':neutron:neutron-core:verifyRelease'
+}

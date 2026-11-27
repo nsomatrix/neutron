@@ -114,8 +114,14 @@
 -keep class org.neutron.cldc.**.Connection {
     *;
 }
+-keep interface org.neutron.microedition.ImplementationInitialization {
+    *;
+}
 -keep class * implements org.neutron.microedition.ImplementationInitialization {
     <init>();
+    public void registerImplementation(java.util.Map);
+    public void notifyMIDletStart();
+    public void notifyMIDletDestroyed();
 }
 -keep class * implements org.neutron.device.Device {
     <init>();
@@ -123,10 +129,10 @@
 -keep class * implements org.neutron.RecordStoreManager {
     <init>();
 }
--keep class *Impl {
+-keep class org.neutron.**.*Impl {
     <init>();
 }
--keep interface *Delegate {
+-keep interface org.neutron.**.*Delegate {
     *;
 }
 -keep class * implements org.neutron.app.util.XMLItem {

@@ -59,6 +59,12 @@ Build Modes (configured via -PbuildType=dev|release, default: dev in gradle.prop
 # Build and launch both standalone release JARs simultaneously
 ./gradlew run -PbuildType=release
 
+# Verify packed standalone release JARs (structure, launcher, FlatLaf, reflection, J2ME APIs)
+./gradlew verifyRelease -PbuildType=release
+
+# Full release verification + dev unit tests (CI gate)
+./gradlew check -PbuildType=release
+
 --------------------------------------------------------------------------------
 3. CLEANING
 --------------------------------------------------------------------------------

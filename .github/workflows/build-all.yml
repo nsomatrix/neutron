@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-universal-jar:
-    name: Build & Test Universal Standalone JAR
+    name: Build, Verify & Test Universal Standalone JAR
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -29,14 +29,24 @@ jobs:
       - name: Grant Execute Permission to Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Run Test Suite (Dev Mode)
+      - name: Run Dev Test Suite
         run: xvfb-run --auto-servernum ./gradlew test
 
-      - name: Build Standalone Release JARs (ProGuard + XZ)
-        run: ./gradlew assemble -PbuildType=release
+      - name: Build & Verify Standalone Release JARs (ProGuard + XZ)
+        run: xvfb-run --auto-servernum ./gradlew assemble verifyRelease -PbuildType=release
 
-      - name: Upload Standalone Swing JAR
+      - name: Upload Standalone Release JARs
         uses: actions/upload-artifact@v4
         with:
-          name: neutron-standalone-jar
-          path: neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-*.jar
+          name: neutron-standalone-jars
+          path: |
+            neutron/neutron-javase-swing/build/libs/release/neutron-javase-swing-*.jar
+            neutron/neutron-core/build/libs/release/neutron-core-*.jar
+
+      - name: Upload ProGuard Mappings
+        uses: actions/upload-artifact@v4
+        with:
+          name: neutron-proguard-mappings
+          path: |
+            neutron/neutron-javase-swing/build/outputs/mapping/
+            neutron/neutron-core/build/outputs/mapping/
