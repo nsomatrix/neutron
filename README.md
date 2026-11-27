@@ -31,11 +31,11 @@ Instead of interpreting mobile instructions step-by-step, Neutron adapts MIDlet 
 
 <p align="center">
   <img src="neutron-emu/src/assets/render1.gif" alt="Ninja School Gameplay Showcase" width="48%" />
-  <img src="neutron-emu/src/assets/render2.gif" alt="Ninja World Gameplay Showcase" width="48%" />
+  <img src="neutron-emu/src/assets/bounce-tales.gif" alt="Bounce Tales Gameplay Showcase" width="48%" />
 </p>
 <p align="center">
-  <img src="neutron-emu/src/assets/render3.gif" alt="Action RPG Showcase" width="48%" />
-  <img src="neutron-emu/src/assets/render4.gif" alt="Neutron Interactive Demo" width="48%" />
+  <img src="neutron-emu/src/assets/gokart.gif" alt="3D Go-Kart Racing Gameplay Showcase" width="48%" />
+  <img src="neutron-emu/src/assets/rollercoaster-rush.gif" alt="Rollercoaster Rush Gameplay Showcase" width="48%" />
 </p>
 
 ---
