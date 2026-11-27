@@ -1,52 +1,36 @@
 import { getAllDocs, type Doc } from "./docs";
+import type { SearchResult } from "./search-shared";
 
-export interface SearchResult {
-  title: string;
-  description: string;
-  href: string;
-  section?: string;
-  content: string;
+export { getSearchExcerpt, type SearchResult } from "./search-shared";
+
+function cleanMdxText(raw: string): string {
+  return raw
+    .replace(/^---[\s\S]*?---/, "")
+    .replace(/```[^\n]*\n([\s\S]*?)```/g, " $1 ")
+    .replace(/#{1,6}\s+/g, "")
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
+    .replace(/[`*_~|]/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+:?-{2,}:?\s+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 export function buildSearchIndex(): SearchResult[] {
   const docs = getAllDocs();
 
-  return docs.map((doc: Doc) => ({
-    title: doc.meta.title,
-    description: doc.meta.description,
-    href: doc.meta.slug === "" ? "/docs" : `/docs/${doc.meta.slug}`,
-    content: doc.content
-      .replace(/^---[\s\S]*?---/, "")
-      .replace(/#{1,6}\s/g, "")
-      .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
-      .replace(/[`*_~]/g, "")
-      .replace(/<[^>]*>/g, "")
-      .replace(/\n{2,}/g, " ")
-      .trim()
-      .slice(0, 500),
-  }));
-}
+  return docs.map((doc: Doc) => {
+    const firstSegment = doc.meta.slug.split("/")[0] || "Documentation";
+    const section = firstSegment
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
 
-export function searchDocs(query: string, index: SearchResult[]): SearchResult[] {
-  if (!query.trim()) return [];
-
-  const terms = query.toLowerCase().split(/\s+/);
-
-  return index
-    .map((item) => {
-      const text =
-        `${item.title} ${item.description} ${item.content}`.toLowerCase();
-      let score = 0;
-
-      for (const term of terms) {
-        if (item.title.toLowerCase().includes(term)) score += 10;
-        if (item.description.toLowerCase().includes(term)) score += 5;
-        if (text.includes(term)) score += 1;
-      }
-
-      return { ...item, score };
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
+    return {
+      title: doc.meta.title,
+      description: doc.meta.description,
+      href: doc.meta.slug === "" ? "/docs" : `/docs/${doc.meta.slug}`,
+      section: doc.meta.slug === "" ? "Overview" : section,
+      content: cleanMdxText(doc.content),
+    };
+  });
 }

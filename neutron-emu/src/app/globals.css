@@ -140,25 +140,33 @@
 }
 
 /* ===== Base styles ===== */
-* {
-  border-color: var(--color-border);
-}
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
 
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 5rem;
-  overflow-x: clip;
-  max-width: 100%;
-}
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    overflow-x: clip;
+    max-width: 100%;
+  }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  overflow-x: clip;
-  max-width: 100%;
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    max-width: 100%;
+  }
+
+  *:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
 }
 
 /* ===== Selection ===== */
@@ -184,13 +192,6 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--scrollbar-thumb-hover);
-}
-
-/* ===== Focus styles ===== */
-*:focus-visible {
-  outline: 2px solid var(--color-ring);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
 }
 
 /* ===== Prose / MDX ===== */
